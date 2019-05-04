@@ -63,17 +63,17 @@ def get_token_auth_header():
     return token
 
 
-def requires_scope(required_scope):
+def scope_is_present(scope_to_check):
     """Determines if the required scope is present in the access token
     Args:
-        required_scope (str): The scope required to access the resource
+        scope_to_check (str): The scope required to access the resource
     """
     token = get_token_auth_header()
     unverified_claims = jwt.get_unverified_claims(token)
     if unverified_claims.get("scope"):
         token_scopes = unverified_claims["scope"].split()
         for token_scope in token_scopes:
-            if token_scope == required_scope:
+            if token_scope == scope_to_check:
                 return True
     return False
 
@@ -166,7 +166,7 @@ def private():
 def private_scoped():
     """A valid access token and an appropriate scope are required to access this route
     """
-    if requires_scope("read:messages"):
+    if scope_is_present("read:messages"):
         response = "Hello from a private endpoint! You need to be authenticated and have a scope of read:messages to see this."
         return jsonify(message=response)
     raise AuthError({

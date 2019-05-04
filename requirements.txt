@@ -3,3 +3,5 @@ python-dotenv
 python-jose
 flask-cors
 six
+pymongo
+dnspython

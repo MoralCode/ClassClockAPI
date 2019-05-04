@@ -10,13 +10,21 @@ from dotenv import load_dotenv, find_dotenv
 from flask import Flask, request, jsonify, _request_ctx_stack
 from flask_cors import cross_origin
 from jose import jwt
+from pymongo import MongoClient
+from bson import json_util
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
     load_dotenv(ENV_FILE)
 AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
 API_IDENTIFIER = env.get("API_IDENTIFIER")
+MONGODB_CREDS = env.get("MONGODB_CONN_STRING")
 ALGORITHMS = ["RS256"]
+
+
+client = MongoClient(MONGODB_CREDS)
+db=client.admin
+
 APP = Flask(__name__)
 
 

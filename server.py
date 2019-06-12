@@ -12,6 +12,16 @@ from flask_cors import cross_origin
 from jose import jwt
 from pymongo import MongoClient
 from bson import json_util
+from enum import Enum
+import http.client
+
+
+class AuthType(Enum):
+    TOKEN="Bearer"
+    CREDENTIALS="Basic"
+
+
+
 
 ENV_FILE = find_dotenv()
 if ENV_FILE:
@@ -45,6 +55,12 @@ def handle_auth_error(ex):
 def get_token_auth_header():
     """Obtains the access token from the Authorization Header
     """
+
+    return get_valid_auth_header_of_type(AuthType.TOKEN)
+
+def get_valid_auth_header_of_type(auth_header_type):
+    """Obtains the access token from the Authorization Header
+    """
     auth = request.headers.get("Authorization", None)
     if not auth:
         raise AuthError({"code": "authorization_header_missing",
@@ -56,16 +72,16 @@ def get_token_auth_header():
     if parts[0].lower() != "bearer":
         raise AuthError({"code": "invalid_header",
                         "description":
-                            "Authorization header must start with"
-                            " Bearer"}, 401)
+                            "Authorization header must start with "
+                            auth_header_type.value}, 401)
     elif len(parts) == 1:
         raise AuthError({"code": "invalid_header",
                         "description": "Token not found"}, 401)
     elif len(parts) > 2:
         raise AuthError({"code": "invalid_header",
                         "description":
-                            "Authorization header must be"
-                            " Bearer token"}, 401)
+                            "Authorization header must be "
+                            auth_header_type.value + " token"}, 401)
 
     token = parts[1]
     return token

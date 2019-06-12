@@ -1,3 +1,4 @@
+# pip3 install -r requirements.txt to install these dependencies
 flask
 python-dotenv
 python-jose

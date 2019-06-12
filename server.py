@@ -184,4 +184,5 @@ def private_scoped():
 
 
 if __name__ == "__main__":
-    APP.run(host="0.0.0.0", port=env.get("PORT", 3010))
+    APP.run() #    APP.run(host="0.0.0.0", port=env.get("PORT", 3010))
+

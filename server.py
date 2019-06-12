@@ -147,7 +147,7 @@ def requires_auth(f):
 
 
 # Controllers API
-@APP.route("/api/public")
+@APP.route("/v1/public")
 @cross_origin(headers=["Content-Type", "Authorization"])
 def public():
     """No access token required to access this route
@@ -156,7 +156,7 @@ def public():
     return jsonify(message=response)
 
 
-@APP.route("/api/private")
+@APP.route("/v1/private")
 @cross_origin(headers=["Content-Type", "Authorization"])
 @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:3000"])
 @requires_auth
@@ -167,7 +167,7 @@ def private():
     return jsonify(message=response)
 
 
-@APP.route("/api/private-scoped")
+@APP.route("/v1/private-scoped")
 @cross_origin(headers=["Content-Type", "Authorization"])
 @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:3000"])
 @requires_auth

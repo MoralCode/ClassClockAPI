@@ -6,6 +6,8 @@ from six.moves.urllib.request import urlopen
 from dotenv import load_dotenv, find_dotenv
 from flask import Flask, request, jsonify, _request_ctx_stack
 from flask_cors import cross_origin
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from jose import jwt
 from pymongo import MongoClient
 from bson import json_util
@@ -33,6 +35,7 @@ client = MongoClient(MONGODB_CREDS)
 db=client.admin
 
 APP = Flask(__name__)
+limiter = Limiter(APP, default_limits=["25/hour", "5/minute"], key_func = get_remote_address)
 
 
 # Format error response and append status code.
@@ -195,6 +198,16 @@ def private_scoped():
         "description": "You don't have access to this resource"
     }, 403)
 
+
+
+#override default rate limit exceeded error and return a JSON response instead
+#https://flask-limiter.readthedocs.io/en/stable/#custom-rate-limit-exceeded-responses
+@APP.errorhandler(429)
+def ratelimit_handler(e):
+    return make_response(
+            jsonify(error="ratelimit exceeded %s" % e.description)
+            , 429
+    )
 
 if __name__ == "__main__":
     APP.run() #    APP.run(host="0.0.0.0", port=env.get("PORT", 3010))

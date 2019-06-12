@@ -1,6 +1,3 @@
-"""Python Flask API Auth0 integration example
-"""
-
 from functools import wraps
 import json
 from os import environ as env

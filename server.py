@@ -243,9 +243,11 @@ def handle_auth_error(ex):
 
 @app.errorhandler(HTTPException)
 def handle_HTTP_error(e):
-
+    code = 500
+    if isinstance(e, HTTPException):
+        code = e.code
     return make_response(
-            jsonify(error=str(e.code) + " " + e.name, message=e.description),
+            jsonify(error=str(code) + " " + e.name, message=e.description),
             404
             )
 

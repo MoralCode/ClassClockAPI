@@ -5,6 +5,7 @@ from six.moves.urllib.request import urlopen
 
 from dotenv import load_dotenv, find_dotenv
 from flask import Flask, request, make_response, jsonify, _request_ctx_stack
+from werkzeug.exceptions import HTTPException
 from flask_cors import cross_origin
 from flask_limiter import Limiter
 # from flask_limiter.util import get_remote_address
@@ -240,6 +241,13 @@ def handle_auth_error(ex):
     response.status_code = ex.status_code
     return response
 
+@app.errorhandler(HTTPException)
+def handle_HTTP_error(e):
+
+    return make_response(
+            jsonify(error=str(e.code) + " " + e.name, message=e.description),
+            404
+            )
 
 if __name__ == "__main__":
     app.run() #    app.run(host="0.0.0.0", port=env.get("PORT", 3010))

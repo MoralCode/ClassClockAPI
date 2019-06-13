@@ -53,25 +53,9 @@ app = Flask(__name__)
 limiter = Limiter(app, default_limits=["25/hour", "5/minute"], key_func = get_remote_address)
 
 
-# Format error response and append status code.
-class AuthError(Exception):
-    def __init__(self, error, status_code):
-        self.error = error
-        self.status_code = status_code
-
-
-@app.errorhandler(AuthError)
-def handle_auth_error(ex):
-    response = jsonify(ex.error)
-    response.status_code = ex.status_code
-    return response
-
-
-def get_token_auth_header():
-    """Obtains the access token from the Authorization Header
-    """
-
-    return get_valid_auth_header_of_type(AuthType.TOKEN)
+#
+# Helpers
+#
 
 def get_valid_auth_header_of_type(auth_header_type):
     """Obtains the access token from the Authorization Header
@@ -116,6 +100,11 @@ def scope_is_present(scope_to_check):
                 return True
     return False
 
+
+
+#
+# Decorators
+#
 
 def requires_auth(f):
     """Determines if the access token is valid
@@ -177,7 +166,11 @@ def requires_auth(f):
     return decorated
 
 
-# Controllers API
+
+#
+# Routes
+#
+
 @app.route("/v1/public")
 @cross_origin(headers=["Content-Type", "Authorization"])
 def public():
@@ -215,6 +208,14 @@ def private_scoped():
 
 
 
+
+
+#
+#
+#   Error Handler Section
+#
+#
+
 #override default rate limit exceeded error and return a JSON response instead
 #https://flask-limiter.readthedocs.io/en/stable/#custom-rate-limit-exceeded-responses
 @app.errorhandler(429)
@@ -223,6 +224,14 @@ def ratelimit_handler(e):
             jsonify(error="ratelimit exceeded %s" % e.description)
             , 429
     )
+
+
+@app.errorhandler(AuthError)
+def handle_auth_error(ex):
+    response = jsonify(ex.error)
+    response.status_code = ex.status_code
+    return response
+
 
 if __name__ == "__main__":
     app.run() #    app.run(host="0.0.0.0", port=env.get("PORT", 3010))

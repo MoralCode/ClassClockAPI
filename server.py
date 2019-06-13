@@ -77,22 +77,22 @@ def get_valid_auth_header_of_type(auth_header_type):
 
     parts = auth.split()
 
-    if parts[0].lower() != "bearer":
+    if parts[0].lower() != auth_header_type.value.lower():
         raise AuthError({"code": "invalid_header",
                         "description":
-                            "Authorization header must start with " +
+                            "Authorization header value must start with " +
                             auth_header_type.value}, 401)
-    elif len(parts) == 1:
+    if len(parts) == 1:
         raise AuthError({"code": "invalid_header",
-                        "description": "Token not found"}, 401)
+                        "description": "Header value is missing"}, 401)
     elif len(parts) > 2:
         raise AuthError({"code": "invalid_header",
                         "description":
-                            "Authorization header must be " +
-                            auth_header_type.value + " token"}, 401)
+                            "Authorization header must be in the format \"" +
+                            auth_header_type.value + " [value]\""}, 401)
 
-    token = parts[1]
-    return token
+    
+    return parts[1] #return the value provided with the token
 
 
 def scope_is_present(scope_to_check):

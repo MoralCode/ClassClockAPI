@@ -4,7 +4,7 @@ from os import environ as env
 from six.moves.urllib.request import urlopen
 
 from dotenv import load_dotenv, find_dotenv
-from flask import Flask, request, jsonify, _request_ctx_stack
+from flask import Flask, request, make_response, jsonify, _request_ctx_stack
 from flask_cors import cross_origin
 from flask_limiter import Limiter
 from flask_limiter.util import get_remote_address

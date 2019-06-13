@@ -13,7 +13,7 @@ from jose import jwt
 from pymongo import MongoClient
 from bson import json_util
 from enum import Enum
-import http.client
+import http.client, base64
 
 #
 # ENUMS, classes, and shortcut methods
@@ -108,6 +108,20 @@ def scope_is_present(scope_to_check):
             if token_scope == scope_to_check:
                 return True
     return False
+
+def extract_valid_credentials(encoded_credentials):    
+    try:
+        decoded = base64.b64decode(encoded_credentials).decode("utf-8").split(":")
+    except:
+        abort(401, "An error occured while decoding the credentials")
+
+
+    if len(decoded) != 2:
+        abort(401, "credentials must not contain the ':' character")
+
+
+    return decoded
+    
 
 
 
@@ -215,6 +229,33 @@ def private_scoped():
         "description": "You don't have access to this resource"
     }, 403)
 
+
+@app.route("/v1/token")
+@autodoc.doc()
+@cross_origin(headers=["Content-Type", "Authorization"])
+@limiter.limit("10 per day")
+def get_token():
+    """Get an access token to use for authenticating to other endpoints
+    """
+
+    credentials = extract_valid_credentials(
+        get_valid_auth_header_of_type(AuthType.CREDENTIALS)
+        )[0]
+
+    conn = http.client.HTTPSConnection(AUTH0_DOMAIN)
+
+    payload = json.dumps({
+        "client_id":credentials[0],
+        "client_secret":credentials[1],
+        "audience":API_IDENTIFIER,
+        "grant_type":"client_credentials"
+        })
+
+    conn.request("POST", "/oauth/token", payload, { 'content-type': "application/json" })
+
+    response = conn.getresponse().read().decode("utf-8")
+    conn.close()
+    return response
 
 
 

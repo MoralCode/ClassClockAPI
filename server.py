@@ -7,7 +7,7 @@ from dotenv import load_dotenv, find_dotenv
 from flask import Flask, request, make_response, jsonify, _request_ctx_stack
 from flask_cors import cross_origin
 from flask_limiter import Limiter
-from flask_limiter.util import get_remote_address
+# from flask_limiter.util import get_remote_address
 from jose import jwt
 from pymongo import MongoClient
 from bson import json_util
@@ -29,6 +29,13 @@ class AuthError(Exception):
         self.status_code = status_code
 
 
+def get_API_user_identifier():
+    # print(client_id)
+    # print(type(client_id))
+    if hasattr(_request_ctx_stack.top, 'current_user'):
+        return _request_ctx_stack.top.current_user["azp"] # get the "authorized party" field of the auth token payload (which should be the client ID)
+    else:
+        return "Public"
 
 
 
@@ -48,7 +55,7 @@ client = MongoClient(MONGODB_CREDS)
 db=client.admin
 
 app = Flask(__name__)
-limiter = Limiter(app, default_limits=["25/hour", "5/minute"], key_func = get_remote_address)
+limiter = Limiter(app, default_limits=["25/hour", "5/minute"], key_func = get_API_user_identifier)
 
 
 #

@@ -29,8 +29,6 @@ class AuthError(Exception):
         self.status_code = status_code
 
 
-def get_token_auth_header():
-    return get_valid_auth_header_of_type(AuthType.TOKEN)
 
 
 
@@ -56,6 +54,9 @@ limiter = Limiter(app, default_limits=["25/hour", "5/minute"], key_func = get_re
 #
 # Helpers
 #
+
+def get_token_auth_header():
+    return get_valid_auth_header_of_type(AuthType.TOKEN)
 
 def get_valid_auth_header_of_type(auth_header_type):
     """Obtains the access token from the Authorization Header

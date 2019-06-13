@@ -235,7 +235,6 @@ def private_scoped():
 
 
 @app.route("/v1/token")
-@autodoc.doc()
 @cross_origin(headers=["Content-Type", "Authorization"])
 @limiter.limit("10 per day")
 def get_token():
@@ -244,7 +243,7 @@ def get_token():
 
     credentials = extract_valid_credentials(
         get_valid_auth_header_of_type(AuthType.CREDENTIALS)
-        )[0]
+        )
 
     conn = http.client.HTTPSConnection(AUTH0_DOMAIN)
 

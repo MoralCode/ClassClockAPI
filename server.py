@@ -19,12 +19,6 @@ class AuthType(Enum):
     TOKEN="Bearer"
     CREDENTIALS="Basic"
 
-
-
-
-ENV_FILE = find_dotenv()
-if ENV_FILE:
-    load_dotenv(ENV_FILE)
 AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
 API_IDENTIFIER = env.get("API_IDENTIFIER")
 MONGODB_CREDS = env.get("MONGODB_CONN_STRING")

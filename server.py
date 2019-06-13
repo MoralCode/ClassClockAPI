@@ -14,10 +14,31 @@ from bson import json_util
 from enum import Enum
 import http.client
 
+#
+# ENUMS, classes, and shortcut methods
+#
 
 class AuthType(Enum):
     TOKEN="Bearer"
     CREDENTIALS="Basic"
+
+# Format error response and append status code.
+class AuthError(Exception):
+    def __init__(self, error, status_code):
+        self.error = error
+        self.status_code = status_code
+
+
+def get_token_auth_header():
+    return get_valid_auth_header_of_type(AuthType.TOKEN)
+
+
+
+
+
+# 
+# App Setup 
+#
 
 AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
 API_IDENTIFIER = env.get("API_IDENTIFIER")
@@ -28,8 +49,8 @@ ALGORITHMS = ["RS256"]
 client = MongoClient(MONGODB_CREDS)
 db=client.admin
 
-APP = Flask(__name__)
-limiter = Limiter(APP, default_limits=["25/hour", "5/minute"], key_func = get_remote_address)
+app = Flask(__name__)
+limiter = Limiter(app, default_limits=["25/hour", "5/minute"], key_func = get_remote_address)
 
 
 # Format error response and append status code.
@@ -39,7 +60,7 @@ class AuthError(Exception):
         self.status_code = status_code
 
 
-@APP.errorhandler(AuthError)
+@app.errorhandler(AuthError)
 def handle_auth_error(ex):
     response = jsonify(ex.error)
     response.status_code = ex.status_code
@@ -157,7 +178,7 @@ def requires_auth(f):
 
 
 # Controllers API
-@APP.route("/v1/public")
+@app.route("/v1/public")
 @cross_origin(headers=["Content-Type", "Authorization"])
 def public():
     """No access token required to access this route
@@ -166,7 +187,7 @@ def public():
     return jsonify(message=response)
 
 
-@APP.route("/v1/private")
+@app.route("/v1/private")
 @cross_origin(headers=["Content-Type", "Authorization"])
 @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:3000"])
 @requires_auth
@@ -177,7 +198,7 @@ def private():
     return jsonify(message=response)
 
 
-@APP.route("/v1/private-scoped")
+@app.route("/v1/private-scoped")
 @cross_origin(headers=["Content-Type", "Authorization"])
 @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:3000"])
 @requires_auth
@@ -196,7 +217,7 @@ def private_scoped():
 
 #override default rate limit exceeded error and return a JSON response instead
 #https://flask-limiter.readthedocs.io/en/stable/#custom-rate-limit-exceeded-responses
-@APP.errorhandler(429)
+@app.errorhandler(429)
 def ratelimit_handler(e):
     return make_response(
             jsonify(error="ratelimit exceeded %s" % e.description)
@@ -204,5 +225,5 @@ def ratelimit_handler(e):
     )
 
 if __name__ == "__main__":
-    APP.run() #    APP.run(host="0.0.0.0", port=env.get("PORT", 3010))
+    app.run() #    app.run(host="0.0.0.0", port=env.get("PORT", 3010))
 

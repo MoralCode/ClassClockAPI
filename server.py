@@ -109,6 +109,13 @@ def scope_is_present(scope_to_check):
                 return True
     return False
 
+def check_scope(scope):
+    if not scope_is_present(scope):
+        raise AuthError({
+            "code": "Unauthorized",
+            "description": "Access to this resource requires the " + scope + " scope"
+        }, 403)
+
 def extract_valid_credentials(encoded_credentials):    
     try:
         decoded = base64.b64decode(encoded_credentials).decode("utf-8").split(":")
@@ -221,13 +228,10 @@ def private():
 def private_scoped():
     """A valid access token and an appropriate scope are required to access this route
     """
-    if scope_is_present("read:messages"):
-        response = "Hello from a private endpoint! You need to be authenticated and have a scope of read:messages to see this."
-        return jsonify(message=response)
-    raise AuthError({
-        "code": "Unauthorized",
-        "description": "You don't have access to this resource"
-    }, 403)
+    check_scope("read:messages")
+
+    response = "Hello from a private endpoint! You need to be authenticated and have a scope of read:messages to see this."
+    return jsonify(message=response)
 
 
 @app.route("/v1/token")

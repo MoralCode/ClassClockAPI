@@ -4,7 +4,7 @@ from os import environ as env
 from six.moves.urllib.request import urlopen
 
 from dotenv import load_dotenv, find_dotenv
-from flask import Flask, request, make_response, jsonify, _request_ctx_stack
+from flask import Flask, request, abort, make_response, jsonify, _request_ctx_stack
 from werkzeug.exceptions import HTTPException
 from flask_cors import cross_origin
 from flask_limiter import Limiter
@@ -230,9 +230,9 @@ def private_scoped():
 @app.errorhandler(429)
 def ratelimit_handler(e):
     return make_response(
-            jsonify(error="ratelimit exceeded %s" % e.description)
-            , 429
-    )
+            jsonify(error="ratelimit exceeded %s" % e.description),
+            429
+            )
 
 
 @app.errorhandler(AuthError)

@@ -7,3 +7,4 @@ six
 pymongo
 dnspython
 flask_limiter
+flasgger

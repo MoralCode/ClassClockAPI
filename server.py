@@ -14,7 +14,7 @@ from pymongo import MongoClient
 from bson import json_util
 from enum import Enum
 import http.client, base64
-
+from flasgger import Swagger
 #
 # ENUMS, classes, and shortcut methods
 #
@@ -57,7 +57,22 @@ db=client.admin
 
 app = Flask(__name__)
 limiter = Limiter(app, default_limits=["25/hour", "5/minute"], key_func = get_API_user_identifier)
-
+swagger = Swagger(app, config={
+    "headers": [
+    ],
+    "specs": [
+        {
+            "endpoint": 'apispec_1',
+            "route": '/apispec_1.json',
+            "rule_filter": lambda rule: True,  # all in
+            "model_filter": lambda tag: True,  # all in
+        }
+    ],
+    "static_url_path": "/flasgger_static",
+    # "static_folder": "static",  # must be set by user
+    "swagger_ui": True,
+    "specs_route": "/docs/"
+})
 
 #
 # Helpers

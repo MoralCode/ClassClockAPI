@@ -12,7 +12,7 @@ from bson import json_util
 from bson.objectid import ObjectId
 import http.client
 
-from helpers import AuthError, id_to_uri, build_response
+from helpers import requires_auth, AuthError, id_to_uri, build_response
 
 #
 # App Setup

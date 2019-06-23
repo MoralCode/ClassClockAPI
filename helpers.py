@@ -119,6 +119,18 @@ def id_to_uri(resource, uri_function_name):
     return new_resource
 
 
+def build_response(database_entry, field_whitelist, uri_function_name):
+    response = {}
+    for field in resource:
+        if field in field_whitelist:
+            response[field] = database_entry[field]
+        elif field == "_id":
+            response['uri'] = get_uri(
+                str(database_entry["_id"]), uri_function_name)
+
+    return response
+
+
 def extract_valid_credentials(encoded_credentials):
     try:
         decoded = base64.b64decode(

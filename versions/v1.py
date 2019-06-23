@@ -67,6 +67,24 @@ blueprint = Blueprint('v1', __name__)
 #     return jsonify(message=response)
 
 
+@blueprint.route("/schools", methods=['GET'])
+@cross_origin(headers=["Content-Type", "Authorization"])
+@cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:5000"])
+@requires_auth
+def get_schools():
+    """Returns a list of school names and IDs(as endpoints)
+    """
+    schoolData = {}
+
+    for school in schools.find():
+
+        schoolData[str(school["_id"])] = id_to_uri({
+            "id": school["_id"],
+            "fullName": school["fullName"],
+            "acronym": school["acronym"]
+        }, "v1.get_school_by_id")
+
+    return jsonify({"schoolsByID": schoolData})
 #
 #
 #   Error Handler Section

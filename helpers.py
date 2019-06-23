@@ -1,4 +1,4 @@
-from flask import _request_ctx_stack, request, url_for
+from flask import _request_ctx_stack, request, url_for, make_response, jsonify
 from functools import wraps
 from jose import jwt
 from bson.objectid import ObjectId
@@ -13,6 +13,10 @@ class AuthError(Exception):
     def __init__(self, error, status_code):
         self.error = error
         self.status_code = status_code
+
+
+def get_error_response(code, message):
+    return make_response(jsonify(error=message), code)
 
 
 def get_API_user_identifier():

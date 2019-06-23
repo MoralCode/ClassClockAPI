@@ -2,7 +2,7 @@ import json
 from os import environ as env
 from six.moves.urllib.request import urlopen
 
-from flask import Blueprint, abort, make_response, jsonify
+from flask import Blueprint, abort, jsonify
 from werkzeug.exceptions import HTTPException
 from flask_cors import cross_origin
 
@@ -11,7 +11,7 @@ from bson import json_util
 from bson.objectid import ObjectId
 import http.client
 
-from helpers import requires_auth, check_scope, AuthError, id_to_uri, build_response
+from helpers import requires_auth, check_scope, AuthError, id_to_uri, build_response, get_error_response
 from constants import APIScopes
 #
 # App Setup
@@ -132,25 +132,15 @@ def get_school_by_id(identifier):
 # https://flask-limiter.readthedocs.io/en/stable/#custom-rate-limit-exceeded-responses
 @blueprint.errorhandler(429)
 def ratelimit_handler(e):
-    return make_response(
-        jsonify(error="ratelimit exceeded %s" % e.description),
-        429
-    )
+    print(e)
+    return get_error_response(429, "ratelimit of " + e.description + " exceeded")
 
 
 @blueprint.errorhandler(AuthError)
-def handle_auth_error(ex):
-    response = jsonify(ex.error)
-    response.status_code = ex.status_code  # is text-based... this could be wrong
-    return response
+def handle_auth_error(e):
+    return get_error_response(e.status_code, e.error["description"])
 
 
 @blueprint.errorhandler(HTTPException)
 def handle_HTTP_error(e):
-    code = 500
-    if isinstance(e, HTTPException):
-        code = e.code
-    return make_response(
-        jsonify(error=str(code) + " " + e.name, message=e.description),
-        404
-    )
+    return get_error_response(e.code, e.description)

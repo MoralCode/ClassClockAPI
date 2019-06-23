@@ -9,6 +9,7 @@ from flask_cors import cross_origin
 
 from pymongo import MongoClient
 from bson import json_util
+from bson.objectid import ObjectId
 import http.client
 
 from helpers import AuthError, id_to_uri, build_response
@@ -82,6 +83,22 @@ def get_schools():
             school, ["id", "fullName", "acronym"], "v1.get_school_by_id")
 
     return jsonify({"schoolsByID": schoolData})
+
+
+@blueprint.route("/school/<string:identifier>", methods=['GET'])
+@cross_origin(headers=["Content-Type", "Authorization"])
+@cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:5000"])
+@requires_auth
+def get_school_by_id(identifier):
+    """
+    """
+
+    school = schools.find_one({"_id": ObjectId(identifier)})
+
+    return jsonify(build_response(school, ["fullName", "acronym",
+                                           "passingPeriodName", "schedules"], "v1.get_school_by_id"))
+
+
 #
 #
 #   Error Handler Section

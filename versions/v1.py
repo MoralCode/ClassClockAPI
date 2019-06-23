@@ -11,7 +11,7 @@ from pymongo import MongoClient
 from bson import json_util
 import http.client
 
-from helpers import *
+from helpers import AuthError, id_to_uri
 
 #
 # App Setup

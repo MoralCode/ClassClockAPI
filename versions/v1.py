@@ -11,7 +11,7 @@ from pymongo import MongoClient
 from bson import json_util
 import http.client
 
-from helpers import AuthError, id_to_uri
+from helpers import AuthError, id_to_uri, build_response
 
 #
 # App Setup
@@ -78,11 +78,8 @@ def get_schools():
 
     for school in schools.find():
 
-        schoolData[str(school["_id"])] = id_to_uri({
-            "id": school["_id"],
-            "fullName": school["fullName"],
-            "acronym": school["acronym"]
-        }, "v1.get_school_by_id")
+        schoolData[str(school["_id"])] = build_response(
+            school, ["id", "fullName", "acronym"], "v1.get_school_by_id")
 
     return jsonify({"schoolsByID": schoolData})
 #

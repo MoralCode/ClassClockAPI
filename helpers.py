@@ -96,13 +96,13 @@ def check_scope(scope):
 # from https://blog.miguelgrinberg.com/post/designing-a-restful-api-with-python-and-flask
 
 
-def get_uri(identifier, url_function_name):
+def get_uri(identifier, uri_function_name):
     """ returns a URI given an id and the function name of the endpoint
     """
-    return url_for(url_function_name, identifier=identifier, _external=True)
+    return url_for(uri_function_name, identifier=identifier, _external=True)
 
 
-def id_to_uri(resource, url_function_name):
+def id_to_uri(resource, uri_function_name):
     """ Replaces the ID field in resource with its URI
     """
     new_resource = {}
@@ -113,7 +113,7 @@ def id_to_uri(resource, url_function_name):
             if type(identifier) is ObjectId:
                 identifier = str(resource["id"])
 
-            new_resource['uri'] = get_uri(identifier, url_function_name)
+            new_resource['uri'] = get_uri(identifier, uri_function_name)
         else:
             new_resource[field] = resource[field]
     return new_resource

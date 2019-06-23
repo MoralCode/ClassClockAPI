@@ -23,7 +23,8 @@ ALGORITHMS = ["RS256"]
 
 
 client = MongoClient(MONGODB_CREDS)
-db = client.admin
+db = client.classclock
+schools = db.schools
 
 blueprint = Blueprint('v1', __name__)
 

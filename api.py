@@ -6,7 +6,7 @@ from helpers import get_API_user_identifier
 
 app = Flask(__name__)
 limiter = Limiter(app, default_limits=[
-                  "25/hour", "5/minute"], key_func=get_API_user_identifier)
+                  "25/hour", "5/minute"], key_func=get_API_user_identifier, headers_enabled=True)
 
 app.register_blueprint(v1.blueprint, url_prefix='/v1')
 

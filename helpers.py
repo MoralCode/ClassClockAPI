@@ -1,7 +1,8 @@
-from flask import _request_ctx_stack, request
+from flask import _request_ctx_stack, request, url_for
 from functools import wraps
 from jose import jwt
 from enum import Enum
+from bson.objectid import ObjectId
 import base64
 
 
@@ -95,17 +96,27 @@ def check_scope(scope):
 # from https://blog.miguelgrinberg.com/post/designing-a-restful-api-with-python-and-flask
 
 
-def id_to_uri(response):
-    """ Replaces the ID of a resource with its URI
+def get_uri(identifier, url_function_name):
+    """ returns a URI given an id and the function name of the endpoint
     """
-    new_task = {}
-    for field in task:
-        if field == 'id':
-            new_task['uri'] = url_for(
-                'get_task', task_id=task['id'], _external=True)
+    return url_for(url_function_name, identifier=identifier, _external=True)
+
+
+def id_to_uri(resource, url_function_name):
+    """ Replaces the ID field in resource with its URI
+    """
+    new_resource = {}
+    for field in resource:
+        if field in ['id', '_id']:
+
+            identifier = resource[field]
+            if type(identifier) is ObjectId:
+                identifier = str(resource[field])
+
+            new_resource['uri'] = get_uri(identifier, url_function_name)
         else:
-            new_task[field] = task[field]
-    return new_task
+            new_resource[field] = resource[field]
+    return new_resource
 
 
 def extract_valid_credentials(encoded_credentials):

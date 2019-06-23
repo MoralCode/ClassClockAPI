@@ -107,11 +107,11 @@ def id_to_uri(resource, url_function_name):
     """
     new_resource = {}
     for field in resource:
-        if field in ['id', '_id']:
+        if field == 'id':
 
-            identifier = resource[field]
+            identifier = resource["id"]
             if type(identifier) is ObjectId:
-                identifier = str(resource[field])
+                identifier = str(resource["id"])
 
             new_resource['uri'] = get_uri(identifier, url_function_name)
         else:

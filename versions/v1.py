@@ -12,7 +12,7 @@ from bson import json_util
 from bson.objectid import ObjectId
 import http.client
 
-from helpers import requires_auth, AuthError, id_to_uri, build_response
+from helpers import requires_auth, check_scope, AuthError, id_to_uri, build_response
 
 #
 # App Setup
@@ -75,6 +75,8 @@ blueprint = Blueprint('v1', __name__)
 def get_schools():
     """Returns a list of school names and IDs(as endpoints)
     """
+    check_scope("read:all-schools")
+
     schoolData = {}
 
     for school in schools.find():

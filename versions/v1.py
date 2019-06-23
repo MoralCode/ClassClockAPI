@@ -72,7 +72,13 @@ blueprint = Blueprint('v1', __name__)
 @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:5000"])
 @requires_auth
 def get_schools():
-    """Returns a list of school names and IDs(as endpoints)
+    """Get a list of every publicly accessible ClassClock school
+    ---
+    responses:
+        '200':
+            description: A list of every publicly accessible ClassClock school
+        '400':
+            description: Unauthorized for some reason such as an invalid access token or incorrect scopes
     """
     check_scope(APIScopes.READ_ALL_SCHOOLS)
 
@@ -92,6 +98,22 @@ def get_schools():
 @requires_auth
 def get_school_by_id(identifier):
     """
+    Get information about a single school
+    ---
+    parameters:
+    - name: identifier
+      in: path
+      type: string
+      required: true
+      description: the identifier string of the school you are requesting
+    responses:
+        200:
+            description: data for a single school
+        '400':
+            description: Unauthorized for some reason such as an invalid access token or incorrect scopes
+        default:
+            description: error payload
+
     """
 
     school = schools.find_one({"_id": ObjectId(identifier)})

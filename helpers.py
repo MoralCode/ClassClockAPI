@@ -1,19 +1,10 @@
 from flask import _request_ctx_stack, request, url_for
 from functools import wraps
 from jose import jwt
-from enum import Enum
 from bson.objectid import ObjectId
 import base64
 
-
-#
-# ENUMS, classes, and shortcut methods
-#
-
-
-class AuthType(Enum):
-    TOKEN = "Bearer"
-    CREDENTIALS = "Basic"
+from constants import AuthType
 
 # Format error response and append status code.
 

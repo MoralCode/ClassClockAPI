@@ -1,4 +1,3 @@
-
 import json
 from os import environ as env
 from six.moves.urllib.request import urlopen
@@ -13,7 +12,7 @@ from bson.objectid import ObjectId
 import http.client
 
 from helpers import requires_auth, check_scope, AuthError, id_to_uri, build_response
-
+from constants import APIScopes
 #
 # App Setup
 #
@@ -75,7 +74,7 @@ blueprint = Blueprint('v1', __name__)
 def get_schools():
     """Returns a list of school names and IDs(as endpoints)
     """
-    check_scope("read:all-schools")
+    check_scope(APIScopes.READ_ALL_SCHOOLS)
 
     schoolData = {}
 

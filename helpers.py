@@ -143,6 +143,21 @@ def extract_valid_credentials(encoded_credentials):
     return decoded
 
 
+# mongo validation code inspired by https://stackoverflow.com/a/39480773
+def validate_mongo_identifier(identifier):
+    valid = ""
+
+    if type(identifier) is ObjectId:
+        valid = identifier.is_valid()
+    else:
+        try:
+            valid = ObjectId.is_valid(identifier)
+        except Exception:
+            valid = False
+
+    if not valid:
+        abort(400, {"Invalid identifier string"})
+
 #
 # Decorators
 #

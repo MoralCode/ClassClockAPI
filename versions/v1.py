@@ -11,7 +11,7 @@ from bson import json_util
 from bson.objectid import ObjectId
 import http.client
 
-from helpers import requires_auth, check_scope, AuthError, id_to_uri, build_response, get_error_response
+from helpers import requires_auth, check_scope, AuthError, id_to_uri, build_response, get_error_response, validate_mongo_identifier
 from constants import APIScopes
 #
 # App Setup
@@ -116,6 +116,8 @@ def get_school_by_id(identifier):
 
     """
 
+    # validate identifier
+    validate_mongo_identifier(identifier)
     school = schools.find_one({"_id": ObjectId(identifier)})
 
     return jsonify(build_response(school, ["fullName", "acronym",

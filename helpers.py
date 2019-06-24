@@ -32,14 +32,14 @@ def get_error_response(code, message=None):
         return make_response(("", 500))
 
 
-def get_API_user_identifier():
+def get_api_client_id():
     # print(client_id)
     # print(type(client_id))
     if hasattr(_request_ctx_stack.top, 'current_user'):
         # get the "authorized party" field of the auth token payload (which should be the client ID)
         return _request_ctx_stack.top.current_user["azp"]
     else:
-        return "Public"
+        return "Public"  # this is just a generic string to lump all unauthenticated requests together and ratelimit as one
 
 
 #

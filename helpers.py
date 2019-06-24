@@ -24,7 +24,8 @@ class Oops(Exception):
 
 def get_error_response(code, message=None):
     if message is str and code is int:
-        return make_response(jsonify(error=message), code)
+        # https://jsonapi.org/format/#errors
+        return make_response(jsonify(errors=[{"detail": message}]), code)
     elif code is int:
         return make_response(("", code))
     else:

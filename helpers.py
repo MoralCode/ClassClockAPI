@@ -23,13 +23,11 @@ class Oops(Exception):
 
 
 def get_error_response(code, message=None):
-    if type(message) is str and type(code) is int:
+    if message is not None:
         # https://jsonapi.org/format/#errors
         return make_response(jsonify(errors=[{"detail": message}]), code)
-    elif code is int:
-        return make_response(("", code))
     else:
-        return make_response(("", 500))
+        return make_response(jsonify(""), code)
 
 
 def get_api_client_id():

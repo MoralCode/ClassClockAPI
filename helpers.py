@@ -16,6 +16,12 @@ class AuthError(Exception):
         self.status_code = status_code
 
 
+class Oops(Exception):
+    def __init__(self, message, status_code):
+        self.message = message
+        self.status_code = status_code
+
+
 def get_error_response(code, message=None):
     if message is str and code is int:
         return make_response(jsonify(error=message), code)
@@ -137,10 +143,10 @@ def extract_valid_credentials(encoded_credentials):
         decoded = base64.b64decode(
             encoded_credentials).decode("utf-8").split(":")
     except:
-        abort(401, "An error occured while decoding the credentials")
+        raise Oops("An error occured while decoding the credentials", 401)
 
     if len(decoded) != 2:
-        abort(401, "credentials must not contain the ':' character")
+        raise Oops("credentials must not contain the ':' character", 401)
 
     return decoded
 
@@ -158,11 +164,12 @@ def validate_mongo_identifier(identifier):
             valid = False
 
     if not valid:
-        abort(400, {"Invalid identifier string"})
+        raise Oops("Invalid identifier string", 400)
 
 #
 # Decorators
 #
+
 
 def requires_auth(f):
     """Determines if the access token is valid

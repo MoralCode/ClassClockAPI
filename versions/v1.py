@@ -11,7 +11,7 @@ from bson import json_util
 from bson.objectid import ObjectId
 import http.client
 
-from helpers import requires_auth, check_scope, AuthError, id_to_uri, build_response, get_error_response, validate_mongo_identifier
+from helpers import requires_auth, check_scope, AuthError, Oops, id_to_uri, build_response, get_error_response, validate_mongo_identifier
 from constants import APIScopes
 #
 # App Setup
@@ -141,6 +141,11 @@ def ratelimit_handler(e):
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
     return get_error_response(e.status_code, e.error["description"])
+
+
+@blueprint.errorhandler(Oops)
+def handle_error(e):
+    return get_error_response(e.status_code, e.message)
 
 
 @blueprint.errorhandler(HTTPException)

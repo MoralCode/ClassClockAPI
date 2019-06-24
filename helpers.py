@@ -128,7 +128,7 @@ def id_to_uri(resource, uri_function_name):
 
 def build_response(database_entry, field_whitelist, uri_function_name=None):
     response = {}
-    for field in resource:
+    for field in database_entry:
         if field in field_whitelist:
             response[field] = database_entry[field]
         elif uri_function_name is not None and field == "_id":

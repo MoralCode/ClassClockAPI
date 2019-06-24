@@ -144,3 +144,11 @@ def handle_auth_error(e):
 @blueprint.errorhandler(HTTPException)
 def handle_HTTP_error(e):
     return get_error_response(e.code, e.description)
+
+
+@blueprint.errorhandler(Exception)
+def generic_exception_handler(e):
+    # "We're sorry, but the electrons that were tasked with handling your request became terribly misguided and forgot what it is that they were supposed to be doing. Our team of scientists in the Electron Amnesia Recovery Ward is currently nursing them back to health; if you have any information about what it is these electrons were supposed to be doing at the time of this incident, please contact the maintainer of this service."
+    print("an exception occurred")
+    print(e)
+    return get_error_response(500)

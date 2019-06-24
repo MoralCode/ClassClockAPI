@@ -23,7 +23,7 @@ class Oops(Exception):
 
 
 def get_error_response(code, message=None):
-    if message is str and code is int:
+    if type(message) is str and type(code) is int:
         # https://jsonapi.org/format/#errors
         return make_response(jsonify(errors=[{"detail": message}]), code)
     elif code is int:

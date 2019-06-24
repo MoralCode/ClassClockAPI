@@ -118,7 +118,13 @@ def get_school_by_id(identifier):
 
     # validate identifier
     validate_mongo_identifier(identifier)
-    school = schools.find_one({"_id": ObjectId(identifier)})
+    try:
+        school = schools.find_one({"_id": ObjectId(identifier)})
+    except Exception:
+        raise Oops("There was a problem retrieving the resource specified", 500)
+
+    if school is None:
+        raise Oops("No resource was found at the identifier specified", 404)
 
     return jsonify(build_response(school, ["fullName", "acronym",
                                            "passingPeriodName", "schedules"], "v1.get_school_by_id"))

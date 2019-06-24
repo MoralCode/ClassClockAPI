@@ -17,10 +17,12 @@ class AuthError(Exception):
 
 
 def get_error_response(code, message=None):
-    if message is not None:
+    if message is str and code is int:
         return make_response(jsonify(error=message), code)
+    elif code is int:
+        return make_response(("", code))
     else:
-        return Response(status=code)
+        return make_response(("", 500))
 
 
 def get_API_user_identifier():

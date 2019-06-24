@@ -146,7 +146,7 @@ def ratelimit_handler(e):
 
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
-    return get_error_response(e.status_code, e.error["description"])
+    return get_error_response(e.status_code, e.error)
 
 
 @blueprint.errorhandler(Oops)

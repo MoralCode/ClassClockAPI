@@ -10,7 +10,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from helpers import requires_auth, check_scope, AuthError, Oops, id_to_uri, build_response, get_error_response
+from helpers import requires_auth, check_scope, AuthError, Oops, id_to_uri, get_error_response, make_dict
 from constants import APIScopes
 #
 # App Setup

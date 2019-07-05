@@ -4,7 +4,7 @@ python-dotenv
 python-jose
 flask-cors
 six
-pymongo
+mysql-connector
 dnspython
 flask_limiter
 flasgger

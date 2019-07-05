@@ -5,22 +5,25 @@ from flask import Blueprint, abort, jsonify
 from werkzeug.exceptions import HTTPException
 from flask_cors import cross_origin
 
-from pymongo import MongoClient
+import mysql.connector as mariadb
 from bson import json_util
-from bson.objectid import ObjectId
+# from bson.objectid import ObjectId
 import http.client
 
-from helpers import requires_auth, check_scope, AuthError, Oops, id_to_uri, build_response, get_error_response, validate_mongo_identifier
+from helpers import requires_auth, check_scope, AuthError, Oops, id_to_uri, build_response, get_error_response
 from constants import APIScopes
 #
 # App Setup
 #
-MONGODB_CREDS = env.get("MONGODB_CONN_STRING")
 
 
-client = MongoClient(MONGODB_CREDS)
-db = client.classclock
-schools = db.schools
+DB_HOST = env.get("DB_HOST")
+DB_USERNAME = env.get("DB_USERNAME")
+DB_PASSWORD = env.get("DB_PASSWORD")
+
+database = mariadb.connect(
+    host=DB_HOST, user=DB_USERNAME, password=DB_PASSWORD, database='classclock')
+cursor = database.cursor()
 
 blueprint = Blueprint('v1', __name__)
 
@@ -80,7 +83,8 @@ def get_schools():
 
     schoolData = {}
 
-    for school in schools.find():
+    cursor.execute(
+        "SELECT HEX(school_id) as school_id, school_name, school_acronym FROM schools")
 
         schoolData[str(school["_id"])] = build_response(
             school, ["id", "fullName", "acronym"], "v1.get_school_by_id")
@@ -112,8 +116,6 @@ def get_school_by_id(identifier):
 
     """
 
-    # validate identifier
-    validate_mongo_identifier(identifier)
     try:
         school = schools.find_one({"_id": ObjectId(identifier)})
     except Exception:

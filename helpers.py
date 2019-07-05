@@ -2,11 +2,11 @@ from flask import _request_ctx_stack, request, url_for, make_response, jsonify
 from werkzeug.wrappers import Response
 from functools import wraps
 from jose import jwt
-from bson.objectid import ObjectId
 from six.moves.urllib.request import urlopen
 import base64
 from os import environ as env
 import json
+
 
 from constants import AuthType
 
@@ -148,21 +148,6 @@ def extract_valid_credentials(encoded_credentials):
 
     return decoded
 
-
-# mongo validation code inspired by https://stackoverflow.com/a/39480773
-def validate_mongo_identifier(identifier):
-    valid = ""
-
-    if type(identifier) is ObjectId:
-        valid = identifier.is_valid()
-    else:
-        try:
-            valid = ObjectId.is_valid(identifier)
-        except Exception:
-            valid = False
-
-    if not valid:
-        raise Oops("Invalid identifier string", 400)
 
 #
 # Decorators

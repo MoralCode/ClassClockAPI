@@ -109,10 +109,10 @@ def replace_last(source_string, replace_what, replace_with):
 # from https://blog.miguelgrinberg.com/post/designing-a-restful-api-with-python-and-flask
 
 
-def get_uri(identifier, uri_function_name):
+def get_uri(identifier, uri_function_name, full_uri=True):
     """ returns a URI given an id and the function name of the endpoint
     """
-    return url_for(uri_function_name, identifier=identifier, _external=True)
+    return url_for(uri_function_name, identifier=identifier, _external=full_uri)
 
 
 def id_to_uri(resource, uri_function_name_mappings):
@@ -128,7 +128,7 @@ def id_to_uri(resource, uri_function_name_mappings):
                 "_id") else "uri"
 
             new_resource[key] = get_uri(
-                identifier, uri_function_name_mappings[field])
+                identifier, uri_function_name_mappings[field], False)
 
         else:
             new_resource[field] = resource[field]

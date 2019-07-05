@@ -85,9 +85,15 @@ def get_schools():
 
     cursor.execute(
         "SELECT HEX(school_id) as school_id, school_name, school_acronym FROM schools")
+    # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
+    dict_keys_map = ("id", "fullName", "acronym")
 
-        schoolData[str(school["_id"])] = build_response(
-            school, ["id", "fullName", "acronym"], "v1.get_school_by_id")
+    # for identifiers in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
+    keys_uri_map = {"id": "v1.get_school_by_id"}
+
+    for school in cursor:
+        schoolData[school[0]] = id_to_uri(make_dict(
+            school, dict_keys_map), keys_uri_map)
 
     return jsonify({"schoolsByID": schoolData})
 

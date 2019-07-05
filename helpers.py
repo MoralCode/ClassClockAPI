@@ -115,25 +115,25 @@ def get_uri(identifier, uri_function_name, full_uri=True):
     return url_for(uri_function_name, identifier=identifier, _external=full_uri)
 
 
-def id_to_uri(resource, uri_function_name_mappings):
+def get_links(resource, uri_function_name_mappings):
     """ Replaces the ID field in resource with its URI
     """
-    new_resource = {}
+    links = {}
     for field in resource:
         if 'id' in field:
 
             identifier = resource[field]
 
-            key = replace_last(field, "_id", "") + "_uri" if field.endswith(
-                "_id") else "uri"
+            key = replace_last(field, "_id", "") if field.endswith(
+                "_id") else "self"
 
-            new_resource[key] = get_uri(
+            links[key] = get_uri(
                 identifier, uri_function_name_mappings[field], False)
 
-        else:
-            new_resource[field] = resource[field]
+        # else:
+        #     links[field] = resource[field]
 
-    return new_resource
+    return links
 
 
 def make_dict(the_tuple, keys):

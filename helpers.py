@@ -219,7 +219,7 @@ def requires_auth(f):
     return decorated
 
 
-# decorator taken from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/decorators.py
+# decorator modified from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/decorators.py
 def check_headers(func):
     """Check headers according to jsonapi reference
     :param callable func: the function to decorate
@@ -231,11 +231,9 @@ def check_headers(func):
             if 'Content-Type' in request.headers and\
                     'application/vnd.api+json' in request.headers['Content-Type'] and\
                     request.headers['Content-Type'] != 'application/vnd.api+json':
-                error = json.dumps(jsonapi_errors([{'source': '',
-                                                    'detail': "Content-Type header must be application/vnd.api+json",
-                                                    'title': 'Invalid request header',
-                                                    'status': '415'}]), cls=JSONEncoder)
-                return getmake_response(error, 415, {'Content-Type': 'application/vnd.api+json'})
+
+                return make_jsonapi_error_response(415,
+                                                   title="Invalid request header", message="Content-Type header must be application/vnd.api+json")
         if 'Accept' in request.headers:
             flag = False
             for accept in request.headers['Accept'].split(','):
@@ -245,12 +243,9 @@ def check_headers(func):
                 if 'application/vnd.api+json' in accept and accept.strip() != 'application/vnd.api+json':
                     flag = True
             if flag is True:
-                error = json.dumps(jsonapi_errors([{'source': '',
-                                                    'detail': ('Accept header must be application/vnd.api+json without'
-                                                               'media type parameters'),
-                                                    'title': 'Invalid request header',
-                                                    'status': '406'}]), cls=JSONEncoder)
-                return make_response(error, 406, {'Content-Type': 'application/vnd.api+json'})
+
+                return make_jsonapi_error_response(406,
+                                                   title="Invalid request header", message="Accept header must be application/vnd.api+json without media type parameters")
         return func(*args, **kwargs)
 
     return wrapper

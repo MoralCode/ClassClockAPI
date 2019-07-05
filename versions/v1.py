@@ -10,7 +10,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from helpers import requires_auth, check_scope, AuthError, Oops, id_to_uri, get_error_response, make_dict
+from helpers import requires_auth, check_scope, AuthError, Oops, id_to_uri, make_jsonapi_error_response, make_dict
 from constants import APIScopes
 #
 # App Setup
@@ -145,22 +145,22 @@ def get_school_by_id(identifier):
 @blueprint.errorhandler(429)
 def ratelimit_handler(e):
     print(e)
-    return get_error_response(429, "ratelimit of " + e.description + " exceeded")
+    return make_jsonapi_error_response(429, title="Ratelimit Exceeded", message="ratelimit of " + e.description + " exceeded")
 
 
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
-    return get_error_response(e.status_code, e.error)
+    return make_jsonapi_error_response(e.status_code, message=e.error)
 
 
 @blueprint.errorhandler(Oops)
 def handle_error(e):
-    return get_error_response(e.status_code, e.message)
+    return make_jsonapi_error_response(e.status_code, message=e.message)
 
 
 @blueprint.errorhandler(HTTPException)
 def handle_HTTP_error(e):
-    return get_error_response(e.code, e.description)
+    return make_jsonapi_error_response(e.code, message=e.description)
 
 
 @blueprint.errorhandler(Exception)
@@ -168,4 +168,4 @@ def generic_exception_handler(e):
     # "We're sorry, but the electrons that were tasked with handling your request became terribly misguided and forgot what it is that they were supposed to be doing. Our team of scientists in the Electron Amnesia Recovery Ward is currently nursing them back to health; if you have any information about what it is these electrons were supposed to be doing at the time of this incident, please contact the maintainer of this service."
     print("an exception occurred")
     print(e)
-    return get_error_response(500)
+    return make_jsonapi_error_response(500)

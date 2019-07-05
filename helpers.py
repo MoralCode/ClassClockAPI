@@ -44,6 +44,13 @@ def make_jsonapi_error_response(code, title=None, message=None):
         error_data['detail'] = message
 
     return make_response(json.dumps(jsonapi_errors([error_data]), cls=JSONEncoder), code, {'Content-Type': 'application/vnd.api+json'})
+def make_jsonapi_response(content, code=None):
+    headers = {'Content-Type': 'application/vnd.api+json'}
+
+    if code is None:
+        return make_response(json.dumps(content, cls=JSONEncoder), headers)
+    else:
+        return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
 
 def get_api_client_id():

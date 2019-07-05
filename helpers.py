@@ -124,6 +124,14 @@ def id_to_uri(resource, uri_function_name):
     return new_resource
 
 
+def make_dict(the_tuple, keys):
+    the_dict = {}
+    for value in the_tuple:
+        key = keys[the_tuple.index(value)]
+        the_dict[key] = value
+    return the_dict
+
+
 def build_response(database_entry, field_whitelist, uri_function_name=None):
     response = {}
     for field in database_entry:

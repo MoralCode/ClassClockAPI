@@ -98,6 +98,14 @@ def check_scope(scope):
         raise AuthError(
             "Access to this resource requires the " + scope + " scope", 403)
 
+# from https://stackoverflow.com/a/3675423
+
+
+def replace_last(source_string, replace_what, replace_with):
+    head, _sep, tail = source_string.rpartition(replace_what)
+    return head + replace_with + tail
+
+
 # from https://blog.miguelgrinberg.com/post/designing-a-restful-api-with-python-and-flask
 
 
@@ -107,20 +115,24 @@ def get_uri(identifier, uri_function_name):
     return url_for(uri_function_name, identifier=identifier, _external=True)
 
 
-def id_to_uri(resource, uri_function_name):
+def id_to_uri(resource, uri_function_name_mappings):
     """ Replaces the ID field in resource with its URI
     """
     new_resource = {}
     for field in resource:
-        if field == 'id':
+        if 'id' in field:
 
-            identifier = resource["id"]
-            if type(identifier) is ObjectId:
-                identifier = str(resource["id"])
+            identifier = resource[field]
 
-            new_resource['uri'] = get_uri(identifier, uri_function_name)
+            key = replace_last(field, "_id", "") + "_uri" if field.endswith(
+                "_id") else "uri"
+
+            new_resource[key] = get_uri(
+                identifier, uri_function_name_mappings[field])
+
         else:
             new_resource[field] = resource[field]
+
     return new_resource
 
 

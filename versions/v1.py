@@ -1,6 +1,5 @@
 import json
 from os import environ as env
-from six.moves.urllib.request import urlopen
 
 from flask import Blueprint, abort, jsonify
 from werkzeug.exceptions import HTTPException
@@ -16,10 +15,7 @@ from constants import APIScopes
 #
 # App Setup
 #
-AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
-API_IDENTIFIER = env.get("API_IDENTIFIER")
 MONGODB_CREDS = env.get("MONGODB_CONN_STRING")
-ALGORITHMS = ["RS256"]
 
 
 client = MongoClient(MONGODB_CREDS)

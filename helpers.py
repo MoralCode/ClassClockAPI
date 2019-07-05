@@ -3,9 +3,17 @@ from werkzeug.wrappers import Response
 from functools import wraps
 from jose import jwt
 from bson.objectid import ObjectId
+from six.moves.urllib.request import urlopen
 import base64
+from os import environ as env
+import json
 
 from constants import AuthType
+
+
+AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
+API_IDENTIFIER = env.get("API_IDENTIFIER")
+ALGORITHMS = ["RS256"]
 
 # Format error response and append status code.
 

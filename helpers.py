@@ -144,18 +144,6 @@ def make_dict(the_tuple, keys):
     return the_dict
 
 
-def build_response(database_entry, field_whitelist, uri_function_name=None):
-    response = {}
-    for field in database_entry:
-        if field in field_whitelist:
-            response[field] = database_entry[field]
-        elif uri_function_name is not None and field == "_id":
-            response['uri'] = get_uri(
-                str(database_entry["_id"]), uri_function_name)
-
-    return response
-
-
 def extract_valid_credentials(encoded_credentials):
     try:
         decoded = base64.b64decode(

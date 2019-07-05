@@ -33,12 +33,17 @@ class Oops(Exception):
         self.status_code = status_code
 
 
-def get_error_response(code, message=None):
+def make_jsonapi_error_response(code, title=None, message=None):
+
+    error_data = {'source': '', 'status': str(code)}
+
+    if title is not None:
+        error_data['title'] = title
+
     if message is not None:
-        # https://jsonapi.org/format/#errors
-        return make_response(jsonify(errors=[{"detail": message}]), code)
-    else:
-        return make_response(jsonify(""), code)
+        error_data['detail'] = message
+
+    return make_response(json.dumps(jsonapi_errors([error_data]), cls=JSONEncoder), code, {'Content-Type': 'application/vnd.api+json'})
 
 
 def get_api_client_id():

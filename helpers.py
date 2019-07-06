@@ -282,7 +282,7 @@ def get_relationships(resource, uri_function_name_mappings):
             relationships[resource_name]["links"]["self"] = get_uri(
                 identifier, uri_function_name_mappings[field], True)
 
-    return relationships if relationships is not {} else None
+    return relationships if relationships != {} else None
 
 
 def make_dict(the_tuple, keys):

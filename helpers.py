@@ -47,7 +47,7 @@ def make_jsonapi_error_response(code, title=None, message=None):
         A flask Response object for the web server
     """
 
-    error_data = {'source': '', 'status': str(code)}
+    error_data = {'status': str(code)}
 
     if title is not None:
         error_data['title'] = title

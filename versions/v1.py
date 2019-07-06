@@ -122,17 +122,27 @@ def get_school_by_id(identifier):
 
     """
 
-    try:
-        school = schools.find_one({"_id": ObjectId(identifier)})
-    except Exception:
-        raise Oops("There was a problem retrieving the resource specified", 500)
+    # .format(self.db_scan_table)
+    sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id= UNHEX(%s)')
 
-    if school is None:
-        raise Oops("No resource was found at the identifier specified", 404)
+    cursor.execute(sql, (identifier,))
 
-    return jsonify(build_response(school, ["fullName", "acronym",
-                                           "passingPeriodName", "schedules"], "v1.get_school_by_id"))
+    # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
+    dict_keys_map = ("id", "fullName", "acronym",
+                     "alternate_freeperiod_name", "creation_date")
 
+    # for identifiers in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
+    keys_uri_map = {"id": "v1.get_school_by_id"}
+
+    # for value in cursor:
+    #     print(value)
+
+    fetch = cursor.fetchone()
+
+    if fetch is None:
+        return make_jsonapi_error_response(404, title="Resource Not Found", message="No school was found with the specified id.")
+
+    return make_jsonapi_success_response(make_dict(fetch, dict_keys_map), "school", keys_uri_map)
 
 #
 #

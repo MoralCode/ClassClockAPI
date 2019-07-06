@@ -184,6 +184,19 @@ def check_scope(scope):
         raise AuthError(
             "Access to this resource requires the " + scope + " scope", 403)
 
+
+def check_scopes(scopes):
+    """Raises an AuthError if the specified scopes are not present
+
+    Arguments:
+        scope {string[]} -- A list of scopes to check
+
+    Raises:
+        AuthError: An authentication error
+    """
+    for scope in scopes:
+        check_scope(scope)
+
 # from https://stackoverflow.com/a/3675423
 
 

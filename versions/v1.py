@@ -79,7 +79,6 @@ def get_schools():
         '400':
             description: Unauthorized for some reason such as an invalid access token or incorrect scopes
     """
-    check_scope(APIScopes.READ_ALL_SCHOOLS)
 
     schools_list = []
 

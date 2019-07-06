@@ -23,7 +23,7 @@ DB_PASSWORD = env.get("DB_PASSWORD")
 
 database = mariadb.connect(
     host=DB_HOST, user=DB_USERNAME, password=DB_PASSWORD, database='classclock')
-cursor = database.cursor()
+cursor = database.cursor(prepared=True)
 
 blueprint = Blueprint('v1', __name__)
 

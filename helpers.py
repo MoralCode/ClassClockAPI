@@ -279,6 +279,9 @@ def get_relationships(resource, uri_function_name_mappings):
 
             resource_name = replace_last(field, "_id", "")
 
+            # got to initialize all the things or python will get angry
+            relationships[resource_name] = {}
+            relationships[resource_name]["links"] = {}
             relationships[resource_name]["links"]["self"] = get_uri(
                 identifier, uri_function_name_mappings[field], True)
 

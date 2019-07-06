@@ -165,13 +165,14 @@ def get_self_link(resource, uri_function_name_mappings):
     """ gets URIs to resources that are related to the provoded resource
     """
     links = {}
-    for field in resource:
-        if field == "id":
+    if "id" in resource:
 
-            identifier = resource[field]
+        identifier = resource["id"]
 
-            links["self"] = get_uri(
-                identifier, uri_function_name_mappings[field], True)
+        links["self"] = get_uri(
+            identifier, uri_function_name_mappings["id"], True)
+    else:
+        return None
 
     return links
 

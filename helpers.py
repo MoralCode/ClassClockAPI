@@ -201,6 +201,28 @@ def make_dict(the_tuple, keys):
     return the_dict
 
 
+def make_jsonapi_success_response(data, data_domain_string, uri_function_name_mappings):
+    response_content = {}
+    response_content["jsonapi"] = {"version": "1.0"}
+
+    if isinstance(data, list):
+        response_content["data"] = []
+
+        for item in data:
+            response_content["data"].append(
+                make_jsonapi_resource_object(
+                    item, data_domain_string, uri_function_name_mappings)
+            )
+    else:
+        response_content["data"] = make_jsonapi_resource_object(
+            data, data_domain_string, uri_function_name_mappings)
+
+    response_content["links"] = get_self_link(
+        data, uri_function_name_mappings)
+
+    return make_jsonapi_response(response_content)
+
+
 def extract_valid_credentials(encoded_credentials):
     try:
         decoded = base64.b64decode(

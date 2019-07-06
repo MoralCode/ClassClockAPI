@@ -301,7 +301,8 @@ def make_dict(the_tuple, keys):
     the_dict = {}
     for value in the_tuple:
         key = keys[the_tuple.index(value)]
-        the_dict[key] = value
+        the_dict[key] = value if not isinstance(
+            value, bytearray) else value.decode()
     return the_dict
 
 

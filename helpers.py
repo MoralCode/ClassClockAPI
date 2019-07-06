@@ -34,6 +34,18 @@ class Oops(Exception):
 
 
 def make_jsonapi_error_response(code, title=None, message=None):
+    """ Generates a JSON:API error response
+
+    Arguments:
+        code {number} -- The HTTP status code to return for the error; both through HTTP and in the JSON response.
+
+    Keyword Arguments:
+        title {string} -- An optional title for the error (i.e. "Unauthorized", "Access Denied") (default: {None})
+        message {string} -- An optional message giving more details about the error (default: {None})
+
+    Returns:
+        A flask Response object for the web server
+    """
 
     error_data = {'source': '', 'status': str(code)}
 
@@ -47,6 +59,17 @@ def make_jsonapi_error_response(code, title=None, message=None):
 
 
 def make_jsonapi_response(content, code=None):
+    """ Forms a Flask-and-JSON:API-compatible JSON response
+
+    Arguments:
+        content {dict} -- The content to pass to the API client in the JSON response
+
+    Keyword Arguments:
+        code {number} -- The optional HTTP status code to return with the response (used for errors) (default: {None})
+
+    Returns:
+        A flask Response object for the web server
+    """
     headers = {'Content-Type': 'application/vnd.api+json'}
 
     if code is None:
@@ -56,13 +79,25 @@ def make_jsonapi_response(content, code=None):
 
 
 def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappings):
+    """Creates a JSON:API "resource object" from a dict of data
 
+    Arguments:
+        data_dict {dict} -- The data to create the resource object from
+        data_domain {string} -- A string describing what the data in data_dict represents (i.e. "school", "schedule", etc.)
+        uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in data_dict to the name of the function whose route should be used to generate URI's for responses
+        TODO: maybe make uri_function_name_mappings an enum or something
+    Raises:
+        e: A Key Error if the data_dict somehow does not contain an "id" field. should never happen
+
+    Returns:
+        dict -- A resource object dict with contents formatted per the JSON:API spec
+    """
     resource_object = {}
 
     try:
         resource_object["id"] = data_dict["id"]
     except KeyError as e:
-        # this is an internal error so im not 100% sure if it should be passed through to the api client as is or just be logged and generalized as a 500 internal server error
+        # TODO: this is an internal error so im not 100% sure if it should be passed through to the api client as is or just be logged and generalized as a 500 internal server error
         print("An id field is required in the data dict passed to make_jsonapi_resource_object, but none was found.")
         raise e
 
@@ -85,6 +120,8 @@ def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappi
 
 
 def get_api_client_id():
+    """Returns a string to group API calls together for the purposes of ratelimiting 
+    """
     # print(client_id)
     # print(type(client_id))
     if hasattr(_request_ctx_stack.top, 'current_user'):
@@ -94,17 +131,12 @@ def get_api_client_id():
         return "Public"  # this is just a generic string to lump all unauthenticated requests together and ratelimit as one
 
 
-#
-# Helpers
-#
-
-
 def get_token_auth_header():
     return get_valid_auth_header_of_type(AuthType.TOKEN)
 
 
 def get_valid_auth_header_of_type(auth_header_type):
-    """Obtains the access token from the Authorization Header
+    """Obtains a valid Authorization Header value
     """
     auth = request.headers.get("Authorization", None)
     if not auth:
@@ -140,6 +172,14 @@ def scope_is_present(scope_to_check):
 
 
 def check_scope(scope):
+    """Raises an AuthError if the specified scope is not present
+
+    Arguments:
+        scope {string} -- The scope to check
+
+    Raises:
+        AuthError: An authentication error
+    """
     if not scope_is_present(scope):
         raise AuthError(
             "Access to this resource requires the " + scope + " scope", 403)
@@ -148,6 +188,16 @@ def check_scope(scope):
 
 
 def replace_last(source_string, replace_what, replace_with):
+    """Replaces only the last occurrence of a substring in a source string with a different string
+
+    Arguments:
+        source_string {string} -- The string perform the search on
+        replace_what {string} -- The string to search for in the source string
+        replace_with {string} -- The string to replace the search string for
+
+    Returns:
+        string -- The source string with the last occurrence of the replacement string replaces with the search string
+    """
     head, _sep, tail = source_string.rpartition(replace_what)
     return head + replace_with + tail
 
@@ -155,14 +205,31 @@ def replace_last(source_string, replace_what, replace_with):
 # from https://blog.miguelgrinberg.com/post/designing-a-restful-api-with-python-and-flask
 
 
-def get_uri(identifier, uri_function_name, full_uri=True):
-    """ returns a URI given an id and the function name of the endpoint
+def get_uri(identifier, uri_function_name, absolute_uri=True):
+    """Returns a URI given an identifier and the function name of the endpoint
+
+    Arguments:
+        identifier {string} -- The resource's identifier to substitute into the uri 
+        uri_function_name {string} -- The name of the function whose route should be used to generate URI's for responses
+
+    Keyword Arguments:
+        absolute_uri {bool} -- A flag indicating whether to return an absolute URI (https://example.com/endpoint) or a relative URI (/endpoint) (default: {True})
+
+    Returns:
+        string -- The URI for the resource
     """
-    return url_for(uri_function_name, identifier=identifier, _external=full_uri)
+    return url_for(uri_function_name, identifier=identifier, _external=absolute_uri)
 
 
 def get_self_link(resource, uri_function_name_mappings):
-    """ gets URIs to resources that are related to the provoded resource
+    """Returns the URI to the provided resource as a JSON:API "links object"
+
+    Arguments:
+        resource {dict} -- The data to create the links object from
+        uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in resource to the name of the function whose route should be used to generate URI's for responses
+
+    Returns:
+        dict -- A links object dict with contents formatted per the JSON:API spec
     """
     links = {}
     if "id" in resource:
@@ -178,7 +245,14 @@ def get_self_link(resource, uri_function_name_mappings):
 
 
 def get_relationships(resource, uri_function_name_mappings):
-    """ gets URIs to resources that are related to the provoded resource
+    """Returns the URIs to related resources as a JSON:API "relationships object"
+
+    Arguments:
+        resource {dict} -- The data to create the relationships object from
+        uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in resource to the name of the function whose route should be used to generate URI's for responses
+
+    Returns:
+        dict -- A relationships object dict with contents formatted per the JSON:API spec
     """
     relationships = {}
     for field in resource:
@@ -195,6 +269,15 @@ def get_relationships(resource, uri_function_name_mappings):
 
 
 def make_dict(the_tuple, keys):
+    """Creates a dict from a pair of tuples of equal length
+
+    Arguments:
+        the_tuple {tuple} -- A tuple containing the data/values for the resulting dict
+        keys {tuple (or maybe list)} -- A tuple containing the keys for the resulting dict
+
+    Returns:
+        A dict containing the data from both inputs
+    """
     the_dict = {}
     for value in the_tuple:
         key = keys[the_tuple.index(value)]
@@ -203,6 +286,16 @@ def make_dict(the_tuple, keys):
 
 
 def make_jsonapi_success_response(data, data_domain_string, uri_function_name_mappings):
+    """Generates a JSON:API success response
+
+    Arguments:
+        data {dict} -- The data to create the response from
+        data_domain_string {string} -- A string describing what the data in the data parameter represents (i.e. "school", "schedule", etc.)
+        uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in `data` to the name of the function whose route should be used to generate URI's for responses
+
+    Returns:
+        A flask Response object for the web server
+    """
     response_content = {}
     response_content["jsonapi"] = {"version": "1.0"}
 
@@ -225,6 +318,18 @@ def make_jsonapi_success_response(data, data_domain_string, uri_function_name_ma
 
 
 def extract_valid_credentials(encoded_credentials):
+    """Extracts a username and password from a base64 encoded HTTP Authorization header
+
+    Arguments:
+        encoded_credentials {string} -- The raw/encoded HTTP Authorization header value
+
+    Raises:
+        Oops: A general Exception
+        Oops: A general Exception
+
+    Returns:
+        list -- A list containing the decoded credentials in the form of [username, password] 
+    """
     try:
         decoded = base64.b64decode(
             encoded_credentials).decode("utf-8").split(":")

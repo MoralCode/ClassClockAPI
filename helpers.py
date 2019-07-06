@@ -94,19 +94,8 @@ def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappi
     """
     resource_object = {}
 
-    try:
-        resource_object["id"] = data_dict["id"]
-    except KeyError as e:
-        # TODO: this is an internal error so im not 100% sure if it should be passed through to the api client as is or just be logged and generalized as a 500 internal server error
-        print("An id field is required in the data dict passed to make_jsonapi_resource_object, but none was found.")
-        raise e
-
     # data_domain is a string to describe the type of data (i.e. school, schedule, etc.) for use as the key in the JSON response
     resource_object["type"] = str(data_domain)
-
-    # data is expected to be a dict, not a tuple straight from the database
-    for field in data_dict:
-        resource_object["attributes"][field] = data_dict[field]
 
     resource_object["links"] = get_self_link(
         data_dict, uri_function_name_mappings)
@@ -115,6 +104,21 @@ def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappi
 
     if relationships is not None:
         resource_object["relationships"] = relationships
+
+    resource_object["attributes"] = {}
+
+    # data is expected to be a dict, not a tuple straight from the database
+    for field in data_dict:
+        if field == "id":
+            try:
+                resource_object["id"] = data_dict["id"]
+            except KeyError as e:
+                # TODO: this is an internal error so im not 100% sure if it should be passed through to the api client as is or just be logged and generalized as a 500 internal server error
+                print(
+                    "An id field is required in the data dict passed to make_jsonapi_resource_object, but none was found.")
+                raise e
+        else:
+            resource_object["attributes"][field] = data_dict[field]
 
     return resource_object
 

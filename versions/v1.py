@@ -10,7 +10,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from helpers import requires_auth, check_scope, AuthError, Oops, id_to_uri, make_jsonapi_error_response, make_dict
+from helpers import requires_auth, check_scope, AuthError, Oops, make_jsonapi_error_response, make_dict, make_jsonapi_success_response
 from constants import APIScopes
 #
 # App Setup
@@ -81,7 +81,7 @@ def get_schools():
     """
     check_scope(APIScopes.READ_ALL_SCHOOLS)
 
-    schoolData = {}
+    schools_list = []
 
     cursor.execute(
         "SELECT HEX(school_id) as school_id, school_name, school_acronym FROM schools")
@@ -92,10 +92,11 @@ def get_schools():
     keys_uri_map = {"id": "v1.get_school_by_id"}
 
     for school in cursor:
-        schoolData[school[0]] = id_to_uri(make_dict(
-            school, dict_keys_map), keys_uri_map)
+        schools_list.append(make_dict(
+            school, dict_keys_map)
+        )
 
-    return jsonify({"schoolsByID": schoolData})
+    return make_jsonapi_success_response(schools_list, "school", keys_uri_map)
 
 
 @blueprint.route("/school/<string:identifier>", methods=['GET'])
@@ -111,7 +112,7 @@ def get_school_by_id(identifier):
       in: path
       type: string
       required: true
-      description: the identifier string of the school you are requesting
+      description: the hexadecimal identifier of the school you are requesting
     responses:
         200:
             description: data for a single school

@@ -8,7 +8,7 @@ app = Flask(__name__)
 limiter = Limiter(app, default_limits=[
                   "25/hour", "5/minute"], key_func=get_api_client_id, headers_enabled=True)
 
-app.register_blueprint(v1.blueprint, url_prefix='/v1')
+app.register_blueprint(v1.blueprint, url_prefix='/v0')
 
 
 swagger = Swagger(app, config={
@@ -31,8 +31,8 @@ swagger = Swagger(app, config={
 
     "info": {
         "title": "ClassClock API",
-        "version": "1.0",
-        "description": "The first release of the ClassClock API",
+        "version": "0.1",
+        "description": "The first beta development version of the ClassClock API",
         "contact": {
             # "responsibleOrganization": "ME",
             # "responsibleDeveloper": "Me",
@@ -43,16 +43,16 @@ swagger = Swagger(app, config={
     },
     "servers": [
         {
-            "url": "https://api.classclock.app/v1",
+            "url": "https://api.classclock.app/",
             "description": "ClassClock API Server"
         },
         {
-            "url": "https://localhost:5000/v1",
+            "url": "https://localhost:5000/",
             "description": "Dev server"
         }
     ],
     # "host": "api.classclock.app",  # overrides localhost:500
-    # "basePath": "/v1",  # base bash for blueprint registration
+    # "basePath": "/v0",  # base bash for blueprint registration
     "schemes": [
         "https"
     ]

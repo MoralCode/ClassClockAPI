@@ -7,11 +7,11 @@ import base64
 from os import environ as env
 import json
 
-from jsonapi.utils import JSONEncoder
-from jsonapi.errors import jsonapi_errors
+from common.jsonapi.utils import JSONEncoder
+from common.jsonapi.errors import jsonapi_errors
 
 
-from constants import AuthType
+from common.constants import AuthType
 
 
 AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")

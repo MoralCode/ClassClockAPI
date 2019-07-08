@@ -10,8 +10,8 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from helpers import requires_auth, check_scope, AuthError, Oops, make_jsonapi_error_response, make_dict, make_jsonapi_success_response
-from constants import APIScopes
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_jsonapi_error_response, make_dict, make_jsonapi_success_response
+from common.constants import APIScopes
 #
 # App Setup
 #

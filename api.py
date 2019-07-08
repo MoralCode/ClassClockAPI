@@ -2,7 +2,7 @@ from flask import Flask
 from versions import v1
 from flask_limiter import Limiter
 from flasgger import Swagger
-from helpers import get_api_client_id
+from common.helpers import get_api_client_id
 
 app = Flask(__name__)
 limiter = Limiter(app, default_limits=[

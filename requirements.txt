@@ -8,3 +8,4 @@ mysql-connector
 dnspython
 flask_limiter
 flasgger
+flask-restful

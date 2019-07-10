@@ -151,21 +151,22 @@ def ratelimit_handler(e):
     print(e)
     return make_jsonapi_response(
         make_jsonapi_error_object(429, title="Ratelimit Exceeded",
-                                  message="ratelimit of " + e.description + " exceeded")
+                                  message="ratelimit of " + e.description + " exceeded"),
+                                  code=429
     )
 
 
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
     return make_jsonapi_response(
-        make_jsonapi_error_object(e.status_code, message=e.error)
+        make_jsonapi_error_object(e.status_code, message=e.error), code=e.status_code
     )
 
 
 @blueprint.errorhandler(Oops)
 def handle_error(e):
     return make_jsonapi_response(
-        make_jsonapi_error_object(e.status_code, message=e.message)
+        make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code
     )
 
 
@@ -173,7 +174,8 @@ def handle_error(e):
 def handle_HTTP_error(e):
     return make_jsonapi_response(
         make_jsonapi_error_object(
-            e.code, title=e.name(), message=e.description)
+            e.code, title=e.name(), message=e.description),
+            code=e.code
     )
 
 

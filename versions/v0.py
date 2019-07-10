@@ -156,22 +156,32 @@ register_api(School, "/school/", "school", pk="school_id", pk_type="string")
 @blueprint.errorhandler(429)
 def ratelimit_handler(e):
     print(e)
-    return make_jsonapi_error_response(429, title="Ratelimit Exceeded", message="ratelimit of " + e.description + " exceeded")
+    return make_jsonapi_response(
+        make_jsonapi_error_object(429, title="Ratelimit Exceeded",
+                                  message="ratelimit of " + e.description + " exceeded")
+    )
 
 
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
-    return make_jsonapi_error_response(e.status_code, message=e.error)
+    return make_jsonapi_response(
+        make_jsonapi_error_object(e.status_code, message=e.error)
+    )
 
 
 @blueprint.errorhandler(Oops)
 def handle_error(e):
-    return make_jsonapi_error_response(e.status_code, message=e.message)
+    return make_jsonapi_response(
+        make_jsonapi_error_object(e.status_code, message=e.message)
+    )
 
 
 @blueprint.errorhandler(HTTPException)
 def handle_HTTP_error(e):
-    return make_jsonapi_error_response(e.code, title=e.name(), message=e.description)
+    return make_jsonapi_response(
+        make_jsonapi_error_object(
+            e.code, title=e.name(), message=e.description)
+    )
 
 
 @blueprint.errorhandler(Exception)
@@ -179,4 +189,6 @@ def generic_exception_handler(e):
     # "We're sorry, but the electrons that were tasked with handling your request became terribly misguided and forgot what it is that they were supposed to be doing. Our team of scientists in the Electron Amnesia Recovery Ward is currently nursing them back to health; if you have any information about what it is these electrons were supposed to be doing at the time of this incident, please contact the maintainer of this service."
     print("an exception occurred")
     print(e)
-    return make_jsonapi_error_response(500)
+    return make_jsonapi_response(
+        make_jsonapi_error_object(500)
+    )

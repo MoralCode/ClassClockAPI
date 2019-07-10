@@ -132,13 +132,8 @@ class School(Resource):
 # Routes
 #
 
-register_api(api, School, "/school/", param_name="school_id", param_type="string")
-# register_api(UserAPI, 'user_api', '/users/', pk='user_id')
-# api.add_resource(School, '/school/<string:identifier>')
-# api.add_resource(HelloWorld, '/', '/hello')
-# api.add_resource(HelloWorld, '/', '/hello')
-# api.add_resource(HelloWorld, '/', '/hello')
-# api.add_resource(HelloWorld, '/', '/hello')
+
+register_api(api, School, param_name="school_id", param_type="string")
 
 
 #

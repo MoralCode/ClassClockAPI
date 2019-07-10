@@ -114,12 +114,9 @@ def make_jsonapi_response(response_object=None, code=None, headers=None):
         A flask Response object for the web server
     """
 
-    if headers is not None:
-        headers['Content-Type'] = 'application/vnd.api+json'
-    else:
-        headers = {'Content-Type': 'application/vnd.api+json'}
+    if headers is None:
+        headers = {}
 
-    
     content = response_object
 
     if code is None:

@@ -11,7 +11,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers
 from common.constants import APIScopes
 #
 # App Setup
@@ -28,7 +28,7 @@ cursor = database.cursor(prepared=True)
 
 
 blueprint = Blueprint('v0', __name__)
-api = Api(blueprint, decorators=[requires_auth])
+api = Api(blueprint, decorators=[requires_auth, check_headers])
 
 
 @api.representation('application/vnd.api+json')

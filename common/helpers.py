@@ -6,6 +6,7 @@ from six.moves.urllib.request import urlopen
 import base64
 from os import environ as env
 import json
+from flask_restful import Resource
 
 from common.jsonapi.utils import JSONEncoder
 from common.jsonapi.errors import jsonapi_errors
@@ -471,3 +472,9 @@ def check_headers(func):
         return func(*args, **kwargs)
 
     return wrapper
+
+# this has to be below requires_auth
+
+
+class AuthenticatedResource(Resource):
+    decorators = [requires_auth]   # applies to all inherited resources

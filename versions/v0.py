@@ -1,9 +1,8 @@
 import json
 from os import environ as env
-from common.helpers import AuthenticatedResource
 
 from flask import Blueprint, abort, jsonify
-from flask_restful import Api
+from flask_restful import Api, Resource
 from werkzeug.exceptions import HTTPException
 from flask_cors import cross_origin
 
@@ -29,7 +28,7 @@ cursor = database.cursor(prepared=True)
 
 
 blueprint = Blueprint('v0', __name__)
-api = Api(blueprint)
+api = Api(blueprint, decorators=[requires_auth])
 
 
 @api.representation('application/vnd.api+json')
@@ -75,7 +74,7 @@ def output_json(data, code, headers=None):
 
 #     """
 
-class School(AuthenticatedResource):
+class School(Resource):
     def get(self, identifier):
         if identifier is None:
             schools_list = []

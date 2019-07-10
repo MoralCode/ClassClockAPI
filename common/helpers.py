@@ -6,7 +6,6 @@ from six.moves.urllib.request import urlopen
 import base64
 from os import environ as env
 import json
-from flask_restful import Resource
 from uuid import UUID
 from datetime import datetime
 
@@ -501,9 +500,3 @@ def check_headers(func):
         return func(*args, **kwargs)
 
     return wrapper
-
-# this has to be below requires_auth
-
-
-class AuthenticatedResource(Resource):
-    decorators = [requires_auth]   # applies to all inherited resources

@@ -103,7 +103,7 @@ class School(Resource):
             # .format(self.db_scan_table)
             sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id= UNHEX(%s)')
 
-            cursor.execute(sql, (identifier,))
+            cursor.execute(sql, (school_id,))
 
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
             dict_keys_map = ("id", "fullName", "acronym",

@@ -1,7 +1,9 @@
 import json
 from os import environ as env
+from common.helpers import AuthenticatedResource
 
 from flask import Blueprint, abort, jsonify
+from flask_restful import Api
 from werkzeug.exceptions import HTTPException
 from flask_cors import cross_origin
 
@@ -25,124 +27,123 @@ database = mariadb.connect(
     host=DB_HOST, user=DB_USERNAME, password=DB_PASSWORD, database='classclock')
 cursor = database.cursor(prepared=True)
 
+
 blueprint = Blueprint('v0', __name__)
+api = Api(blueprint)
+
+
+# @blueprint.route("/schools", methods=['GET'])
+# @cross_origin(headers=["Content-Type", "Authorization"])
+# @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:5000"])
+# @requires_auth
+# def get_schools():
+#     """Get a list of every publicly accessible ClassClock school
+#     ---
+#     responses:
+#         '200':
+#             description: A list of every publicly accessible ClassClock school
+#         '400':
+#             description: Unauthorized for some reason such as an invalid access token or incorrect scopes
+#     """
+
+
+# @blueprint.route("/school/<string:identifier>", methods=['GET'])
+# @cross_origin(headers=["Content-Type", "Authorization"])
+# @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:5000"])
+# @requires_auth
+# def get_school_by_id(identifier):
+#     """
+#     Get information about a single school
+#     ---
+#     parameters:
+#     - name: identifier
+#       in: path
+#       type: string
+#       required: true
+#       description: the hexadecimal identifier of the school you are requesting
+#     responses:
+#         200:
+#             description: data for a single school
+#         '400':
+#             description: Unauthorized for some reason such as an invalid access token or incorrect scopes
+#         default:
+#             description: error payload
+
+#     """
+
+class School(AuthenticatedResource):
+    def get(self, identifier):
+        if identifier is None:
+            schools_list = []
+
+            cursor.execute(
+                "SELECT HEX(school_id) as school_id, school_name, school_acronym FROM schools")
+            # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
+            dict_keys_map = ("id", "fullName", "acronym")
+
+            # for identifiers in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
+            keys_uri_map = {"id": "v1.get_school_by_id"}
+
+            for school in cursor:
+                schools_list.append(make_dict(
+                    school, dict_keys_map)
+                )
+
+            return make_jsonapi_success_response(schools_list, "school", keys_uri_map)
+
+        else:
+
+            # .format(self.db_scan_table)
+            sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id= UNHEX(%s)')
+
+            cursor.execute(sql, (identifier,))
+
+            # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
+            dict_keys_map = ("id", "fullName", "acronym",
+                             "alternate_freeperiod_name", "creation_date")
+
+            # for identifiers in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
+            keys_uri_map = {"id": "v1.get_school_by_id"}
+
+            # for value in cursor:
+            #     print(value)
+
+            fetch = cursor.fetchone()
+
+            if fetch is None:
+                return make_jsonapi_error_response(404, title="Resource Not Found", message="No school was found with the specified id.")
+
+            return make_jsonapi_success_response(make_dict(fetch, dict_keys_map), "school", keys_uri_map)
+
+    def put(self):
+        pass
+
+    def delete(self):
+        pass
+
+
+def register_api(resource, endpoint, url, pk='id', pk_type='int'):
+    view_func = resource.as_view(endpoint)
+    api.add_resource(resource, defaults={
+                     pk: None}, view_func=view_func, endpoint=endpoint, methods=['GET', ])
+    api.add_resource(resource, view_func=view_func,
+                     endpoint=endpoint, methods=['POST', ])
+    api.add_resource('%s<%s:%s>' % (url, pk_type, pk), view_func=view_func,
+                     endpoint=endpoint, methods=['GET', 'PUT', 'DELETE'])
 
 
 #
 # Routes
 #
 
-# @blueprint.route("/public")
-# @cross_origin(headers=["Content-Type", "Authorization"])
-# def public():
-#     """No access token required to access this route
-#     """
-#     response = "Hello from a public endpoint! You don't need to be authenticated to see this."
-#     return jsonify(message=response)
+register_api(School, "/school/", "school", pk="school_id", pk_type="string")
+# register_api(UserAPI, 'user_api', '/users/', pk='user_id')
+# api.add_resource(School, '/school/<string:identifier>')
+# api.add_resource(HelloWorld, '/', '/hello')
+# api.add_resource(HelloWorld, '/', '/hello')
+# api.add_resource(HelloWorld, '/', '/hello')
+# api.add_resource(HelloWorld, '/', '/hello')
 
-
-# @blueprint.route("/private")
-# @cross_origin(headers=["Content-Type", "Authorization"])
-# @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:3000"])
-# @requires_auth
-# def private():
-#     """A valid access token is required to access this route
-#     """
-#     response = "Hello from a private endpoint! You need to be authenticated to see this."
-#     return jsonify(message=response)
-
-
-# @blueprint.route("/private-scoped")
-# @cross_origin(headers=["Content-Type", "Authorization"])
-# @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:3000"])
-# @requires_auth
-# def private_scoped():
-#     """A valid access token and an appropriate scope are required to access this route
-#     """
-#     print("hi")
-#     check_scope("read:messages")
-
-#     response = "Hello from a private endpoint! You need to be authenticated and have a scope of read:messages to see this."
-#     return jsonify(message=response)
-
-
-@blueprint.route("/schools", methods=['GET'])
-@cross_origin(headers=["Content-Type", "Authorization"])
-@cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:5000"])
-@requires_auth
-def get_schools():
-    """Get a list of every publicly accessible ClassClock school
-    ---
-    responses:
-        '200':
-            description: A list of every publicly accessible ClassClock school
-        '400':
-            description: Unauthorized for some reason such as an invalid access token or incorrect scopes
-    """
-
-    schools_list = []
-
-    cursor.execute(
-        "SELECT HEX(school_id) as school_id, school_name, school_acronym FROM schools")
-    # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-    dict_keys_map = ("id", "fullName", "acronym")
-
-    # for identifiers in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
-    keys_uri_map = {"id": "v1.get_school_by_id"}
-
-    for school in cursor:
-        schools_list.append(make_dict(
-            school, dict_keys_map)
-        )
-
-    return make_jsonapi_success_response(schools_list, "school", keys_uri_map)
-
-
-@blueprint.route("/school/<string:identifier>", methods=['GET'])
-@cross_origin(headers=["Content-Type", "Authorization"])
-@cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:5000"])
-@requires_auth
-def get_school_by_id(identifier):
-    """
-    Get information about a single school
-    ---
-    parameters:
-    - name: identifier
-      in: path
-      type: string
-      required: true
-      description: the hexadecimal identifier of the school you are requesting
-    responses:
-        200:
-            description: data for a single school
-        '400':
-            description: Unauthorized for some reason such as an invalid access token or incorrect scopes
-        default:
-            description: error payload
-
-    """
-
-    # .format(self.db_scan_table)
-    sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id= UNHEX(%s)')
-
-    cursor.execute(sql, (identifier,))
-
-    # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-    dict_keys_map = ("id", "fullName", "acronym",
-                     "alternate_freeperiod_name", "creation_date")
-
-    # for identifiers in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
-    keys_uri_map = {"id": "v1.get_school_by_id"}
-
-    # for value in cursor:
-    #     print(value)
-
-    fetch = cursor.fetchone()
-
-    if fetch is None:
-        return make_jsonapi_error_response(404, title="Resource Not Found", message="No school was found with the specified id.")
-
-    return make_jsonapi_success_response(make_dict(fetch, dict_keys_map), "school", keys_uri_map)
 
 #
 #

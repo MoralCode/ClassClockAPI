@@ -139,7 +139,7 @@ def make_jsonapi_response(response_data=None, code=None, headers=None):
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
 
-def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappings):
+def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappings, param_name="id"):
     """Creates a JSON:API "resource object" from a dict of data
 
     Arguments:
@@ -158,8 +158,8 @@ def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappi
     # data_domain is a string to describe the type of data (i.e. school, schedule, etc.) for use as the key in the JSON response
     resource_object["type"] = str(data_domain)
 
-    resource_object["links"] = get_self_link(
-        data_dict, uri_function_name_mappings)
+    resource_object["links"]["self"] = url_for(
+        uri_function_name_mappings[param_name], identifier=data_dict[param_name], _external=True)
 
     # relationships = get_relationships(data_dict, uri_function_name_mappings)
 
@@ -278,29 +278,6 @@ def replace_last(source_string, replace_what, replace_with):
     """
     head, _sep, tail = source_string.rpartition(replace_what)
     return head + replace_with + tail
-
-
-def get_self_link(resource, uri_function_name_mappings):
-    """Returns the URI to the provided resource as a JSON:API "links object"
-
-    Arguments:
-        resource {dict} -- The data to create the links object from
-        uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in resource to the name of the function whose route should be used to generate URI's for responses
-
-    Returns:
-        dict -- A links object dict with contents formatted per the JSON:API spec
-    """
-    links = {}
-    if "id" in resource:
-
-        identifier = resource["id"]
-
-        links["self"] = url_for(
-            uri_function_name_mappings["id"], identifier=identifier, _external=True)
-    else:
-        return None
-
-    return links
 
 
 def make_dict(the_tuple, keys):

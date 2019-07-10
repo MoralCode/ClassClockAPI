@@ -83,24 +83,32 @@ def make_jsonapi_error_object(code, error_id=None, title=None, message=None):
     return error_data
 
 
-def make_jsonapi_response(content, code=None):
+def make_jsonapi_response(data=None, code=None, **kwargs):
     """ Forms a Flask-and-JSON:API-compatible JSON response
 
     Arguments:
-        content {dict} -- The content to pass to the API client in the JSON response
+        data {dict} -- The content to pass to the API client in the JSON response
 
     Keyword Arguments:
         code {number} -- The optional HTTP status code to return with the response (used for errors) (default: {None})
+        kwargs -- all other parameters to be passed through to the response
 
     Returns:
         A flask Response object for the web server
     """
     headers = {'Content-Type': 'application/vnd.api+json'}
+    content = data
 
     if code is None:
         return make_response(json.dumps(content, cls=JSONEncoder), headers)
-    else:
-        return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
+
+    # code is not none if execution reaches here
+
+    if is_client_error(code) or is_server_error(code):
+        # error
+        content = jsonapi_errors([make_jsonapi_error_object(code, **kwargs)])
+
+    return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
 
 def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappings):

@@ -33,7 +33,7 @@ class Oops(Exception):
         self.status_code = status_code
 
 
-def make_jsonapi_error_response(code, title=None, message=None):
+def make_jsonapi_error_object(code, error_id=None, title=None, message=None):
     """ Generates a JSON:API error response
 
     Arguments:
@@ -49,13 +49,16 @@ def make_jsonapi_error_response(code, title=None, message=None):
 
     error_data = {'status': str(code)}
 
+    if error_id is not None:
+        error_data['id'] = error_id
+
     if title is not None:
         error_data['title'] = title
 
     if message is not None:
         error_data['detail'] = message
 
-    return make_jsonapi_response(jsonapi_errors([error_data]), code)
+    return error_data
 
 
 def make_jsonapi_response(content, code=None):

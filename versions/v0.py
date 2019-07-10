@@ -77,7 +77,7 @@ def output_json(data, code, headers=None):
 class School(Resource):
     def get(self, school_id):
         if school_id is None:
-            schools_list = []
+            school_resource_object_list = []
 
             cursor.execute(
                 "SELECT HEX(school_id) as school_id, school_name, school_acronym FROM schools")
@@ -88,35 +88,38 @@ class School(Resource):
             keys_uri_map = {"id": "v1.get_school_by_id"}
 
             for school in cursor:
-                schools_list.append(make_dict(
-                    school, dict_keys_map)
+                school_dict = make_dict(school, dict_keys_map)
+
+                school_resource_object_list.append(
+                    make_jsonapi_resource_object(
+                        school_dict, "school", keys_uri_map)
                 )
 
-            return make_jsonapi_response(response_object=make_jsonapi_resource_object(schools_list, "school", keys_uri_map))
+            return make_jsonapi_response(response_object=school_resource_object_list)
 
         else:
 
             # .format(self.db_scan_table)
-            sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id= UNHEX(%s)')
+            sql=('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id= UNHEX(%s)')
 
             cursor.execute(sql, (identifier,))
 
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            dict_keys_map = ("id", "fullName", "acronym",
+            dict_keys_map=("id", "fullName", "acronym",
                              "alternate_freeperiod_name", "creation_date")
 
             # for identifiers in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
-            keys_uri_map = {"id": "v1.get_school_by_id"}
+            keys_uri_map={"id": "v1.get_school_by_id"}
 
             # for value in cursor:
             #     print(value)
 
-            fetch = cursor.fetchone()
+            fetch=cursor.fetchone()
 
             if fetch is None:
-                return make_jsonapi_response(response_object=make_jsonapi_error_object(404, title="Resource Not Found", message="No school was found with the specified id."))
+                return make_jsonapi_response(response_object = make_jsonapi_error_object(404, title="Resource Not Found", message="No school was found with the specified id."))
 
-            return make_jsonapi_response(response_object=make_jsonapi_resource_object(make_dict(fetch, dict_keys_map), "school", keys_uri_map))
+            return make_jsonapi_response(response_object = make_jsonapi_resource_object(make_dict(fetch, dict_keys_map), "school", keys_uri_map))
 
     def put(self):
         pass

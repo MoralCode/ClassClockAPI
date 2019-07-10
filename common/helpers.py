@@ -109,33 +109,34 @@ def make_jsonapi_response(response_data=None, code=None, headers=None):
     """ Forms a Flask-and-JSON:API-compatible JSON response
 
     Arguments:
-        data {dict} -- The content to pass to the API client in the JSON response
+        response_data {dict} -- The jsonapi object dict to return in the JSON response
 
     Keyword Arguments:
         code {number} -- The optional HTTP status code to return with the response (used for errors) (default: {None})
-        kwargs -- all other parameters to be passed through to the response
+        headers {dict} -- A dict of optional headers to add to the response
 
     Returns:
         A flask Response object for the web server
     """
 
+#TODO:this is stupid
     if headers is None:
         headers = {}
 
     content = response_data
+    content["jsonapi"] = {"version": "1.0"}
+
+    if code is not None and (is_client_error(code) or is_server_error(code)):
+        # error
+        content['errors'] = [
+            jsonapi_error for jsonapi_error in [response_data]]
+    else:
+        content["data"] = response_data
 
     if code is None:
         return make_response(json.dumps(content, cls=JSONEncoder), headers)
-
-    # code is not none if execution reaches here
-
-    if is_client_error(code) or is_server_error(code):
-        # error
-        content = {'errors': [jsonapi_error for jsonapi_error in [response_data]],
-                   'jsonapi': {'version': '1.0'}}
-        #make_jsonapi_error_object(code, other_args)
-
-    return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
+    else:
+        return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
 
 def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappings):
@@ -345,38 +346,6 @@ def make_dict(the_tuple, keys):
         the_dict[key] = value if not isinstance(
             value, bytearray) else value.decode()
     return the_dict
-
-
-def construct_jsonapi_success_response_data(data, data_domain_string, uri_function_name_mappings):
-    """Generates a JSON:API success response
-
-    Arguments:
-        data {dict} -- The data to create the response from
-        data_domain_string {string} -- A string describing what the data in the data parameter represents (i.e. "school", "schedule", etc.)
-        uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in `data` to the name of the function whose route should be used to generate URI's for responses
-
-    Returns:
-        A flask Response object for the web server
-    """
-    response_content = {}
-    response_content["jsonapi"] = {"version": "1.0"}
-
-    if isinstance(data, list):
-        response_content["data"] = []
-
-        for item in data:
-            response_content["data"].append(
-                make_jsonapi_resource_object(
-                    item, data_domain_string, uri_function_name_mappings)
-            )
-    else:
-        response_content["data"] = make_jsonapi_resource_object(
-            data, data_domain_string, uri_function_name_mappings)
-
-    response_content["links"] = get_self_link(
-        data, uri_function_name_mappings)
-
-    return response_content
 
 
 def extract_valid_credentials(encoded_credentials):

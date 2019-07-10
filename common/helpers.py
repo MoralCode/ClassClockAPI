@@ -122,8 +122,8 @@ def make_jsonapi_response(response_object=None, code=None, headers=None):
 
     if is_client_error(code) or is_server_error(code):
         # error
-        content = {'errors': [jsonapi_error for jsonapi_error in response_object],
-                   'jsonapi': {'version': '1.0'}}construct_jsonapi_error_response_data([response_object])
+        content = {'errors': [jsonapi_error for jsonapi_error in [response_object]],
+                   'jsonapi': {'version': '1.0'}}
         #make_jsonapi_error_object(code, other_args)
 
     return make_response(json.dumps(content, cls=JSONEncoder), code, headers)

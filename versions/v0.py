@@ -126,21 +126,19 @@ class School(AuthenticatedResource):
         pass
 
 
-def register_api(resource, endpoint, url, pk='id', pk_type='int'):
-    view_func = resource.as_view(endpoint)
+def register_api(resource, url, pk='id', pk_type='int'):
     api.add_resource(resource, defaults={
-                     pk: None}, view_func=view_func, endpoint=endpoint, methods=['GET', ])
-    api.add_resource(resource, view_func=view_func,
-                     endpoint=endpoint, methods=['POST', ])
-    api.add_resource('%s<%s:%s>' % (url, pk_type, pk), view_func=view_func,
-                     endpoint=endpoint, methods=['GET', 'PUT', 'DELETE'])
+                     pk: None}, methods=['GET', ])
+    api.add_resource(resource, methods=['POST', ])
+    api.add_resource(resource, '%s<%s:%s>' %
+                     (url, pk_type, pk), methods=['GET', 'PUT', 'DELETE'])
 
 
 #
 # Routes
 #
 
-register_api(School, "/school/", "school", pk="school_id", pk_type="string")
+register_api(School, "/school/", pk="school_id", pk_type="string")
 # register_api(UserAPI, 'user_api', '/users/', pk='user_id')
 # api.add_resource(School, '/school/<string:identifier>')
 # api.add_resource(HelloWorld, '/', '/hello')

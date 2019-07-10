@@ -171,7 +171,7 @@ def handle_error(e):
 
 @blueprint.errorhandler(HTTPException)
 def handle_HTTP_error(e):
-    return make_jsonapi_error_response(e.code, message=e.description)
+    return make_jsonapi_error_response(e.code, title=e.name(), message=e.description)
 
 
 @blueprint.errorhandler(Exception)

@@ -9,7 +9,6 @@ import json
 from flask_restful import Resource
 
 from common.jsonapi.utils import JSONEncoder
-from common.jsonapi.errors import jsonapi_errors
 
 
 from common.constants import AuthType
@@ -339,7 +338,7 @@ def make_dict(the_tuple, keys):
     return the_dict
 
 
-def make_jsonapi_success_response(data, data_domain_string, uri_function_name_mappings):
+def construct_jsonapi_success_response_data(data, data_domain_string, uri_function_name_mappings):
     """Generates a JSON:API success response
 
     Arguments:
@@ -368,7 +367,18 @@ def make_jsonapi_success_response(data, data_domain_string, uri_function_name_ma
     response_content["links"] = get_self_link(
         data, uri_function_name_mappings)
 
-    return make_jsonapi_response(response_content)
+    return response_content
+
+
+def construct_jsonapi_error_response_data(jsonapi_errors):
+    # this was copied from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/errors.py under the terms of the MIT license.
+    """Construct api error according to jsonapi 1.0
+
+    :param iterable jsonapi_errors: an iterable of jsonapi error
+    :return dict: a dict of errors according to jsonapi 1.0
+    """
+    return {'errors': [jsonapi_error for jsonapi_error in jsonapi_errors],
+            'jsonapi': {'version': '1.0'}}
 
 
 def extract_valid_credentials(encoded_credentials):

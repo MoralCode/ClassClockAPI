@@ -12,7 +12,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api
 from common.constants import APIScopes
 #
 # App Setup
@@ -126,19 +126,11 @@ class School(AuthenticatedResource):
         pass
 
 
-def register_api(resource, url, pk='id', pk_type='int'):
-    api.add_resource(resource, defaults={
-                     pk: None}, methods=['GET', ])
-    api.add_resource(resource, methods=['POST', ])
-    api.add_resource(resource, '%s<%s:%s>' %
-                     (url, pk_type, pk), methods=['GET', 'PUT', 'DELETE'])
-
-
 #
 # Routes
 #
 
-register_api(School, "/school/", pk="school_id", pk_type="string")
+register_api(api, School, "/school/", pk="school_id", pk_type="string")
 # register_api(UserAPI, 'user_api', '/users/', pk='user_id')
 # api.add_resource(School, '/school/<string:identifier>')
 # api.add_resource(HelloWorld, '/', '/hello')

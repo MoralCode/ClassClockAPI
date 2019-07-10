@@ -65,6 +65,13 @@ def is_server_error(code):
     return code >= 500 and code <= 599
 
 
+def register_api(api, resource, url, pk='id', pk_type='int'):
+    api.add_resource(resource, defaults={
+                     pk: None}, methods=['GET', ])
+    api.add_resource(resource, methods=['POST', ])
+    api.add_resource(resource, '%s<%s:%s>' %
+                     (url, pk_type, pk), methods=['GET', 'PUT', 'DELETE'])
+
 def make_jsonapi_error_object(code, error_id=None, title=None, message=None):
     """ Generates a JSON:API error response
 

@@ -42,7 +42,6 @@ class JSONEncoder(json.JSONEncoder):
         return json.JSONEncoder.default(self, obj)
 
 
-
 # status code helpers taken from https://github.com/flask-api/flask-api/blob/master/flask_api/status.py
 def is_informational(code):
     return code >= 100 and code <= 199
@@ -280,25 +279,6 @@ def replace_last(source_string, replace_what, replace_with):
     return head + replace_with + tail
 
 
-# from https://blog.miguelgrinberg.com/post/designing-a-restful-api-with-python-and-flask
-
-
-def get_uri(identifier, uri_function_name, absolute_uri=True):
-    """Returns a URI given an identifier and the function name of the endpoint
-
-    Arguments:
-        identifier {string} -- The resource's identifier to substitute into the uri 
-        uri_function_name {string} -- The name of the function whose route should be used to generate URI's for responses
-
-    Keyword Arguments:
-        absolute_uri {bool} -- A flag indicating whether to return an absolute URI (https://example.com/endpoint) or a relative URI (/endpoint) (default: {True})
-
-    Returns:
-        string -- The URI for the resource
-    """
-    return url_for(uri_function_name, identifier=identifier, _external=absolute_uri)
-
-
 def get_self_link(resource, uri_function_name_mappings):
     """Returns the URI to the provided resource as a JSON:API "links object"
 
@@ -314,8 +294,8 @@ def get_self_link(resource, uri_function_name_mappings):
 
         identifier = resource["id"]
 
-        links["self"] = get_uri(
-            identifier, uri_function_name_mappings["id"], True)
+        links["self"] = url_for(
+            uri_function_name_mappings["id"], identifier=identifier, _external=True)
     else:
         return None
 
@@ -343,8 +323,8 @@ def get_relationships(resource, uri_function_name_mappings):
             # got to initialize all the things or python will get angry
             relationships[resource_name] = {}
             relationships[resource_name]["links"] = {}
-            relationships[resource_name]["links"]["self"] = get_uri(
-                identifier, uri_function_name_mappings[field], True)
+            relationships[resource_name]["links"]["self"] = url_for(
+                uri_function_name_mappings[field], identifier=identifier, _external=True)
 
     return relationships if relationships != {} else None
 
@@ -397,6 +377,7 @@ def construct_jsonapi_success_response_data(data, data_domain_string, uri_functi
         data, uri_function_name_mappings)
 
     return response_content
+
 
 def extract_valid_credentials(encoded_credentials):
     """Extracts a username and password from a base64 encoded HTTP Authorization header

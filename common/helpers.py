@@ -64,12 +64,18 @@ def is_server_error(code):
     return code >= 500 and code <= 599
 
 
-def register_api(api, resource, url_for_param_route, param_name='id', param_type='int'):
-    api.add_resource(resource, defaults={
+def register_api(api, resource, param_name='id', param_type='int'):
+    name = resource.__name__.lower()
+    url = "/" + name + "/"
+    plural_url = "/" + name + "s/"
+
+    api.add_resource(resource, plural_url, endpoint=name + "_list", defaults={
                      param_name: None}, methods=['GET', ])
-    api.add_resource(resource, methods=['POST', ])
+    api.add_resource(resource, plural_url, endpoint="new_" +
+                     name, methods=['POST', ])
     api.add_resource(resource, '%s<%s:%s>' %
-                     (url_for_param_route, param_type, param_name), methods=['GET', 'PUT', 'DELETE'])
+                     (url, param_type, param_name), endpoint="single_" +
+                     name, methods=['GET', 'PUT', 'DELETE'])
 
 
 def make_jsonapi_error_object(code, error_id=None, title=None, message=None):

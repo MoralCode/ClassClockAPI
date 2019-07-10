@@ -75,8 +75,8 @@ def output_json(data, code, headers=None):
 #     """
 
 class School(Resource):
-    def get(self, identifier):
-        if identifier is None:
+    def get(self, school_id):
+        if school_id is None:
             schools_list = []
 
             cursor.execute(

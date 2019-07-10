@@ -161,10 +161,10 @@ def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappi
     resource_object["links"] = get_self_link(
         data_dict, uri_function_name_mappings)
 
-    relationships = get_relationships(data_dict, uri_function_name_mappings)
+    # relationships = get_relationships(data_dict, uri_function_name_mappings)
 
-    if relationships is not None:
-        resource_object["relationships"] = relationships
+    # if relationships is not None:
+    #     resource_object["relationships"] = relationships
 
     resource_object["attributes"] = {}
 
@@ -301,33 +301,6 @@ def get_self_link(resource, uri_function_name_mappings):
         return None
 
     return links
-
-
-def get_relationships(resource, uri_function_name_mappings):
-    """Returns the URIs to related resources as a JSON:API "relationships object"
-
-    Arguments:
-        resource {dict} -- The data to create the relationships object from
-        uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in resource to the name of the function whose route should be used to generate URI's for responses
-
-    Returns:
-        dict -- A relationships object dict with contents formatted per the JSON:API spec
-    """
-    relationships = {}
-    for field in resource:
-        if field.endswith("_id"):
-
-            identifier = resource[field]
-
-            resource_name = replace_last(field, "_id", "")
-
-            # got to initialize all the things or python will get angry
-            relationships[resource_name] = {}
-            relationships[resource_name]["links"] = {}
-            relationships[resource_name]["links"]["self"] = url_for(
-                uri_function_name_mappings[field], identifier=identifier, _external=True)
-
-    return relationships if relationships != {} else None
 
 
 def make_dict(the_tuple, keys):

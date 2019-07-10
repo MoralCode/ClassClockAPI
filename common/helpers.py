@@ -7,8 +7,8 @@ import base64
 from os import environ as env
 import json
 from flask_restful import Resource
-
-from common.jsonapi.utils import JSONEncoder
+from uuid import UUID
+from datetime import datetime
 
 
 from common.constants import AuthType
@@ -33,7 +33,18 @@ class Oops(Exception):
         self.status_code = status_code
 
 
-#status code helpers taken from https://github.com/flask-api/flask-api/blob/master/flask_api/status.py
+class JSONEncoder(json.JSONEncoder):
+    # this was copied from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/utils.py under the terms of the MIT license.
+    def default(self, obj):
+        if isinstance(obj, datetime):
+            return obj.isoformat()
+        elif isinstance(obj, UUID):
+            return str(obj)
+        return json.JSONEncoder.default(self, obj)
+
+
+
+# status code helpers taken from https://github.com/flask-api/flask-api/blob/master/flask_api/status.py
 def is_informational(code):
     return code >= 100 and code <= 199
 

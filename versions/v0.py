@@ -12,7 +12,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, AuthError, Oops, make_jsonapi_error_response, make_dict, make_jsonapi_success_response
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object
 from common.constants import APIScopes
 #
 # App Setup
@@ -89,7 +89,7 @@ class School(AuthenticatedResource):
                     school, dict_keys_map)
                 )
 
-            return make_jsonapi_success_response(schools_list, "school", keys_uri_map)
+            return make_jsonapi_response(response_object=make_jsonapi_resource_object(schools_list, "school", keys_uri_map))
 
         else:
 
@@ -111,9 +111,9 @@ class School(AuthenticatedResource):
             fetch = cursor.fetchone()
 
             if fetch is None:
-                return make_jsonapi_error_response(404, title="Resource Not Found", message="No school was found with the specified id.")
+                return make_jsonapi_response(response_object=make_jsonapi_error_object(404, title="Resource Not Found", message="No school was found with the specified id."))
 
-            return make_jsonapi_success_response(make_dict(fetch, dict_keys_map), "school", keys_uri_map)
+            return make_jsonapi_response(response_object=make_jsonapi_resource_object(make_dict(fetch, dict_keys_map), "school", keys_uri_map))
 
     def put(self):
         pass

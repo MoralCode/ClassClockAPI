@@ -91,9 +91,11 @@ class School(Resource):
             for school in cursor:
                 school_dict = make_dict(school, dict_keys_map)
 
+                uri = api.url_for(
+                    type(self), school_id=school_dict["id"], _external=True)
+
                 school_resource_object_list.append(
-                    make_jsonapi_resource_object(
-                        school_dict, "school", self.keys_uri_map)
+                    make_jsonapi_resource_object(School, school_dict, uri)
                 )
 
             return make_jsonapi_response(response_object=school_resource_object_list)
@@ -111,10 +113,13 @@ class School(Resource):
 
             fetch = cursor.fetchone()
 
+            uri = api.url_for(
+                type(self), school_id=school_id, _external=True)
+
             if fetch is None:
                 return make_jsonapi_response(response_object=make_jsonapi_error_object(404, title="Resource Not Found", message="No school was found with the specified id."))
 
-            return make_jsonapi_response(response_object=make_jsonapi_resource_object(make_dict(fetch, dict_keys_map), "school", self.keys_uri_map))
+            return make_jsonapi_response(response_object=make_jsonapi_resource_object(School, make_dict(fetch, dict_keys_map), uri))
 
     def put(self):
         pass

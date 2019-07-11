@@ -389,8 +389,9 @@ def check_headers(func):
                     'application/vnd.api+json' in request.headers['Content-Type'] and\
                     request.headers['Content-Type'] != 'application/vnd.api+json':
 
-                raise AuthError(
-                    "Content-Type header must be application/vnd.api+json", 415)
+                error = make_jsonapi_error_object(
+                    message='Content-Type header must be application/vnd.api+json', title='Invalid request header', code=415)
+                return make_jsonapi_response(response_data=error, code=415, headers={'Content-Type': 'application/vnd.api+json'})
 
         if 'Accept' in request.headers:
             flag = False
@@ -402,8 +403,9 @@ def check_headers(func):
                     flag = True
             if flag is True:
 
-                raise AuthError(
-                    "Accept header must be application/vnd.api+json without media type parameters", 406)
+                    error = make_jsonapi_error_object(
+                        message='Accept header must be application/vnd.api+json without media type parameters', title='Invalid request header', code=406)
+                    return make_jsonapi_response(response_data=error, code=406, headers={'Content-Type': 'application/vnd.api+json'})
 
         return func(*args, **kwargs)
 

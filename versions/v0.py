@@ -117,7 +117,7 @@ class School(Resource):
                 type(self), school_id=school_id, _external=True)
 
             if fetch is None:
-                return make_jsonapi_response(response_object=make_jsonapi_error_object(404, title="Resource Not Found", message="No school was found with the specified id."))
+                return make_jsonapi_error_object(404, title="Resource Not Found", message="No school was found with the specified id."), 404
 
             return make_jsonapi_resource_object(School, make_dict(fetch, dict_keys_map), uri)
 

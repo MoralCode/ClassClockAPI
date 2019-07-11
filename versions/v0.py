@@ -32,8 +32,8 @@ api = Api(blueprint, decorators=[requires_auth, check_headers])
 
 
 @api.representation('application/vnd.api+json')
-def output_json(data, code, headers=None):
-    return make_jsonapi_response(response_object=data, code=code, headers=headers)
+def output_json(data, code, headers={}):
+    return make_jsonapi_response(response_data=data, code=code, headers=headers)
 
 # @blueprint.route("/schools", methods=['GET'])
 # @cross_origin(headers=["Content-Type", "Authorization"])

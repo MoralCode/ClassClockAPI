@@ -394,14 +394,8 @@ def check_headers(func):
                 return make_jsonapi_response(response_data=error, code=415, headers={'Content-Type': 'application/vnd.api+json'})
 
         if 'Accept' in request.headers:
-            flag = False
             for accept in request.headers['Accept'].split(','):
-                if accept.strip() == 'application/vnd.api+json':
-                    flag = False
-                    break
-                if 'application/vnd.api+json' in accept and accept.strip() != 'application/vnd.api+json':
-                    flag = True
-            if flag is True:
+                if accept.strip() != 'application/vnd.api+json':
 
                     error = make_jsonapi_error_object(
                         message='Accept header must be application/vnd.api+json without media type parameters', title='Invalid request header', code=406)

@@ -105,7 +105,7 @@ def make_jsonapi_error_object(code, error_id=None, title=None, message=None):
     return error_data
 
 
-def make_jsonapi_response(response_data=None, code=None, headers=None):
+def make_jsonapi_response(response_data=None, code=None, headers={}):
     """ Forms a Flask-and-JSON:API-compatible JSON response
 
     Arguments:
@@ -119,11 +119,7 @@ def make_jsonapi_response(response_data=None, code=None, headers=None):
         A flask Response object for the web server
     """
 
-#TODO:this is stupid
-    if headers is None:
-        headers = {}
-
-    content = response_data
+    content = {}
     content["jsonapi"] = {"version": "1.0"}
 
     if code is not None and (is_client_error(code) or is_server_error(code)):

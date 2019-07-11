@@ -288,10 +288,10 @@ def make_dict(the_tuple, keys):
         A dict containing the data from both inputs
     """
     the_dict = {}
+    encoder = JSONEncoder()
     for value in the_tuple:
         key = keys[the_tuple.index(value)]
-        the_dict[key] = value if not isinstance(
-            value, bytearray) else value.decode()
+        the_dict[key] = encoder.default(value) if value is not None else value
     return the_dict
 
 

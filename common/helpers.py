@@ -65,17 +65,19 @@ def is_server_error(code):
     return code >= 500 and code <= 599
 
 
-def register_api(api, resource, param_name='id', param_type='int'):
+def register_api(api, resource, param_name='id', param_type='int', api_version="v0"):
     name = resource.__name__.lower()
     url = "/" + name + "/"
     plural_url = "/" + name + "s/"
 
-    api.add_resource(resource, plural_url, endpoint=name + "_list", defaults={
+    version = api_version + "_"
+
+    api.add_resource(resource, plural_url, endpoint=version + name + "_list", defaults={
                      param_name: None}, methods=['GET', ])
-    api.add_resource(resource, plural_url, endpoint="new_" +
+    api.add_resource(resource, plural_url, endpoint=version+"new_" +
                      name, methods=['POST', ])
     api.add_resource(resource, '%s<%s:%s>' %
-                     (url, param_type, param_name), endpoint="single_" +
+                     (url, param_type, param_name), endpoint=version+"single_" +
                      name, methods=['GET', 'PUT', 'DELETE'])
 
 

@@ -135,7 +135,7 @@ def make_jsonapi_response(response_data=None, code=None, headers={}):
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
 
-def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappings, param_name="id"):
+def make_jsonapi_resource_object(resource, data_dict, uri):
     """Creates a JSON:API "resource object" from a dict of data
 
     Arguments:
@@ -152,10 +152,9 @@ def make_jsonapi_resource_object(data_dict, data_domain, uri_function_name_mappi
     resource_object = {}
 
     # data_domain is a string to describe the type of data (i.e. school, schedule, etc.) for use as the key in the JSON response
-    resource_object["type"] = str(data_domain)
-
-    resource_object["links"]["self"] = url_for(
-        uri_function_name_mappings[param_name], identifier=data_dict[param_name], _external=True)
+    resource_object["type"] = str(resource.__name__.lower())
+    resource_object["links"] = {}
+    resource_object["links"]["self"] = uri
 
     # relationships = get_relationships(data_dict, uri_function_name_mappings)
 

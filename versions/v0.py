@@ -98,7 +98,7 @@ class School(Resource):
                     make_jsonapi_resource_object(School, school_dict, uri)
                 )
 
-            return make_jsonapi_response(response_object=school_resource_object_list)
+            return school_resource_object_list
 
         else:
 
@@ -119,7 +119,7 @@ class School(Resource):
             if fetch is None:
                 return make_jsonapi_response(response_object=make_jsonapi_error_object(404, title="Resource Not Found", message="No school was found with the specified id."))
 
-            return make_jsonapi_response(response_object=make_jsonapi_resource_object(School, make_dict(fetch, dict_keys_map), uri))
+            return make_jsonapi_resource_object(School, make_dict(fetch, dict_keys_map), uri)
 
     def put(self):
         pass

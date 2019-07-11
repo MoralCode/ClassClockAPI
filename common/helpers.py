@@ -39,6 +39,8 @@ class JSONEncoder(json.JSONEncoder):
             return obj.isoformat()
         elif isinstance(obj, UUID):
             return str(obj)
+        elif isinstance(obj, bytearray):
+            return obj.decode()
         return json.JSONEncoder.default(self, obj)
 
 

@@ -381,9 +381,7 @@ def check_headers(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         if request.method in ('POST', 'PATCH'):
-            if 'Content-Type' in request.headers and\
-                    'application/vnd.api+json' in request.headers['Content-Type'] and\
-                    request.headers['Content-Type'] != 'application/vnd.api+json':
+            if 'Content-Type' in request.headers and request.headers['Content-Type'] != 'application/vnd.api+json':
 
                 error = make_jsonapi_error_object(
                     message='Content-Type header must be application/vnd.api+json', title='Invalid request header', code=415)

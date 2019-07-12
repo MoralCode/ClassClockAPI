@@ -163,6 +163,22 @@ def make_jsonapi_resource_object(resource, attributes_schema, uri):
     return resource_object
 
 
+def deconstruct_resource_object(resource_object):
+    """extracts a more processable dict from a JSON:API "resource object" 
+
+    Arguments:
+        resource_object {dict} -- a dict in JSON:API format
+
+    Returns:
+        dict -- a flatter dict for easier processing
+    """
+    resource = {}
+    resource["type"] = resource_object["type"]
+    resource["id"] = resource_object["id"]
+
+    return {**resource, **resource_object["attributes"]}
+
+
 def get_api_client_id():
     """Returns a string to group API calls together for the purposes of ratelimiting 
     """

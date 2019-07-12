@@ -173,8 +173,8 @@ def deconstruct_resource_object(resource_object):
         dict -- a flatter dict for easier processing
     """
     resource = {}
-    resource["type"] = resource_object["type"]
-    resource["id"] = resource_object["id"]
+    resource["type"] = resource_object.get("type", None)
+    resource["id"] = resource_object.get("id", None)
 
     return {**resource, **resource_object["attributes"]}
 

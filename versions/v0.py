@@ -1,7 +1,7 @@
 import json
 from os import environ as env
 
-from flask import Blueprint, abort, jsonify
+from flask import Blueprint, abort, jsonify, request
 from flask_restful import Api, Resource
 from werkzeug.exceptions import HTTPException
 from flask_cors import cross_origin
@@ -13,6 +13,8 @@ import http.client
 
 from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers
 from common.constants import APIScopes
+from common.schemas import SchoolSchema
+
 #
 # App Setup
 #
@@ -81,45 +83,54 @@ class School(Resource):
 
     def get(self, school_id):
         if school_id is None:
-            school_resource_object_list = []
+            school_list = []
+            summary_schema = SchoolSchema(
+                only=('identifier', 'full_name', 'acronym'))
 
             cursor.execute(
                 "SELECT HEX(school_id) as school_id, school_name, school_acronym FROM schools")
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            dict_keys_map = ("id", "fullName", "acronym")
+            dict_keys_map = ("id", "full_name", "acronym")
 
             for school in cursor:
-                school_dict = make_dict(school, dict_keys_map)
+                result = summary_schema.load(make_dict(school, dict_keys_map))
 
-                uri = api.url_for(
-                    type(self), school_id=school_dict["id"], _external=True)
+                print(result.data)
+                school_uri = api.url_for(
+                    type(self), school_id=result.data.identifier, _external=True)
 
-                school_resource_object_list.append(
-                    make_jsonapi_resource_object(School, school_dict, uri)
+                school_list.append(
+                    make_jsonapi_resource_object(
+                        result.data, SchoolSchema(
+                            only=('full_name', 'acronym')), school_uri)
                 )
 
-            return school_resource_object_list
+            return school_list
 
         else:
 
+            detail_schema = SchoolSchema(
+                only=('identifier', 'full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date'))
             # .format(self.db_scan_table)
             sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id= UNHEX(%s)')
 
             cursor.execute(sql, (school_id,))
 
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            dict_keys_map = ("id", "fullName", "acronym",
+            dict_keys_map = ("id", "full_name", "acronym",
                              "alternate_freeperiod_name", "creation_date")
 
             fetch = cursor.fetchone()
 
-            uri = api.url_for(
-                type(self), school_id=school_id, _external=True)
-
             if fetch is None:
                 return make_jsonapi_error_object(404, title="Resource Not Found", message="No school was found with the specified id."), 404
 
-            return make_jsonapi_resource_object(School, make_dict(fetch, dict_keys_map), uri)
+            # print(fetch)
+            result = detail_schema.load(make_dict(fetch, dict_keys_map))
+            uri = api.url_for(
+                type(self), school_id=result.data.identifier, _external=True)
+
+            return make_jsonapi_resource_object(result.data, SchoolSchema(only=('full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date')), uri)
 
     def put(self):
         pass

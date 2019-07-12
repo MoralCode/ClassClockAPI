@@ -139,7 +139,7 @@ def make_jsonapi_response(response_data=None, code=None, headers={}):
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
 
-def make_jsonapi_resource_object(resource, data_dict, uri):
+def make_jsonapi_resource_object(resource, attributes_schema, uri):
     """Creates a JSON:API "resource object" from a dict of data
 
     Arguments:
@@ -154,31 +154,11 @@ def make_jsonapi_resource_object(resource, data_dict, uri):
         dict -- A resource object dict with contents formatted per the JSON:API spec
     """
     resource_object = {}
-
-    # data_domain is a string to describe the type of data (i.e. school, schedule, etc.) for use as the key in the JSON response
-    resource_object["type"] = str(resource.__name__.lower())
+    resource_object["type"] = resource.type
+    resource_object["id"] = resource.identifier
     resource_object["links"] = {}
     resource_object["links"]["self"] = uri
-
-    # relationships = get_relationships(data_dict, uri_function_name_mappings)
-
-    # if relationships is not None:
-    #     resource_object["relationships"] = relationships
-
-    resource_object["attributes"] = {}
-
-    # data is expected to be a dict, not a tuple straight from the database
-    for field in data_dict:
-        if field == "id":
-            try:
-                resource_object["id"] = data_dict["id"]
-            except KeyError as e:
-                # TODO: this is an internal error so im not 100% sure if it should be passed through to the api client as is or just be logged and generalized as a 500 internal server error
-                print(
-                    "An id field is required in the data dict passed to make_jsonapi_resource_object, but none was found.")
-                raise e
-        else:
-            resource_object["attributes"][field] = data_dict[field]
+    resource_object["attributes"] = attributes_schema.dump(resource).data
 
     return resource_object
 

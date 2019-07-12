@@ -11,7 +11,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, get_column_update_SQL
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list
 from common.constants import APIScopes
 from common.schemas import SchoolSchema
 
@@ -169,7 +169,7 @@ class School(Resource):
 
         # build SQL command
 
-        sql_columns, values = get_column_update_SQL(
+        sql_columns, values = build_sql_column_update_list(
             new_object.data, SchoolSchema(only=('full_name', 'acronym', 'alternate_freeperiod_name')), {"acronym": "school_acronym", "full_name": "school_name"})
 
         values += (school_id,)

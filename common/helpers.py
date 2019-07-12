@@ -318,7 +318,7 @@ def extract_valid_credentials(encoded_credentials):
     return decoded
 
 
-def get_column_update_SQL(input_object, updateable_fields_schema, colname_mappings):
+def build_sql_column_update_list(input_object, updateable_fields_schema, colname_mappings):
 
     sql_set = []
     output = ""

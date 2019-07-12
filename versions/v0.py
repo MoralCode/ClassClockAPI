@@ -132,7 +132,7 @@ class School(Resource):
 
             return make_jsonapi_resource_object(result.data, SchoolSchema(only=('full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date')), uri)
 
-    def put(self, school_id):
+    def patch(self, school_id):
         """ input:
         {
             "data": {

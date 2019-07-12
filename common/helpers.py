@@ -78,7 +78,7 @@ def register_api(api, resource, param_name='id', param_type='int', api_version="
                      name, methods=['POST', ])
     api.add_resource(resource, '%s<%s:%s>' %
                      (url, param_type, param_name), endpoint=version+"single_" +
-                     name, methods=['GET', 'PUT', 'DELETE'])
+                     name, methods=['GET', 'PUT', 'PATCH', 'DELETE'])
 
 
 def make_jsonapi_error_object(code, error_id=None, title=None, message=None):

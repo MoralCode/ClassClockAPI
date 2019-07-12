@@ -11,7 +11,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object
 from common.constants import APIScopes
 from common.schemas import SchoolSchema
 
@@ -132,8 +132,50 @@ class School(Resource):
 
             return make_jsonapi_resource_object(result.data, SchoolSchema(only=('full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date')), uri)
 
-    def put(self):
-        pass
+    def put(self, school_id):
+        """ input:
+        {
+            "data": {
+                "type": "school",
+                "id": "2C49E3159EE011E986F2181DEA92AD79",
+                "links": {
+                    "self": "http://localhost:5000/v0/school/2C49E3159EE011E986F2181DEA92AD79"
+                },
+                "attributes": {
+                    "acronym": "LMHS",
+                    "creation_date": "2019-07-04T21:48:46+00:00",
+                    "alternate_freeperiod_name": null,
+                    "full_name": "Lake Mosswego High School"
+                }
+            }
+        }
+        """
+
+        schema = SchoolSchema()
+        data = request.get_json()
+        new_object = schema.load(deconstruct_resource_object(data["data"]))
+
+        if new_object.errors != {}:
+            error_list = []
+            for field in new_object.errors:
+                error = make_jsonapi_error_object(
+                    400, title="Request body validation failure", message=new_object.errors[field])
+                error_list.append(error)
+            return error_list
+
+        # get existing school matching the ID in the request
+        # replace all contents of the school (besides the id and maybe creation date) with the contents from the request (if we're certain that theyre valid)
+        # UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition;
+        sql = ('UPDATE school SET school_name=%s, school_acronym=%s, alternate_freeperiod_name=%s WHERE school_id= UNHEX(%s)')
+
+        cursor.execute(
+            sql, (new_object.data.full_name, new_object.data.acronym,
+                  new_object.data.alternate_freeperiod_name, school_id)
+        )
+        database.commit()
+
+        # result = schema.load()
+        return schema.dump(new_object.data)
 
     def delete(self):
         pass

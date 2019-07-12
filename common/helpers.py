@@ -380,7 +380,7 @@ def check_headers(func):
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if request.method in ('POST', 'PATCH'):
+        if request.method in ('POST', 'PATCH', 'PUT'):
             if 'Content-Type' in request.headers and request.headers['Content-Type'] != 'application/vnd.api+json':
 
                 error = make_jsonapi_error_object(

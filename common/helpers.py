@@ -318,10 +318,25 @@ def extract_valid_credentials(encoded_credentials):
     return decoded
 
 
+def get_comma_separated_string(the_list):
+    """creates a string of comma-sepatated values from an input list
+
+    Arguments:
+        dictionary {[type]} -- [description]
+    """
+    output = ""
+
+    for index, value in enumerate(the_list):
+        output += value
+
+        if index < len(the_list)-1:
+            output += ", "
+    return output
+
+
 def build_sql_column_update_list(input_object, updateable_fields_schema, colname_mappings):
 
     sql_set = []
-    output = ""
     values = ()
 
     json = updateable_fields_schema.dump(input_object).data
@@ -334,15 +349,7 @@ def build_sql_column_update_list(input_object, updateable_fields_schema, colname
             )
             values += (json[field],)
 
-    for index, value in enumerate(sql_set):
-        output += value
-
-        if index < len(sql_set)-1:
-            output += ", "
-
-    # print(output)
-
-    return output, values
+    return get_comma_separated_string(sql_set), values
 
 
 #

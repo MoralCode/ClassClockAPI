@@ -318,6 +318,33 @@ def extract_valid_credentials(encoded_credentials):
     return decoded
 
 
+def get_column_update_SQL(input_object, updateable_fields_schema, colname_mappings):
+
+    sql_set = []
+    output = ""
+    values = ()
+
+    json = updateable_fields_schema.dump(input_object).data
+    # print(json)
+    for field in json:
+        if json[field] is not None:
+            sql_set.append(
+                (colname_mappings[field]
+                 if field in colname_mappings else field) + "=%s"
+            )
+            values += (json[field],)
+
+    for index, value in enumerate(sql_set):
+        output += value
+
+        if index < len(sql_set)-1:
+            output += ", "
+
+    # print(output)
+
+    return output, values
+
+
 #
 # Decorators
 #

@@ -170,7 +170,7 @@ def make_jsonapi_resource_object(resource, attributes_schema, blueprint_name):
     resource_object["type"] = resource.type
     resource_object["id"] = resource.identifier
     resource_object["links"] = {}
-    resource_object["links"]["self"] = resource.get_uri_for(blueprint_name)
+    resource_object["links"]["self"] = resource.get_uri(blueprint_name)
     resource_object["attributes"] = attributes_schema.dump(resource).data
 
     return resource_object

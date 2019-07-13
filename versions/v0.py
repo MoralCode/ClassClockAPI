@@ -131,7 +131,7 @@ class School(Resource):
             uri = api.url_for(
                 type(self), school_id=result.data.identifier.hex, _external=True)
 
-            return make_jsonapi_resource_object(result.data, SchoolSchema(only=('full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date')), uri)
+            return make_jsonapi_resource_object(result.data, SchoolSchema(exclude=('type', 'identifier')), uri)
 
     def post(self):
 
@@ -164,6 +164,9 @@ class School(Resource):
         cursor.execute(sql, sql_values)
         database.commit()
 
+        uri = api.url_for(
+            type(self), school_id=new_object.data.identifier.hex, _external=True)
+
         # print(cursor.lastrowid)
         # print(vars(cursor))
         # # print()
@@ -172,7 +175,7 @@ class School(Resource):
 
         # cursor.lastrowid TO GET THTE ID OF THE LAST ROW INSERTED
 
-        return schema.dump(new_object.data).data
+        return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), uri)
 
     def patch(self, school_id):
         """ input:
@@ -229,7 +232,10 @@ class School(Resource):
         cursor.execute(sql, values)
         database.commit()
 
-        return schema.dump(new_object.data).data
+        uri = api.url_for(
+            type(self), school_id=new_object.data.identifier.hex, _external=True)
+
+        return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), uri)
 
     def delete(self, school_id):
         sql = ('DELETE FROM schools WHERE school_id= UNHEX(%s)')
@@ -240,7 +246,7 @@ class School(Resource):
         # should this just archive the school? or delete it and all related records?
         # operation = 'SELECT 1; INSERT INTO t1 VALUES (); SELECT 2'
         # cursor.execute(operation, multi=True):
-        pass
+        return None, 204
 
 #
 # Routes

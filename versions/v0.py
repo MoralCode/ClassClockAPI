@@ -238,12 +238,13 @@ class School(Resource):
         return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), uri)
 
     def delete(self, school_id):
-        sql = ('DELETE FROM schools WHERE school_id= UNHEX(%s)')
+        sql = ('DELETE FROM schools WHERE school_id=%s')
 
-        cursor.execute(sql, (school_id,))
+        cursor.execute(sql, (uuid.UUID(school_id).bytes,))
         database.commit()
 
         # should this just archive the school? or delete it and all related records?
+        # just remembered it can auto-cascade because foreign keys
         # operation = 'SELECT 1; INSERT INTO t1 VALUES (); SELECT 2'
         # cursor.execute(operation, multi=True):
         return None, 204

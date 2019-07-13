@@ -96,14 +96,10 @@ class School(Resource):
             for school in cursor:
                 result = summary_schema.load(make_dict(school, dict_keys_map))
 
-                # print(result.data)
-                school_uri = api.url_for(
-                    type(self), school_id=result.data.identifier.hex, _external=True)
-
                 school_list.append(
                     make_jsonapi_resource_object(
                         result.data, SchoolSchema(
-                            only=('full_name', 'acronym')), school_uri)
+                            only=('full_name', 'acronym')), "v0")
                 )
 
             return school_list
@@ -128,10 +124,8 @@ class School(Resource):
 
             # print(fetch)
             result = detail_schema.load(make_dict(fetch, dict_keys_map))
-            uri = api.url_for(
-                type(self), school_id=result.data.identifier.hex, _external=True)
 
-            return make_jsonapi_resource_object(result.data, SchoolSchema(exclude=('type', 'identifier')), uri)
+            return make_jsonapi_resource_object(result.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
     def post(self):
 
@@ -164,9 +158,6 @@ class School(Resource):
         cursor.execute(sql, sql_values)
         database.commit()
 
-        uri = api.url_for(
-            type(self), school_id=new_object.data.identifier.hex, _external=True)
-
         # print(cursor.lastrowid)
         # print(vars(cursor))
         # # print()
@@ -175,7 +166,7 @@ class School(Resource):
 
         # cursor.lastrowid TO GET THTE ID OF THE LAST ROW INSERTED
 
-        return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), uri)
+        return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
     def patch(self, school_id):
         """ input:
@@ -232,10 +223,7 @@ class School(Resource):
         cursor.execute(sql, values)
         database.commit()
 
-        uri = api.url_for(
-            type(self), school_id=new_object.data.identifier.hex, _external=True)
-
-        return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), uri)
+        return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
     def delete(self, school_id):
         sql = ('DELETE FROM schools WHERE school_id=%s')

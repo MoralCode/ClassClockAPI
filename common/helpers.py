@@ -139,7 +139,7 @@ def make_jsonapi_response(response_data=None, code=None, headers={}):
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
 
-def make_jsonapi_resource_object(resource, attributes_schema, uri):
+def make_jsonapi_resource_object(resource, attributes_schema, blueprint_name):
     """Creates a JSON:API "resource object" from a dict of data
 
     Arguments:
@@ -157,7 +157,7 @@ def make_jsonapi_resource_object(resource, attributes_schema, uri):
     resource_object["type"] = resource.type
     resource_object["id"] = resource.identifier
     resource_object["links"] = {}
-    resource_object["links"]["self"] = uri
+    resource_object["links"]["self"] = resource.get_uri_for(blueprint_name)
     resource_object["attributes"] = attributes_schema.dump(resource).data
 
     return resource_object

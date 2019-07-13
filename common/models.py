@@ -1,4 +1,5 @@
 import datetime
+from flask import url_for
 
 
 class SchoolModel(object):
@@ -11,6 +12,11 @@ class SchoolModel(object):
         self.alternate_freeperiod_name = alternate_freeperiod_name
         self.creation_date = creation_date if creation_date is not None else datetime.datetime.now()
         self.last_modified = last_modified if last_modified is not None else datetime.datetime.now()
+
+    def get_uri_for(self, blueprint_name):
+        # here the second time blueprint_name is called, it is acting like the api version number
+        return url_for(
+            blueprint_name + "." + blueprint_name + "_single_school", school_id=self.identifier.hex, _external=True)
 
     def __repr__(self):
         return '<School(name={self.full_name!r}, id={self.identifier!r})>'.format(self=self)

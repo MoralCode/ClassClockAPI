@@ -169,16 +169,25 @@ class School(Resource):
 
         # build SQL command
 
-        sql_columns, values = build_sql_column_update_list(
-            new_object.data, SchoolSchema(only=('full_name', 'acronym', 'alternate_freeperiod_name')), {"acronym": "school_acronym", "full_name": "school_name"})
+        values = ()
+        sql = 'UPDATE schools SET '
+
+        if new_object.data.full_name is not None:
+            sql += "school_name=%s, "
+            values += (new_object.data.full_name,)
+
+        if new_object.data.acronym is not None:
+            sql += "school_acronym=%s, "
+            values += (new_object.data.acronym,)
+
+        if new_object.data.alternate_freeperiod_name is not None:
+            sql += "alternate_freeperiod_name=%s, "
+            values += (new_object.data.alternate_freeperiod_name,)
+
+        sql += "last_modified=NOW() "
+        sql += 'WHERE school_id=UNHEX(%s)'
 
         values += (school_id,)
-
-        # get existing school matching the ID in the request
-        # replace all contents of the school (besides the id and maybe creation date) with the contents from the request (if we're certain that theyre valid)
-        # UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition;
-        sql = ('UPDATE schools SET ' + sql_columns +
-               ' WHERE school_id= UNHEX(%s)')
 
         cursor.execute(sql, values)
         database.commit()

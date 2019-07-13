@@ -1,4 +1,5 @@
 import json
+import uuid
 from os import environ as env
 
 from flask import Blueprint, abort, jsonify, request
@@ -97,7 +98,7 @@ class School(Resource):
 
                 print(result.data)
                 school_uri = api.url_for(
-                    type(self), school_id=result.data.identifier, _external=True)
+                    type(self), school_id=result.data.identifier.hex, _external=True)
 
                 school_list.append(
                     make_jsonapi_resource_object(
@@ -128,7 +129,7 @@ class School(Resource):
             # print(fetch)
             result = detail_schema.load(make_dict(fetch, dict_keys_map))
             uri = api.url_for(
-                type(self), school_id=result.data.identifier, _external=True)
+                type(self), school_id=result.data.identifier.hex, _external=True)
 
             return make_jsonapi_resource_object(result.data, SchoolSchema(only=('full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date')), uri)
 
@@ -156,9 +157,9 @@ class School(Resource):
         # sql, sql_values = build_sql_column_insert_list(
         #     new_object.data, SchoolSchema(), {"id": "school_id", "acronym": "school_acronym", "full_name": "school_name"}, "schools")
 
-        sql = ("INSERT INTO schools (school_id, school_name, school_acronym, alternate_freeperiod_name, last_modified, creation_date) VALUES (UNHEX(REPLACE(UUID(),'-','')), %s, %s, %s, NOW(), NOW())")
+        sql = ("INSERT INTO schools (school_id, school_name, school_acronym, alternate_freeperiod_name, last_modified, creation_date) VALUES (%s, %s, %s, %s, NOW(), NOW())")
 
-        sql_values = (new_object.data.full_name,
+        sql_values = (new_object.data.identifier.bytes, new_object.data.full_name,
                       new_object.data.acronym, new_object.data.alternate_freeperiod_name)
         cursor.execute(sql, sql_values)
         database.commit()
@@ -199,7 +200,7 @@ class School(Resource):
         if new_object.errors != {}:
             return handle_marshmallow_errors(new_object.errors)
 
-        if new_object.data.identifier != school_id:
+        if new_object.data.identifier.hex != school_id.lower():
             return make_jsonapi_error_object(
                 400, title="Identifier Mismatch", message="The identifier provided in the request body must match the identifier specified in the URL"), 400
 

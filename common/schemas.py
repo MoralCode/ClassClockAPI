@@ -3,7 +3,7 @@ from common.models import SchoolModel
 
 
 class SchoolSchema(Schema):
-    identifier = fields.Str(load_from='id', dump_to='id', allow_none=True)
+    identifier = fields.UUID(load_from='id', dump_to='id')
     full_name = fields.Str(allow_none=True)
     acronym = fields.Str(allow_none=True)
     alternate_freeperiod_name = fields.Str(allow_none=True)

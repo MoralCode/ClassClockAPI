@@ -6,7 +6,7 @@ from six.moves.urllib.request import urlopen
 import base64
 from os import environ as env
 import json
-from uuid import UUID
+from uuid import UUID, uuid4
 from datetime import datetime
 
 
@@ -38,7 +38,7 @@ class JSONEncoder(json.JSONEncoder):
         if isinstance(obj, datetime):
             return obj.isoformat()
         elif isinstance(obj, UUID):
-            return str(obj)
+            return obj.hex
         elif isinstance(obj, bytearray):
             return obj.decode()
         return json.JSONEncoder.default(self, obj)
@@ -174,7 +174,7 @@ def deconstruct_resource_object(resource_object):
     """
     resource = {}
     resource["type"] = resource_object.get("type", None)
-    resource["id"] = resource_object.get("id", None)
+    resource["id"] = UUID(resource_object.get("id", uuid4().hex))
 
     return {**resource, **resource_object["attributes"]}
 

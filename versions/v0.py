@@ -242,7 +242,8 @@ class School(Resource):
 #
 
 
-register_api(api, School, param_name="school_id", param_type="string")
+register_api(api, School, "v0", name_of_optional_param="school_id")
+
 
 
 #

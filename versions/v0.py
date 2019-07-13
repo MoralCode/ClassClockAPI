@@ -8,7 +8,7 @@ from werkzeug.exceptions import HTTPException
 from flask_cors import cross_origin
 
 import mysql.connector as mariadb
-from bson import json_util
+# from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
@@ -96,7 +96,7 @@ class School(Resource):
             for school in cursor:
                 result = summary_schema.load(make_dict(school, dict_keys_map))
 
-                print(result.data)
+                # print(result.data)
                 school_uri = api.url_for(
                     type(self), school_id=result.data.identifier.hex, _external=True)
 
@@ -153,7 +153,7 @@ class School(Resource):
 
         '''
 
-        print(vars(new_object.data))
+        # print(vars(new_object.data))
         # sql, sql_values = build_sql_column_insert_list(
         #     new_object.data, SchoolSchema(), {"id": "school_id", "acronym": "school_acronym", "full_name": "school_name"}, "schools")
 

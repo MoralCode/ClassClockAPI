@@ -231,9 +231,16 @@ class School(Resource):
 
         return schema.dump(new_object.data).data
 
-    def delete(self):
-        pass
+    def delete(self, school_id):
+        sql = ('DELETE FROM schools WHERE school_id= UNHEX(%s)')
 
+        cursor.execute(sql, (school_id,))
+        database.commit()
+
+        # should this just archive the school? or delete it and all related records?
+        # operation = 'SELECT 1; INSERT INTO t1 VALUES (); SELECT 2'
+        # cursor.execute(operation, multi=True):
+        pass
 
 #
 # Routes

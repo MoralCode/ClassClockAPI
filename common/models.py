@@ -13,4 +13,4 @@ class SchoolModel(object):
         self.last_modified = last_modified if last_modified is not None else datetime.datetime.now()
 
     def __repr__(self):
-        return '<User(name={self.full_name!r}, id={self.identifier!r})>'.format(self=self)
+        return '<School(name={self.full_name!r}, id={self.identifier!r})>'.format(self=self)

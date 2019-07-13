@@ -8,6 +8,7 @@ class SchoolSchema(Schema):
     acronym = fields.Str()
     alternate_freeperiod_name = fields.Str(allow_none=True)
     creation_date = fields.DateTime()
+    last_modified = fields.DateTime()
 
     @post_load
     def make_school(self, data):

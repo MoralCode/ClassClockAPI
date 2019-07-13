@@ -11,7 +11,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors
 from common.constants import APIScopes
 from common.schemas import SchoolSchema
 
@@ -156,12 +156,7 @@ class School(Resource):
         new_object = schema.load(deconstruct_resource_object(data["data"]))
 
         if new_object.errors != {}:
-            error_list = []
-            for field in new_object.errors:
-                error = make_jsonapi_error_object(
-                    400, title="Request body validation failure", message=new_object.errors[field])
-                error_list.append(error)
-            return error_list, 400
+            return handle_marshmallow_errors(new_object.errors)
 
         if new_object.data.identifier != school_id:
             return make_jsonapi_error_object(

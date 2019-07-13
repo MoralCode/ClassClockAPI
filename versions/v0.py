@@ -132,6 +132,47 @@ class School(Resource):
 
             return make_jsonapi_resource_object(result.data, SchoolSchema(only=('full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date')), uri)
 
+    def post(self):
+
+        schema = SchoolSchema()
+        data = request.get_json()
+        new_object = schema.load(deconstruct_resource_object(data["data"]))
+
+        if new_object.errors != {}:
+            return handle_marshmallow_errors(new_object.errors)
+
+        # build SQL command
+        # INSERT INTO schools (last_modified, school_name, creation_date, alternate_freeperiod_name, school_acronym, school_id) VALUES (%s, %s, %s, %s, %s, %s)
+        '''
+        Needs custom mysql command:
+        school_id
+        last_modified
+        creation_date - determeined by if its new or not
+
+
+        '''
+
+        print(vars(new_object.data))
+        # sql, sql_values = build_sql_column_insert_list(
+        #     new_object.data, SchoolSchema(), {"id": "school_id", "acronym": "school_acronym", "full_name": "school_name"}, "schools")
+
+        sql = ("INSERT INTO schools (school_id, school_name, school_acronym, alternate_freeperiod_name, last_modified, creation_date) VALUES (UNHEX(REPLACE(UUID(),'-','')), %s, %s, %s, NOW(), NOW())")
+
+        sql_values = (new_object.data.full_name,
+                      new_object.data.acronym, new_object.data.alternate_freeperiod_name)
+        cursor.execute(sql, sql_values)
+        database.commit()
+
+        # print(cursor.lastrowid)
+        # print(vars(cursor))
+        # # print()
+        # # print(vars(connection))
+        # new_object.data.identifier = cursor.lastrowid
+
+        # cursor.lastrowid TO GET THTE ID OF THE LAST ROW INSERTED
+
+        return schema.dump(new_object.data).data
+
     def patch(self, school_id):
         """ input:
         {

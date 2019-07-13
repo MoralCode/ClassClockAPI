@@ -3,7 +3,7 @@ import datetime
 
 class SchoolModel(object):
 
-    def __init__(self, identifier, full_name, acronym, alternate_freeperiod_name=None, creation_date=None, last_modified=None):
+    def __init__(self, identifier=None, full_name=None, acronym=None, alternate_freeperiod_name=None, creation_date=None, last_modified=None):
         self.type = "school"
         self.identifier = identifier
         self.full_name = full_name

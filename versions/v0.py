@@ -109,9 +109,9 @@ class School(Resource):
             detail_schema = SchoolSchema(
                 only=('identifier', 'full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date'))
             # .format(self.db_scan_table)
-            sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id= UNHEX(%s)')
+            sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id=%s')
 
-            cursor.execute(sql, (school_id,))
+            cursor.execute(sql, (uuid.UUID(school_id).bytes,))
 
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
             dict_keys_map = ("id", "full_name", "acronym",
@@ -216,9 +216,9 @@ class School(Resource):
             values += (new_object.data.alternate_freeperiod_name,)
 
         sql += "last_modified=NOW() "
-        sql += 'WHERE school_id=UNHEX(%s)'
+        sql += 'WHERE school_id=%s'
 
-        values += (school_id,)
+        values += (uuid.UUID(school_id).bytes,)
 
         cursor.execute(sql, values)
         database.commit()

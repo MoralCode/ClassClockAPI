@@ -11,7 +11,7 @@ from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, get_column_update_SQL
 from common.constants import APIScopes
 from common.schemas import SchoolSchema
 
@@ -161,21 +161,29 @@ class School(Resource):
                 error = make_jsonapi_error_object(
                     400, title="Request body validation failure", message=new_object.errors[field])
                 error_list.append(error)
-            return error_list
+            return error_list, 400
+
+        if new_object.data.identifier != school_id:
+            return make_jsonapi_error_object(
+                400, title="Identifier Mismatch", message="The identifier provided in the request body must match the identifier specified in the URL"), 400
+
+        # build SQL command
+
+        sql_columns, values = get_column_update_SQL(
+            new_object.data, SchoolSchema(only=('full_name', 'acronym', 'alternate_freeperiod_name')), {"acronym": "school_acronym", "full_name": "school_name"})
+
+        values += (school_id,)
 
         # get existing school matching the ID in the request
         # replace all contents of the school (besides the id and maybe creation date) with the contents from the request (if we're certain that theyre valid)
         # UPDATE table_name SET column1 = value1, column2 = value2, ... WHERE condition;
-        sql = ('UPDATE school SET school_name=%s, school_acronym=%s, alternate_freeperiod_name=%s WHERE school_id= UNHEX(%s)')
+        sql = ('UPDATE schools SET ' + sql_columns +
+               ' WHERE school_id= UNHEX(%s)')
 
-        cursor.execute(
-            sql, (new_object.data.full_name, new_object.data.acronym,
-                  new_object.data.alternate_freeperiod_name, school_id)
-        )
+        cursor.execute(sql, values)
         database.commit()
 
-        # result = schema.load()
-        return schema.dump(new_object.data)
+        return schema.dump(new_object.data).data
 
     def delete(self):
         pass

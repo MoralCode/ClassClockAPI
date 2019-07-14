@@ -14,7 +14,7 @@ import http.client
 
 from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors
 from common.constants import APIScopes
-from common.schemas import SchoolSchema
+from common.schemas import SchoolSchema, BellScheduleSchema
 
 #
 # App Setup
@@ -237,6 +237,39 @@ class School(Resource):
         # cursor.execute(operation, multi=True):
         return None, 204
 
+
+class BellSchedule(Resource):
+
+    table_name = "bellschedules"
+
+    def get(self, school_id, bell_schedule_id):
+        if bell_schedule_id is None:
+            bell_schedule_list = []
+
+            cursor.execute("SELECT HEX(bell_schedule_id) as bell_schedule_id, bell_schedule_name FROM " +
+                           self.table_name + " WHERE school_id=%s", (uuid.UUID(school_id).bytes,))
+            # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
+            dict_keys_map = ("id", "full_name")
+
+            for bell_schedule in cursor:
+
+                data = make_dict(bell_schedule, dict_keys_map)
+                data["school_id"] = uuid.UUID(school_id)
+                # print(data)
+                result, errors = BellScheduleSchema().load(data)
+                # print(errors)
+                if errors != {}:
+                    return handle_marshmallow_errors(errors)
+                # print(result)
+                # # print(type(result))
+
+                bell_schedule_list.append(
+                    make_jsonapi_resource_object(
+                        result, BellScheduleSchema(only=('full_name', 'display_name')), "v0")
+                )
+
+            return bell_schedule_list
+
 #
 # Routes
 #
@@ -244,6 +277,8 @@ class School(Resource):
 
 register_api(api, School, "v0", name_of_optional_param="school_id")
 
+register_api(api, BellSchedule, "v0", url_prefix="/school/<string:school_id>",
+             name_of_optional_param="bell_schedule_id")
 
 
 #

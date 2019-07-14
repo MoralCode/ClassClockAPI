@@ -152,6 +152,18 @@ def make_jsonapi_response(response_data=None, code=None, headers={}):
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
 
+def make_jsonapi_links_object(**kwargs):
+    """Creates a JSON:API "links object" from a dict of data
+    Returns:
+        dict -- A links object dict with contents formatted per the JSON:API spec
+    """
+    links_object = {}
+    for link_name in kwargs:
+        links_object[link_name] = kwargs[link_name]
+
+    return links_object
+
+
 def make_jsonapi_resource_object(resource, attributes_schema, blueprint_name):
     """Creates a JSON:API "resource object" from a dict of data
 

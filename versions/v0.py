@@ -240,14 +240,12 @@ class School(Resource):
 
 class BellSchedule(Resource):
 
-    table_name = "bellschedules"
-
     def get(self, school_id, bell_schedule_id):
         if bell_schedule_id is None:
             bell_schedule_list = []
 
-            cursor.execute("SELECT HEX(bell_schedule_id) as bell_schedule_id, bell_schedule_name, bell_schedule_display_name FROM " +
-                           self.table_name + " WHERE school_id=%s", (uuid.UUID(school_id).bytes,))
+            cursor.execute(
+                "SELECT HEX(bell_schedule_id) as bell_schedule_id, bell_schedule_name, bell_schedule_display_name FROM bellschedules WHERE school_id=%s", (uuid.UUID(school_id).bytes,))
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
             dict_keys_map = ("id", "full_name", "display_name")
 

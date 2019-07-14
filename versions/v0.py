@@ -270,6 +270,32 @@ class BellSchedule(Resource):
 
             return bell_schedule_list
 
+        else:
+
+            sql = ('SELECT HEX(bell_schedule_id) as bell_schedule_id, bell_schedule_name, bell_schedule_display_name, creation_date, last_modified FROM ' +
+                   self.table_name + ' WHERE bell_schedule_id=%s AND school_id=%s')
+
+            cursor.execute(
+                sql, (uuid.UUID(bell_schedule_id).bytes, uuid.UUID(school_id).bytes))
+
+            # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
+            dict_keys_map = ("id", "full_name", "display_name",
+                             "creation_date", "last_modified")
+
+            fetch = cursor.fetchone()
+
+            if fetch is None:
+                return make_jsonapi_error_object(404, title="Resource Not Found", message="No schedule was found with the specified id."), 404
+
+            data = make_dict(fetch, dict_keys_map)
+            data["school_id"] = uuid.UUID(school_id)
+
+            result, errors = BellScheduleSchema().load(data)
+
+            if errors != {}:
+                return handle_marshmallow_errors(errors)
+
+            return make_jsonapi_resource_object(result, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 #
 # Routes
 #

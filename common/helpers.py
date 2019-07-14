@@ -206,16 +206,24 @@ def deconstruct_resource_object(resource_object):
 
 def handle_marshmallow_errors(errors):
     error_list = []
-    for field in errors:
-        error = make_jsonapi_error_object(
-            400, title="Request body validation failure", message=errors[field])
-        error_list.append(error)
+    for property_name, property_errors in errors.items():
+
+        for value_type, input_errors in property_errors.items():
+
+            for input_error in input_errors:
+
+                message = input_error[:-1] + " provided to " + \
+                    property_name + " of type " + value_type
+
+                error = make_jsonapi_error_object(
+                    400, title="Validation failure", message=message)
+                error_list.append(error)
 
     return error_list, 400
 
 
 def get_api_client_id():
-    """Returns a string to group API calls together for the purposes of ratelimiting 
+    """Returns a string to group API calls together for the purposes of ratelimiting
     """
     # print(client_id)
     # print(type(client_id))

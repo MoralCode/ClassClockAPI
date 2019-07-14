@@ -1,5 +1,6 @@
 import json
 import uuid
+import datetime
 from os import environ as env
 
 from flask import Blueprint, abort, jsonify, request
@@ -12,9 +13,9 @@ import mysql.connector as mariadb
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta
 from common.constants import APIScopes
-from common.schemas import SchoolSchema, BellScheduleSchema
+from common.schemas import SchoolSchema, BellScheduleSchema, ClassPeriodSchema
 
 #
 # App Setup
@@ -270,25 +271,61 @@ class BellSchedule(Resource):
 
         else:
 
-            sql = ('SELECT HEX(bell_schedule_id) as bell_schedule_id, bell_schedule_name, bell_schedule_display_name, creation_date, last_modified FROM ' +
-                   self.table_name + ' WHERE bell_schedule_id=%s AND school_id=%s')
+            cursor.execute(
+                'SELECT bell_schedule_name, bell_schedule_display_name, creation_date, last_modified FROM bellschedules WHERE bell_schedule_id=%s',
+                (uuid.UUID(bell_schedule_id).bytes, )
+            )
+
+            requested_bell_schedule = cursor.fetchone()
+
+            # if requested_bell_schedule is None:
+            #     # this is very broken. need to redo all error handling
+            #     return make_jsonapi_error_object(404, title="Resource Not Found", message="No schedule was found with the specified id."), 404
 
             cursor.execute(
-                sql, (uuid.UUID(bell_schedule_id).bytes, uuid.UUID(school_id).bytes))
+                'SELECT date FROM bellscheduledates WHERE bell_schedule_id=%s',
+                (uuid.UUID(bell_schedule_id).bytes, )
+            )
+            dates = cursor.fetchall()
 
-            # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            dict_keys_map = ("id", "full_name", "display_name",
-                             "creation_date", "last_modified")
+            # if dates == []:
+            #     # this is very broken. need to redo all error handling
+            #     return make_jsonapi_error_object(404, title="Resource Not Found", message="No schedule was found with the specified id."), 404
 
-            fetch = cursor.fetchone()
+            cursor.execute(
+                'SELECT classperiod_name, start_time, end_time FROM bellschedulemeetingtimes WHERE bell_schedule_id=%s',
+                (uuid.UUID(bell_schedule_id).bytes, )
+            )
+            meeting_times = cursor.fetchall()
 
-            if fetch is None:
+            # key maps define the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
+            schedule_keys_map = ("full_name", "display_name",
+                                 "creation_date", "last_modified")
+            meetingtime_keys_map = ("name", "start_time", "end_time")
+
+            if meeting_times == []:
+                # this is very broken. need to redo all error handling
                 return make_jsonapi_error_object(404, title="Resource Not Found", message="No schedule was found with the specified id."), 404
 
-            data = make_dict(fetch, dict_keys_map)
-            data["school_id"] = uuid.UUID(school_id)
+            return_data = make_dict(requested_bell_schedule, schedule_keys_map)
+            return_data["id"] = uuid.UUID(bell_schedule_id)
+            return_data["school_id"] = uuid.UUID(school_id)
+            return_data["creation_date"] = return_data["creation_date"].isoformat()
+            # extract list of dates from list of tuples of dates
+            return_data["dates"] = [date[0].isoformat() for date in dates]
 
-            result, errors = BellScheduleSchema().load(data)
+            # convert timedeltas to times
+            meeting_times = [(meeting_time[0], time_from_delta(meeting_time[1]), time_from_delta(
+                meeting_time[2])) for meeting_time in meeting_times]
+            # print(meeting_times)
+
+            # make dicts from meetingtimes
+            meeting_times = [make_dict(meetingtime, meetingtime_keys_map)
+                             for meetingtime in meeting_times]
+
+            return_data["meeting_times"] = meeting_times
+
+            result, errors = BellScheduleSchema().load(return_data)
 
             if errors != {}:
                 return handle_marshmallow_errors(errors)

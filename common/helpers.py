@@ -344,6 +344,12 @@ def make_dict(the_tuple, keys):
     return the_dict
 
 
+def time_from_delta(delta):
+    # print(type(delta))
+    # print(type((datetime.min + delta)))
+    return (datetime.min + delta).time().isoformat('minutes')
+
+
 def extract_valid_credentials(encoded_credentials):
     """Extracts a username and password from a base64 encoded HTTP Authorization header
 

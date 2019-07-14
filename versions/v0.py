@@ -293,7 +293,7 @@ class BellSchedule(Resource):
             #     return make_jsonapi_error_object(404, title="Resource Not Found", message="No schedule was found with the specified id."), 404
 
             cursor.execute(
-                'SELECT classperiod_name, start_time, end_time FROM bellschedulemeetingtimes WHERE bell_schedule_id=%s',
+                'SELECT classperiod_name, start_time, end_time, creation_date FROM bellschedulemeetingtimes WHERE bell_schedule_id=%s',
                 (uuid.UUID(bell_schedule_id).bytes, )
             )
             meeting_times = cursor.fetchall()
@@ -301,7 +301,8 @@ class BellSchedule(Resource):
             # key maps define the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
             schedule_keys_map = ("full_name", "display_name",
                                  "creation_date", "last_modified")
-            meetingtime_keys_map = ("name", "start_time", "end_time")
+            meetingtime_keys_map = (
+                "name", "start_time", "end_time", "creation_date")
 
             if meeting_times == []:
                 # this is very broken. need to redo all error handling
@@ -315,13 +316,22 @@ class BellSchedule(Resource):
             return_data["dates"] = [date[0].isoformat() for date in dates]
 
             # convert timedeltas to times
-            meeting_times = [(meeting_time[0], time_from_delta(meeting_time[1]), time_from_delta(
-                meeting_time[2])) for meeting_time in meeting_times]
-            # print(meeting_times)
+            classes = []
 
-            # make dicts from meetingtimes
+            for meeting_time in meeting_times:
+                values = []
+                for value in meeting_time:
+                    if isinstance(value, datetime.timedelta):
+                        values.append(time_from_delta(value))
+                    elif isinstance(value, datetime.datetime):
+                        values.append(value.isoformat())
+                    else:
+                        values.append(value)
+
+                classes.append(values)
+
             meeting_times = [make_dict(meetingtime, meetingtime_keys_map)
-                             for meetingtime in meeting_times]
+                             for meetingtime in classes]
 
             return_data["meeting_times"] = meeting_times
 

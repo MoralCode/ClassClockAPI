@@ -187,6 +187,12 @@ def make_jsonapi_resource_object(resource, attributes_schema, blueprint_name):
 
     resource_object["attributes"] = attributes_schema.dump(resource).data
 
+    if resource.type == "bellschedule":
+        resource_object["relationships"] = {}
+        resource_object["relationships"]["schools"] = {}
+        resource_object["relationships"]["schools"]["links"] = make_jsonapi_links_object(self=url_for(
+            blueprint_name + "." + blueprint_name + "_single_school", school_id=resource.school_id.hex, _external=True))
+
     return resource_object
 
 

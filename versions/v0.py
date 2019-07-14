@@ -379,9 +379,14 @@ def handle_auth_error(e):
 
 @blueprint.errorhandler(Oops)
 def handle_error(e):
-    return make_jsonapi_response(
-        make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code
-    )
+    if e.title is not None:
+        return make_jsonapi_response(
+            make_jsonapi_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code
+        )
+    else:
+        return make_jsonapi_response(
+            make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code
+        )
 
 
 @blueprint.errorhandler(HTTPException)

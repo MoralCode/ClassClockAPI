@@ -15,11 +15,20 @@ class SchoolSchema(Schema):
         return SchoolModel(**data)
 
 
+class ClassPeriodSchema(Schema):
+    name = fields.Str()
+    start_time = fields.Time()
+    end_time = fields.Time()
+    creation_date = fields.DateTime()
+
+
 class BellScheduleSchema(Schema):
     identifier = fields.UUID(load_from='id', dump_to='id')
     full_name = fields.Str(allow_none=True)
     display_name = fields.Str(allow_none=True)
     school_id = fields.UUID(load_from='school_id', dump_to='school_id')
+    dates = fields.Nested(fields.Date, many=True)
+    meeting_times = fields.Nested(ClassPeriodSchema, many=True)
     creation_date = fields.DateTime()
     last_modified = fields.DateTime()
 

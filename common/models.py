@@ -36,7 +36,7 @@ class BellScheduleModel(object):
     def get_uri(self, blueprint_name):
         # here the second time blueprint_name is called, it is acting like the api version number
         return url_for(
-            blueprint_name + "." + blueprint_name + "_single_bellschedule", school_id=self.identifier.hex, _external=True)
+            blueprint_name + "." + blueprint_name + "_single_bellschedule", school_id=self.school_id.hex, bell_schedule_id=self.identifier.hex, _external=True)
 
     def __repr__(self):
         return '<BellSchedule(name={self.full_name!r}, id={self.identifier.hex!r})>'.format(self=self)

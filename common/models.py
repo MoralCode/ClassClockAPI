@@ -24,11 +24,13 @@ class SchoolModel(object):
 
 class BellScheduleModel(object):
 
-    def __init__(self, identifier, school_id, full_name=None, display_name=None, creation_date=None, last_modified=None):
+    def __init__(self, identifier, school_id, full_name=None, display_name=None, days=None, meeting_times=None, creation_date=None, last_modified=None):
         self.type = "bellschedule"
         self.identifier = identifier
         self.full_name = full_name
         self.display_name = display_name
+        self.days = days
+        self.meeting_times = meeting_times
         self.school_id = school_id
         self.creation_date = creation_date if creation_date is not None else datetime.datetime.now()
         self.last_modified = last_modified if last_modified is not None else datetime.datetime.now()

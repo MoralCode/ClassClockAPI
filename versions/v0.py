@@ -121,7 +121,8 @@ class School(Resource):
             fetch = cursor.fetchone()
 
             if fetch is None:
-                return make_jsonapi_error_object(404, title="Resource Not Found", message="No school was found with the specified id."), 404
+                raise Oops("No school was found with the specified id.",
+                           404, title="Resource Not Found")
 
             # print(fetch)
             result = detail_schema.load(make_dict(fetch, dict_keys_map))
@@ -196,9 +197,8 @@ class School(Resource):
             return handle_marshmallow_errors(new_object.errors)
 
         if new_object.data.identifier.hex != school_id.lower():
-            return make_jsonapi_error_object(
-                400, title="Identifier Mismatch", message="The identifier provided in the request body must match the identifier specified in the URL"), 400
-
+            raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
+                       400, title="Identifier Mismatch")
         # build SQL command
 
         values = ()
@@ -278,35 +278,31 @@ class BellSchedule(Resource):
 
             requested_bell_schedule = cursor.fetchone()
 
-            # if requested_bell_schedule is None:
-            #     # this is very broken. need to redo all error handling
-            #     return make_jsonapi_error_object(404, title="Resource Not Found", message="No schedule was found with the specified id."), 404
+            if not requested_bell_schedule:
+                raise Oops("No bell schedule was found with the specified id.",
+                           404, title="Resource Not Found")
 
             cursor.execute(
                 'SELECT date FROM bellscheduledates WHERE bell_schedule_id=%s',
                 (uuid.UUID(bell_schedule_id).bytes, )
             )
             dates = cursor.fetchall()
-
-            # if dates == []:
-            #     # this is very broken. need to redo all error handling
-            #     return make_jsonapi_error_object(404, title="Resource Not Found", message="No schedule was found with the specified id."), 404
+            if not dates:
+                dates = []
 
             cursor.execute(
                 'SELECT classperiod_name, start_time, end_time, creation_date FROM bellschedulemeetingtimes WHERE bell_schedule_id=%s',
                 (uuid.UUID(bell_schedule_id).bytes, )
             )
             meeting_times = cursor.fetchall()
+            if not meeting_times:
+                meeting_times = []
 
             # key maps define the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
             schedule_keys_map = ("full_name", "display_name",
                                  "creation_date", "last_modified")
             meetingtime_keys_map = (
                 "name", "start_time", "end_time", "creation_date")
-
-            if meeting_times == []:
-                # this is very broken. need to redo all error handling
-                return make_jsonapi_error_object(404, title="Resource Not Found", message="No schedule was found with the specified id."), 404
 
             return_data = make_dict(requested_bell_schedule, schedule_keys_map)
             return_data["id"] = uuid.UUID(bell_schedule_id)

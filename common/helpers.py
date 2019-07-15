@@ -142,8 +142,7 @@ def make_jsonapi_response(response_data=None, code=None, headers={}):
 
     if code is not None and (is_client_error(code) or is_server_error(code)):
         # error
-        content['errors'] = [
-            jsonapi_error for jsonapi_error in response_data]
+        content['errors'] = response_data
     else:
         content["data"] = response_data
 

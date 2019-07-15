@@ -395,7 +395,7 @@ class BellSchedule(Resource):
         except:
             database.rollback()
 
-        return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier')), "v0")
+        return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 
     def delete(self, school_id, bell_schedule_id):
 

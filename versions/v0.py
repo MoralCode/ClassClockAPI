@@ -404,15 +404,16 @@ class BellSchedule(Resource):
         schedule_delete = (
             'DELETE FROM bellschedules WHERE bell_schedule_id=%s')
         days_delete = (
-            'DELETE FROM bellscheduledays WHERE bell_schedule_id=%s')
+            'DELETE FROM bellscheduledates WHERE bell_schedule_id=%s')
         meeting_times_delete = (
             'DELETE FROM bellschedulemeetingtimes WHERE bell_schedule_id=%s')
 
         try:
-            cursor.execute(schedule_delete,
-                           (uuid.UUID(bell_schedule_id).bytes,))
+
             cursor.execute(days_delete, (uuid.UUID(bell_schedule_id).bytes,))
             cursor.execute(meeting_times_delete,
+                           (uuid.UUID(bell_schedule_id).bytes,))
+            cursor.execute(schedule_delete,
                            (uuid.UUID(bell_schedule_id).bytes,))
 
             database.commit()

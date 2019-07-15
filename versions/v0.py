@@ -397,6 +397,107 @@ class BellSchedule(Resource):
 
         return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 
+    def patch(self, school_id, bell_schedule_id):
+
+        schema = BellScheduleSchema()
+        data = deconstruct_resource_object(request.get_json()["data"])
+        data["school_id"] = uuid.UUID(school_id)
+
+        new_object = schema.load(data)
+
+        if new_object.errors != {}:
+            return handle_marshmallow_errors(new_object.errors)
+
+        if new_object.data.identifier.hex != bell_schedule_id.lower():
+            # TODO: is this necessary? maybe just use the URL one???
+            raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
+                       400, title="Identifier Mismatch")
+
+        # build SQL command
+
+        values = ()
+        update_bellschedule_sql = 'UPDATE bellschedules SET '
+
+        if new_object.data.full_name is not None:
+            update_bellschedule_sql += "bell_schedule_name=%s, "
+            values += (new_object.data.full_name,)
+
+        if new_object.data.display_name is not None:
+            update_bellschedule_sql += "bell_schedule_display_name=%s, "
+            values += (new_object.data.display_name,)
+
+        # if new_object.data.alternate_freeperiod_name is not None:
+        #     update_bellschedule_sql += "alternate_freeperiod_name=%s, "
+        #     values += (new_object.data.alternate_freeperiod_name,)
+
+        update_bellschedule_sql += "last_modified=NOW() "
+        update_bellschedule_sql += 'WHERE bell_schedule_id=%s'
+
+        values += (new_object.data.identifier.bytes,)
+
+        print(new_object.data.dates)
+        print(new_object.data.meeting_times)
+
+        # might be better to delete and remake
+        delete_dates_sql = "DELETE FROM bellscheduledates WHERE bell_schedule_id=UNHEX(%s)"
+
+        schedule_id_tuple = (new_object.data.identifier.hex,)
+
+        dates_to_add = []
+
+        if new_object.data.dates is not None:
+            for date in new_object.data.dates:
+                dates_to_add.append(
+                    (new_object.data.identifier.bytes,
+                     new_object.data.school_id.bytes,
+                     date)
+                )
+        # TODO: Maybe check that one date isnt set for two bell schedules
+        create_dates_sql = "INSERT INTO bellscheduledates (bell_schedule_id, school_id, date, creation_date) VALUES (%s, %s, %s, NOW())"
+
+        delete_meeting_times_sql = "DELETE bellschedulemeetingtimes WHERE bell_schedule_id=UNHEX(%s)"
+
+        meeting_times_to_add = []
+        if new_object.data.meeting_times is not None:
+            for meeting_time in new_object.data.meeting_times:
+                meeting_times_to_add.append(
+                    (new_object.data.identifier.bytes,
+                     new_object.data.school_id.bytes,
+                     meeting_time.name,
+                     meeting_time.start_time,
+                     meeting_time.end_time)
+                )
+
+        create_meeting_times_sql = "INSERT INTO bellschedulemeetingtimes (bell_schedule_id, school_id, classperiod_name, start_time, end_time, creation_date) VALUES (%s, %s, %s, %s, %s, NOW())"
+
+
+        try:
+            cursor.execute(update_bellschedule_sql, values)
+
+            if cursor.rowcount == 0:
+                raise Oops("No schedule was found with the specified id",
+                           404, title="Schedule not found")
+
+            if new_object.data.dates is not None:
+                cursor.execute(delete_dates_sql, schedule_id_tuple)
+                cursor.executemany(create_dates_sql, dates_to_add)
+
+            if new_object.data.meeting_times is not None:
+                cursor.execute(delete_meeting_times_sql, schedule_id_tuple)
+                cursor.executemany(create_meeting_times_sql,
+                                   meeting_times_to_add)
+
+            database.commit()
+
+        except mariadb.Error as err:
+            print(err)
+            print("Error Code:", err.errno)
+            print("SQLSTATE", err.sqlstate)
+            print("Message", err.msg)
+            database.rollback()  # ?
+
+        return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier')), "v0")
+
     def delete(self, school_id, bell_schedule_id):
 
         # need to delete the whole bell schedule (meeting times and days too)

@@ -88,8 +88,8 @@ def register_api(api, resource, api_version, name_of_optional_param='id', type_o
     )
     api.add_resource(
         resource,
-        '%s<%s:%s>' % (url_prefix + url, type_of_optional_param,
-                       name_of_optional_param),
+        '%s<%s:%s>/' % (url_prefix + url, type_of_optional_param,
+                        name_of_optional_param),
         endpoint=version + "single_" + name,
         methods=['GET', 'PUT', 'PATCH', 'DELETE']
     )

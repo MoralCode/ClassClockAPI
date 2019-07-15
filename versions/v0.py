@@ -337,6 +337,66 @@ class BellSchedule(Resource):
                 return handle_marshmallow_errors(errors)
 
             return make_jsonapi_resource_object(result, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
+
+    def post(self, school_id):
+
+        # also need to be able to process bell schedule days and bell schedule meeting times as input from request to update the database
+
+        schema = BellScheduleSchema()
+        data = deconstruct_resource_object(request.get_json()["data"])
+        data["school_id"] = uuid.UUID(school_id)
+        new_object = schema.load(data)
+
+        if new_object.errors != {}:
+            return handle_marshmallow_errors(new_object.errors)
+
+        # print(new_object)
+
+        # build SQL command
+        cursor.execute(
+            "INSERT INTO bellschedules (bell_schedule_id, bell_schedule_name, bell_schedule_display_name, school_id, creation_date, last_modified) VALUES (%s, %s, %s, %s, NOW(), NOW())",
+            (new_object.data.identifier.bytes, new_object.data.full_name,
+             new_object.data.display_name, new_object.data.school_id.bytes)
+        )
+
+        dates_to_add = []
+
+        for date in new_object.data.dates:
+            dates_to_add.append(
+                (new_object.data.identifier.bytes,
+                 new_object.data.school_id.bytes,
+                 date)
+            )
+
+        dates_sql = "INSERT INTO bellscheduledates (bell_schedule_id, school_id, date, creation_date) VALUES (%s, %s, %s, NOW())"
+
+        try:
+            cursor.executemany(dates_sql, dates_to_add)
+            database.commit()
+        except:
+            database.rollback()
+
+        meeting_times_to_add = []
+
+        for meeting_time in new_object.data.meeting_times:
+            meeting_times_to_add.append(
+                (new_object.data.identifier.bytes,
+                 new_object.data.school_id.bytes,
+                 meeting_time.name,
+                 meeting_time.start_time,
+                 meeting_time.end_time)
+            )
+
+        meeting_times_sql = "INSERT INTO bellschedulemeetingtimes (bell_schedule_id, school_id, classperiod_name, start_time, end_time, creation_date) VALUES (%s, %s, %s, %s, %s, NOW())"
+
+        try:
+            cursor.executemany(meeting_times_sql, meeting_times_to_add)
+            database.commit()
+        except:
+            database.rollback()
+
+        return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier')), "v0")
+
 #
 # Routes
 #

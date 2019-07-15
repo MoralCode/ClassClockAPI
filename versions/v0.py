@@ -397,6 +397,32 @@ class BellSchedule(Resource):
 
         return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier')), "v0")
 
+    def delete(self, school_id, bell_schedule_id):
+
+        # need to delete the whole bell schedule (meeting times and days too)
+        # DELETE FROM bellschedules, bellscheduledates, bellschedulemeetingtimes WHERE bell_schedule_id=%s AND school_id=%s
+        schedule_delete = (
+            'DELETE FROM bellschedules WHERE bell_schedule_id=%s')
+        days_delete = (
+            'DELETE FROM bellscheduledays WHERE bell_schedule_id=%s')
+        meeting_times_delete = (
+            'DELETE FROM bellschedulemeetingtimes WHERE bell_schedule_id=%s')
+
+        try:
+            cursor.execute(schedule_delete,
+                           (uuid.UUID(bell_schedule_id).bytes,))
+            cursor.execute(days_delete, (uuid.UUID(bell_schedule_id).bytes,))
+            cursor.execute(meeting_times_delete,
+                           (uuid.UUID(bell_schedule_id).bytes,))
+
+            database.commit()
+        except Exception as e:
+            print(e)
+            database.rollback()
+
+        return None, 204
+
+
 #
 # Routes
 #

@@ -124,8 +124,9 @@ class School(Resource):
                 raise Oops("No school was found with the specified id.",
                            404, title="Resource Not Found")
 
-            # print(fetch)
-            result = detail_schema.load(make_dict(fetch, dict_keys_map))
+            data = make_dict(fetch, dict_keys_map)
+            data["creation_date"] = data["creation_date"].isoformat()
+            result = SchoolSchema().load(data)
 
             return make_jsonapi_resource_object(result.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 

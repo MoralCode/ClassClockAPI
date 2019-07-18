@@ -517,9 +517,12 @@ class BellSchedule(Resource):
                            (uuid.UUID(bell_schedule_id).bytes,))
             cursor.execute(schedule_delete,
                            (uuid.UUID(bell_schedule_id).bytes,))
+            if cursor.rowcount == 0:
+                raise Oops("No schedule was found with the specified id",
+                           404, title="Schedule not found")
 
             database.commit()
-        except Exception as e:
+        except mariadb.Error as e:
             print(e)
             database.rollback()
 

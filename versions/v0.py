@@ -554,14 +554,14 @@ def ratelimit_handler(e):
     return make_jsonapi_response(
         make_jsonapi_error_object(429, title="Ratelimit Exceeded",
                                   message="ratelimit of " + e.description + " exceeded"),
-        code=429
+        code=429, headers={'Content-Type': 'application/vnd.api+json'}
     )
 
 
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
     return make_jsonapi_response(
-        make_jsonapi_error_object(e.status_code, message=e.error), code=e.status_code
+        make_jsonapi_error_object(e.status_code, message=e.error), code=e.status_code, headers={'Content-Type': 'application/vnd.api+json'}
     )
 
 
@@ -569,11 +569,11 @@ def handle_auth_error(e):
 def handle_error(e):
     if e.title is not None:
         return make_jsonapi_response(
-            make_jsonapi_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code
+            make_jsonapi_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code, headers={'Content-Type': 'application/vnd.api+json'}
         )
     else:
         return make_jsonapi_response(
-            make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code
+            make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code, headers={'Content-Type': 'application/vnd.api+json'}
         )
 
 
@@ -582,7 +582,7 @@ def handle_HTTP_error(e):
     return make_jsonapi_response(
         make_jsonapi_error_object(
             e.code, title=e.name(), message=e.description),
-        code=e.code
+        code=e.code, headers={'Content-Type': 'application/vnd.api+json'}
     )
 
 
@@ -592,5 +592,5 @@ def generic_exception_handler(e):
     print("an exception occurred")
     print(e)
     return make_jsonapi_response(
-        make_jsonapi_error_object(500)
+        make_jsonapi_error_object(500), code=500, headers={'Content-Type': 'application/vnd.api+json'}
     )

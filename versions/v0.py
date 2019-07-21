@@ -6,7 +6,7 @@ from os import environ as env
 from flask import Blueprint, abort, jsonify, request
 from flask_restful import Api, Resource
 from werkzeug.exceptions import HTTPException
-from flask_cors import cross_origin
+from flask_cors import CORS
 
 import mysql.connector as mariadb
 # from bson import json_util
@@ -39,6 +39,10 @@ api = Api(blueprint, decorators=[requires_auth, check_headers])
 def output_json(data, code, headers={}):
     return make_jsonapi_response(response_data=data, code=code, headers=headers)
 
+
+CORS(blueprint, origins="http://localhost:3000", allow_headers=[
+    "Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+    supports_credentials=True)
 # @blueprint.route("/schools", methods=['GET'])
 # @cross_origin(headers=["Content-Type", "Authorization"])
 # @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:5000"])

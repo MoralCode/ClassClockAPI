@@ -32,7 +32,8 @@ cursor = database.cursor()
 
 
 blueprint = Blueprint('v0', __name__)
-api = Api(blueprint, decorators=[requires_auth, check_headers])
+api = Api(blueprint, decorators=[
+          requires_auth, check_headers], default_mediatype="application/vnd.api+json")
 
 
 @api.representation('application/vnd.api+json')

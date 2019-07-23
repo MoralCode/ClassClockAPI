@@ -230,6 +230,10 @@ def handle_marshmallow_errors(errors):
     return error_list, 400
 
 
+def get_request_origin_identifier():
+    return get_api_client_id() + get_api_user_id()
+
+
 def get_api_client_id():
     """Returns a string to group API calls together for the purposes of ratelimiting
     """
@@ -240,6 +244,19 @@ def get_api_client_id():
         return _request_ctx_stack.top.current_user["azp"]
     else:
         return "Public"  # this is just a generic string to lump all unauthenticated requests together and ratelimit as one
+
+
+def get_api_user_id():
+    """Returns the id of the user for whom data is being accessed on behalf of
+    """
+    if hasattr(_request_ctx_stack.top, 'current_user'):
+        raw_id = _request_ctx_stack.top.current_user["sub"]
+        if raw_id.endswith("@clients"):
+            return ""
+        else:
+            return raw_id.split("|")[1]
+    else:
+        return ""
 
 
 def get_token_auth_header():

@@ -314,6 +314,7 @@ class BellSchedule(Resource):
             return_data["id"] = uuid.UUID(bell_schedule_id)
             return_data["school_id"] = uuid.UUID(school_id)
             return_data["creation_date"] = return_data["creation_date"].isoformat()
+            return_data["last_modified"] = return_data["last_modified"].isoformat()
             # extract list of dates from list of tuples of dates
             return_data["dates"] = [date[0].isoformat() for date in dates]
 

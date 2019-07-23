@@ -354,8 +354,8 @@ def make_dict(the_tuple, keys):
         A dict containing the data from both inputs
     """
     the_dict = {}
-    for value in the_tuple:
-        key = keys[the_tuple.index(value)]
+    for index, value in enumerate(the_tuple):
+        key = keys[index]
         the_dict[key] = value
 
     return the_dict

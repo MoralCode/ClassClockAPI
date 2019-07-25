@@ -9,6 +9,7 @@ from werkzeug.exceptions import HTTPException
 from flask_cors import CORS
 
 import mysql.connector as mariadb
+from mysql.connector import pooling
 # from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
@@ -26,9 +27,19 @@ DB_HOST = env.get("DB_HOST")
 DB_USERNAME = env.get("DB_USERNAME")
 DB_PASSWORD = env.get("DB_PASSWORD")
 
-database = mariadb.connect(
-    host=DB_HOST, user=DB_USERNAME, password=DB_PASSWORD, database='classclock')
-cursor = database.cursor()
+
+connection_pool = pooling.MySQLConnectionPool(
+    pool_name="mariadb_connection_pool",
+    pool_size=5,
+    pool_reset_session=True,
+    host=DB_HOST,
+    database='classclock',
+    user=DB_USERNAME,
+    password=DB_PASSWORD)
+
+# database = mariadb.connect(
+#     host=DB_HOST, user=DB_USERNAME, password=DB_PASSWORD, database='classclock')
+# cursor = database.cursor()
 
 
 blueprint = Blueprint('v0', __name__)
@@ -44,6 +55,8 @@ def output_json(data, code, headers={}):
 CORS(blueprint, origins="http://localhost:3000", allow_headers=[
     "Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
     supports_credentials=True)
+
+
 # @blueprint.route("/schools", methods=['GET'])
 # @cross_origin(headers=["Content-Type", "Authorization"])
 # @cross_origin(headers=["Access-Control-Allow-Origin", "http://localhost:5000"])
@@ -89,6 +102,10 @@ class School(Resource):
     keys_uri_map = {"id": "v0.single_school"}
 
     def get(self, school_id):
+
+        conn = connection_pool.get_connection()
+        cursor = conn.cursor()
+
         if school_id is None:
             school_list = []
             summary_schema = SchoolSchema(
@@ -108,6 +125,8 @@ class School(Resource):
                             only=('full_name', 'acronym')), "v0")
                 )
 
+            cursor.close()
+            conn.close()
             return school_list
 
         else:
@@ -124,6 +143,8 @@ class School(Resource):
                              "alternate_freeperiod_name", "creation_date")
 
             fetch = cursor.fetchone()
+            cursor.close()
+            conn.close()
 
             if fetch is None:
                 raise Oops("No school was found with the specified id.",
@@ -136,6 +157,9 @@ class School(Resource):
             return make_jsonapi_resource_object(result.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
     def post(self):
+
+        conn = connection_pool.get_connection()
+        cursor = conn.cursor()
 
         schema = SchoolSchema()
         data = request.get_json()
@@ -164,7 +188,9 @@ class School(Resource):
         sql_values = (new_object.data.identifier.hex, new_object.data.full_name,
                       new_object.data.acronym, new_object.data.alternate_freeperiod_name)
         cursor.execute(sql, sql_values)
-        database.commit()
+        conn.commit()
+        cursor.close()
+        conn.close()
 
         # print(cursor.lastrowid)
         # print(vars(cursor))
@@ -194,6 +220,9 @@ class School(Resource):
             }
         }
         """
+
+        conn = connection_pool.get_connection()
+        cursor = conn.cursor()
 
         schema = SchoolSchema()
         data = request.get_json()
@@ -228,16 +257,22 @@ class School(Resource):
         values += (uuid.UUID(school_id).hex,)
 
         cursor.execute(sql, values)
-        database.commit()
-
+        conn.commit()
+        cursor.close()
+        conn.close()
         return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
     def delete(self, school_id):
+
+        conn = connection_pool.get_connection()
+        cursor = conn.cursor()
+
         sql = ('DELETE FROM schools WHERE school_id=UNHEX(%s)')
 
         cursor.execute(sql, (uuid.UUID(school_id).hex,))
-        database.commit()
-
+        conn.commit()
+        cursor.close()
+        conn.close()
         # should this just archive the school? or delete it and all related records?
         # just remembered it can auto-cascade because foreign keys
         # operation = 'SELECT 1; INSERT INTO t1 VALUES (); SELECT 2'
@@ -248,6 +283,10 @@ class School(Resource):
 class BellSchedule(Resource):
 
     def get(self, school_id, bell_schedule_id):
+
+        conn = connection_pool.get_connection()
+        cursor = conn.cursor()
+
         if bell_schedule_id is None:
             bell_schedule_list = []
 
@@ -272,7 +311,8 @@ class BellSchedule(Resource):
                     make_jsonapi_resource_object(
                         result, BellScheduleSchema(only=('full_name', 'display_name')), "v0")
                 )
-
+            cursor.close()
+            conn.close()
             return bell_schedule_list
 
         else:
@@ -343,9 +383,14 @@ class BellSchedule(Resource):
             if errors != {}:
                 return handle_marshmallow_errors(errors)
 
+            cursor.close()
+            conn.close()
             return make_jsonapi_resource_object(result, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 
     def post(self, school_id):
+
+        conn = connection_pool.get_connection()
+        cursor = conn.cursor()
 
         # also need to be able to process bell schedule days and bell schedule meeting times as input from request to update the database
 
@@ -379,9 +424,9 @@ class BellSchedule(Resource):
 
         try:
             cursor.executemany(dates_sql, dates_to_add)
-            database.commit()
+            conn.commit()
         except:
-            database.rollback()
+            conn.rollback()
 
         meeting_times_to_add = []
 
@@ -398,14 +443,19 @@ class BellSchedule(Resource):
 
         try:
             cursor.executemany(meeting_times_sql, meeting_times_to_add)
-            database.commit()
+            conn.commit()
         except:
-            database.rollback()
+            conn.rollback()
+
+        cursor.close()
+        conn.close()
 
         return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 
     def patch(self, school_id, bell_schedule_id):
 
+        conn = connection_pool.get_connection()
+        cursor = conn.cursor()
         schema = BellScheduleSchema()
         data = deconstruct_resource_object(request.get_json()["data"])
         data["school_id"] = uuid.UUID(school_id)
@@ -493,19 +543,23 @@ class BellSchedule(Resource):
                 cursor.executemany(create_meeting_times_sql,
                                    meeting_times_to_add)
 
-            database.commit()
+            conn.commit()
+            cursor.close()
+            conn.close()
 
         except mariadb.Error as err:
             print(err)
             print("Error Code:", err.errno)
             print("SQLSTATE", err.sqlstate)
             print("Message", err.msg)
-            database.rollback()  # ?
+            conn.rollback()  # ?
 
         return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier')), "v0")
 
     def delete(self, school_id, bell_schedule_id):
 
+        conn = connection_pool.get_connection()
+        cursor = conn.cursor()
         # need to delete the whole bell schedule (meeting times and days too)
         # DELETE FROM bellschedules, bellscheduledates, bellschedulemeetingtimes WHERE bell_schedule_id=%s AND school_id=%s
         schedule_delete = (
@@ -526,11 +580,13 @@ class BellSchedule(Resource):
                 raise Oops("No schedule was found with the specified id",
                            404, title="Schedule not found")
 
-            database.commit()
+            conn.commit()
         except mariadb.Error as e:
             print(e)
-            database.rollback()
+            conn.rollback()
 
+        cursor.close()
+        conn.close()
         return None, 204
 
 
@@ -591,11 +647,11 @@ def handle_HTTP_error(e):
     )
 
 
-@blueprint.errorhandler(Exception)
-def generic_exception_handler(e):
-    # "We're sorry, but the electrons that were tasked with handling your request became terribly misguided and forgot what it is that they were supposed to be doing. Our team of scientists in the Electron Amnesia Recovery Ward is currently nursing them back to health; if you have any information about what it is these electrons were supposed to be doing at the time of this incident, please contact the maintainer of this service."
-    print("an exception occurred")
-    print(e)
-    return make_jsonapi_response(
-        make_jsonapi_error_object(500), code=500, headers={'Content-Type': 'application/vnd.api+json'}
-    )
+# @blueprint.errorhandler(Exception)
+# def generic_exception_handler(e):
+#     # "We're sorry, but the electrons that were tasked with handling your request became terribly misguided and forgot what it is that they were supposed to be doing. Our team of scientists in the Electron Amnesia Recovery Ward is currently nursing them back to health; if you have any information about what it is these electrons were supposed to be doing at the time of this incident, please contact the maintainer of this service."
+#     print("an exception occurred")
+#     print(e)
+#     return make_jsonapi_response(
+#         make_jsonapi_error_object(500), code=500, headers={'Content-Type': 'application/vnd.api+json'}
+#     )

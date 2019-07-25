@@ -115,9 +115,9 @@ class School(Resource):
             detail_schema = SchoolSchema(
                 only=('identifier', 'full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date'))
             # .format(self.db_scan_table)
-            sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id=%s')
+            sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id=UNHEX(%s)')
 
-            cursor.execute(sql, (uuid.UUID(school_id).bytes,))
+            cursor.execute(sql, (uuid.UUID(school_id).hex,))
 
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
             dict_keys_map = ("id", "full_name", "acronym",
@@ -159,9 +159,9 @@ class School(Resource):
         # sql, sql_values = build_sql_column_insert_list(
         #     new_object.data, SchoolSchema(), {"id": "school_id", "acronym": "school_acronym", "full_name": "school_name"}, "schools")
 
-        sql = ("INSERT INTO schools (school_id, school_name, school_acronym, alternate_freeperiod_name, last_modified, creation_date) VALUES (%s, %s, %s, %s, NOW(), NOW())")
+        sql = ("INSERT INTO schools (school_id, school_name, school_acronym, alternate_freeperiod_name, last_modified, creation_date) VALUES (UNHEX(%s), %s, %s, %s, NOW(), NOW())")
 
-        sql_values = (new_object.data.identifier.bytes, new_object.data.full_name,
+        sql_values = (new_object.data.identifier.hex, new_object.data.full_name,
                       new_object.data.acronym, new_object.data.alternate_freeperiod_name)
         cursor.execute(sql, sql_values)
         database.commit()
@@ -223,9 +223,9 @@ class School(Resource):
             values += (new_object.data.alternate_freeperiod_name,)
 
         sql += "last_modified=NOW() "
-        sql += 'WHERE school_id=%s'
+        sql += 'WHERE school_id=UNHEX(%s)'
 
-        values += (uuid.UUID(school_id).bytes,)
+        values += (uuid.UUID(school_id).hex,)
 
         cursor.execute(sql, values)
         database.commit()
@@ -233,9 +233,9 @@ class School(Resource):
         return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
     def delete(self, school_id):
-        sql = ('DELETE FROM schools WHERE school_id=%s')
+        sql = ('DELETE FROM schools WHERE school_id=UNHEX(%s)')
 
-        cursor.execute(sql, (uuid.UUID(school_id).bytes,))
+        cursor.execute(sql, (uuid.UUID(school_id).hex,))
         database.commit()
 
         # should this just archive the school? or delete it and all related records?
@@ -252,7 +252,7 @@ class BellSchedule(Resource):
             bell_schedule_list = []
 
             cursor.execute(
-                "SELECT HEX(bell_schedule_id) as bell_schedule_id, bell_schedule_name, bell_schedule_display_name FROM bellschedules WHERE school_id=%s", (uuid.UUID(school_id).bytes,))
+                "SELECT HEX(bell_schedule_id) as bell_schedule_id, bell_schedule_name, bell_schedule_display_name FROM bellschedules WHERE school_id=UNHEX(%s)", (uuid.UUID(school_id).hex,))
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
             dict_keys_map = ("id", "full_name", "display_name")
 
@@ -278,8 +278,8 @@ class BellSchedule(Resource):
         else:
 
             cursor.execute(
-                'SELECT bell_schedule_name, bell_schedule_display_name, creation_date, last_modified FROM bellschedules WHERE bell_schedule_id=%s',
-                (uuid.UUID(bell_schedule_id).bytes, )
+                'SELECT bell_schedule_name, bell_schedule_display_name, creation_date, last_modified FROM bellschedules WHERE bell_schedule_id=UNHEX(%s)',
+                (uuid.UUID(bell_schedule_id).hex, )
             )
 
             requested_bell_schedule = cursor.fetchone()
@@ -289,16 +289,16 @@ class BellSchedule(Resource):
                            404, title="Resource Not Found")
 
             cursor.execute(
-                'SELECT date FROM bellscheduledates WHERE bell_schedule_id=%s',
-                (uuid.UUID(bell_schedule_id).bytes, )
+                'SELECT date FROM bellscheduledates WHERE bell_schedule_id=UNHEX(%s)',
+                (uuid.UUID(bell_schedule_id).hex, )
             )
             dates = cursor.fetchall()
             if not dates:
                 dates = []
 
             cursor.execute(
-                'SELECT classperiod_name, start_time, end_time, creation_date FROM bellschedulemeetingtimes WHERE bell_schedule_id=%s',
-                (uuid.UUID(bell_schedule_id).bytes, )
+                'SELECT classperiod_name, start_time, end_time, creation_date FROM bellschedulemeetingtimes WHERE bell_schedule_id=UNHEX(%s)',
+                (uuid.UUID(bell_schedule_id).hex, )
             )
             meeting_times = cursor.fetchall()
             if not meeting_times:
@@ -361,21 +361,21 @@ class BellSchedule(Resource):
 
         # build SQL command
         cursor.execute(
-            "INSERT INTO bellschedules (bell_schedule_id, bell_schedule_name, bell_schedule_display_name, school_id, creation_date, last_modified) VALUES (%s, %s, %s, %s, NOW(), NOW())",
-            (new_object.data.identifier.bytes, new_object.data.full_name,
-             new_object.data.display_name, new_object.data.school_id.bytes)
+            "INSERT INTO bellschedules (bell_schedule_id, bell_schedule_name, bell_schedule_display_name, school_id, creation_date, last_modified) VALUES (UNHEX(%s), %s, %s, UNHEX(%s), NOW(), NOW())",
+            (new_object.data.identifier.hex, new_object.data.full_name,
+             new_object.data.display_name, new_object.data.school_id.hex)
         )
 
         dates_to_add = []
 
         for date in new_object.data.dates:
             dates_to_add.append(
-                (new_object.data.identifier.bytes,
-                 new_object.data.school_id.bytes,
+                (new_object.data.identifier.hex,
+                 new_object.data.school_id.hex,
                  date)
             )
 
-        dates_sql = "INSERT INTO bellscheduledates (bell_schedule_id, school_id, date, creation_date) VALUES (%s, %s, %s, NOW())"
+        dates_sql = "INSERT INTO bellscheduledates (bell_schedule_id, school_id, date, creation_date) VALUES (UNHEX(%s), UNHEX(%s), %s, NOW())"
 
         try:
             cursor.executemany(dates_sql, dates_to_add)
@@ -394,7 +394,7 @@ class BellSchedule(Resource):
                  meeting_time.end_time)
             )
 
-        meeting_times_sql = "INSERT INTO bellschedulemeetingtimes (bell_schedule_id, school_id, classperiod_name, start_time, end_time, creation_date) VALUES (%s, %s, %s, %s, %s, NOW())"
+        meeting_times_sql = "INSERT INTO bellschedulemeetingtimes (bell_schedule_id, school_id, classperiod_name, start_time, end_time, creation_date) VALUES (UNHEX(%s), UNHEX(%s), %s, %s, %s, NOW())"
 
         try:
             cursor.executemany(meeting_times_sql, meeting_times_to_add)
@@ -438,9 +438,9 @@ class BellSchedule(Resource):
         #     values += (new_object.data.alternate_freeperiod_name,)
 
         update_bellschedule_sql += "last_modified=NOW() "
-        update_bellschedule_sql += 'WHERE bell_schedule_id=%s'
+        update_bellschedule_sql += 'WHERE bell_schedule_id=UNHEX(%s)'
 
-        values += (new_object.data.identifier.bytes,)
+        values += (new_object.data.identifier.hex,)
 
         print(new_object.data.dates)
         print(new_object.data.meeting_times)
@@ -455,12 +455,12 @@ class BellSchedule(Resource):
         if new_object.data.dates is not None:
             for date in new_object.data.dates:
                 dates_to_add.append(
-                    (new_object.data.identifier.bytes,
-                     new_object.data.school_id.bytes,
+                    (new_object.data.identifier.hex,
+                     new_object.data.school_id.hex,
                      date)
                 )
         # TODO: Maybe check that one date isnt set for two bell schedules
-        create_dates_sql = "INSERT INTO bellscheduledates (bell_schedule_id, school_id, date, creation_date) VALUES (%s, %s, %s, NOW())"
+        create_dates_sql = "INSERT INTO bellscheduledates (bell_schedule_id, school_id, date, creation_date) VALUES (UNHEX(%s), UNHEX(%s), %s, NOW())"
 
         delete_meeting_times_sql = "DELETE bellschedulemeetingtimes WHERE bell_schedule_id=UNHEX(%s)"
 
@@ -468,15 +468,14 @@ class BellSchedule(Resource):
         if new_object.data.meeting_times is not None:
             for meeting_time in new_object.data.meeting_times:
                 meeting_times_to_add.append(
-                    (new_object.data.identifier.bytes,
-                     new_object.data.school_id.bytes,
+                    (new_object.data.identifier.hex,
+                     new_object.data.school_id.hex,
                      meeting_time.name,
                      meeting_time.start_time,
                      meeting_time.end_time)
                 )
 
-        create_meeting_times_sql = "INSERT INTO bellschedulemeetingtimes (bell_schedule_id, school_id, classperiod_name, start_time, end_time, creation_date) VALUES (%s, %s, %s, %s, %s, NOW())"
-
+        create_meeting_times_sql = "INSERT INTO bellschedulemeetingtimes (bell_schedule_id, school_id, classperiod_name, start_time, end_time, creation_date) VALUES (UNHEX(%s), UNHEX(%s), %s, %s, %s, NOW())"
 
         try:
             cursor.execute(update_bellschedule_sql, values)
@@ -510,19 +509,19 @@ class BellSchedule(Resource):
         # need to delete the whole bell schedule (meeting times and days too)
         # DELETE FROM bellschedules, bellscheduledates, bellschedulemeetingtimes WHERE bell_schedule_id=%s AND school_id=%s
         schedule_delete = (
-            'DELETE FROM bellschedules WHERE bell_schedule_id=%s')
+            'DELETE FROM bellschedules WHERE bell_schedule_id=UNHEX(%s)')
         days_delete = (
-            'DELETE FROM bellscheduledates WHERE bell_schedule_id=%s')
+            'DELETE FROM bellscheduledates WHERE bell_schedule_id=UNHEX(%s)')
         meeting_times_delete = (
-            'DELETE FROM bellschedulemeetingtimes WHERE bell_schedule_id=%s')
+            'DELETE FROM bellschedulemeetingtimes WHERE bell_schedule_id=UNHEX(%s)')
 
         try:
 
-            cursor.execute(days_delete, (uuid.UUID(bell_schedule_id).bytes,))
+            cursor.execute(days_delete, (uuid.UUID(bell_schedule_id).hex,))
             cursor.execute(meeting_times_delete,
-                           (uuid.UUID(bell_schedule_id).bytes,))
+                           (uuid.UUID(bell_schedule_id).hex,))
             cursor.execute(schedule_delete,
-                           (uuid.UUID(bell_schedule_id).bytes,))
+                           (uuid.UUID(bell_schedule_id).hex,))
             if cursor.rowcount == 0:
                 raise Oops("No schedule was found with the specified id",
                            404, title="Schedule not found")

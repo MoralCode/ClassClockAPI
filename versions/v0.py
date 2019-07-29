@@ -14,9 +14,10 @@ from mysql.connector import pooling
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, check_scopes, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin, check_owns_school
+from common.helpers import requires_auth, check_scope, check_scopes, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin, check_owns_school, set_user_as_school_owner
 from common.constants import APIScopes
 from common.schemas import SchoolSchema, BellScheduleSchema, ClassPeriodSchema
+from common.services import auth0management
 
 #
 # App Setup
@@ -199,6 +200,9 @@ class School(Resource):
         conn.commit()
         cursor.close()
         conn.close()
+
+        # set school owner
+        set_user_as_school_owner(new_object.data.identifier.hex)
 
         # print(cursor.lastrowid)
         # print(vars(cursor))

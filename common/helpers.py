@@ -356,6 +356,16 @@ def get_app_metadata_for_authorizing_user():
         return None
 
 
+def set_user_as_school_owner(school_id):
+
+    user_id = get_api_user_id()
+    app_metadata = {"owns_schools": [school_id]}
+    if user_id != "":
+        return management_API.update_user_app_metadata(user_id, app_metadata)
+    else:
+        return None
+
+
 # from https://stackoverflow.com/a/3675423
 
 

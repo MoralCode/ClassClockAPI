@@ -231,7 +231,7 @@ def handle_marshmallow_errors(errors):
 
 
 def get_request_origin_identifier():
-    return get_api_client_id() + get_api_user_id()
+    return get_api_client_id() + get_api_user_id().split("|")[1]
 
 
 def get_api_client_id():
@@ -254,7 +254,7 @@ def get_api_user_id():
         if raw_id.endswith("@clients"):
             return ""
         else:
-            return raw_id.split("|")[1]
+            return raw_id
     else:
         return ""
 

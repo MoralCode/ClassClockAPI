@@ -14,7 +14,7 @@ from mysql.connector import pooling
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta
+from common.helpers import requires_auth, check_scope, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin
 from common.constants import APIScopes
 from common.schemas import SchoolSchema, BellScheduleSchema, ClassPeriodSchema
 
@@ -156,6 +156,7 @@ class School(Resource):
 
             return make_jsonapi_resource_object(result.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
+    @requires_admin
     def post(self):
 
         conn = connection_pool.get_connection()
@@ -202,6 +203,7 @@ class School(Resource):
 
         return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
+    @requires_admin
     def patch(self, school_id):
         """ input:
         {
@@ -262,6 +264,7 @@ class School(Resource):
         conn.close()
         return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
+    @requires_admin
     def delete(self, school_id):
 
         conn = connection_pool.get_connection()
@@ -387,6 +390,7 @@ class BellSchedule(Resource):
             conn.close()
             return make_jsonapi_resource_object(result, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 
+    @requires_admin
     def post(self, school_id):
 
         conn = connection_pool.get_connection()
@@ -452,6 +456,7 @@ class BellSchedule(Resource):
 
         return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 
+    @requires_admin
     def patch(self, school_id, bell_schedule_id):
 
         conn = connection_pool.get_connection()
@@ -556,6 +561,7 @@ class BellSchedule(Resource):
 
         return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier')), "v0")
 
+    @requires_admin
     def delete(self, school_id, bell_schedule_id):
 
         conn = connection_pool.get_connection()

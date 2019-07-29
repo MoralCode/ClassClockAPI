@@ -8,6 +8,7 @@ from os import environ as env
 import json
 from uuid import UUID, uuid4
 from datetime import datetime
+from common.services import auth0management
 
 
 from common.constants import AuthType
@@ -16,6 +17,8 @@ from common.constants import AuthType
 AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
 API_IDENTIFIER = env.get("API_IDENTIFIER")
 ALGORITHMS = ["RS256"]
+
+management_API = auth0management.Auth0ManagementService()
 
 # Format error response and append status code.
 
@@ -324,6 +327,15 @@ def check_scopes(scopes):
     """
     for scope in scopes:
         check_scope(scope)
+
+
+def check_for_role(role):
+    user_id = get_api_user_id()
+    if user_id != "":
+        return role in management_API.get_roles_for_user(user_id)
+    else:
+        return None
+
 
 # from https://stackoverflow.com/a/3675423
 

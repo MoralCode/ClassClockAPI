@@ -337,6 +337,14 @@ def check_for_role(role):
         return None
 
 
+def get_app_metadata_for_authorizing_user():
+    user_id = get_api_user_id()
+    if user_id != "":
+        return management_API.get_user(user_id)["app_metadata"]
+    else:
+        return None
+
+
 # from https://stackoverflow.com/a/3675423
 
 

@@ -492,6 +492,23 @@ def requires_auth(f):
     return decorated
 
 
+def requires_admin(f):
+    """Determines if the user has the correct admin permissions for an action 
+    """
+    @wraps(f)
+    def decorated(*args, **kwargs):
+
+        is_admin = check_for_role("admin")
+        if is_admin is None:
+            raise Oops("There must be a user signed in to perform this action",
+                       400, title="No User Authorization")
+        elif not is_admin:
+            raise Oops("Authorizing user does not have the correct role to perform this action",
+                       401, title="Incorrect User Role")
+        else:
+            return f(*args, **kwargs)
+    return decorated
+
 # decorator modified from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/decorators.py
 def check_headers(func):
     """Check headers according to jsonapi reference

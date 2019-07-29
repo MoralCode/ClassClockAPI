@@ -335,10 +335,9 @@ def check_owns_school(school_id):
     if app_metadata is None:
         raise Oops("There must be a user signed in to perform this action",
                    400, title="No User Authorization")
-    elif app_metadata.schools_owned is None or school_id not in app_metadata.schools_owned:
+    elif app_metadata.schools_owned is None or school_id not in app_metadata.owns_schools:
         raise Oops("Authorizing user is not the owner of this school",
                    401)
-
 
 
 def check_for_role(role):

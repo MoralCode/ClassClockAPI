@@ -14,7 +14,7 @@ from mysql.connector import pooling
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, check_scopes, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin
+from common.helpers import requires_auth, check_scope, check_scopes, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin, check_owns_school
 from common.constants import APIScopes
 from common.schemas import SchoolSchema, BellScheduleSchema, ClassPeriodSchema
 
@@ -231,6 +231,7 @@ class School(Resource):
         """
 
         check_scope(APIScopes.EDIT_SCHOOL)
+        check_owns_school(school_id)
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
@@ -277,6 +278,7 @@ class School(Resource):
     def delete(self, school_id):
 
         check_scopes([APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
+        check_owns_school(school_id)
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
@@ -412,6 +414,7 @@ class BellSchedule(Resource):
 
 
         check_scope(APIScopes.CREATE_BELL_SCHEDULE)
+        check_owns_school(school_id)
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
@@ -480,6 +483,7 @@ class BellSchedule(Resource):
     def patch(self, school_id, bell_schedule_id):
 
         check_scope(APIScopes.EDIT_BELL_SCHEDULE)
+        check_owns_school(school_id)
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
@@ -587,6 +591,7 @@ class BellSchedule(Resource):
     def delete(self, school_id, bell_schedule_id):
 
         check_scope(APIScopes.DELETE_BELL_SCHEDULE)
+        check_owns_school(school_id)
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()

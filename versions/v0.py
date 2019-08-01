@@ -14,7 +14,7 @@ from mysql.connector import pooling
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_scope, check_scopes, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin, check_owns_school, set_user_as_school_owner, get_app_metadata_for_authorizing_user
+from common.helpers import requires_auth, check_permissions, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin, get_api_user_id
 from common.constants import APIScopes
 from common.schemas import SchoolSchema, BellScheduleSchema, ClassPeriodSchema
 from common.services import auth0management
@@ -108,8 +108,8 @@ class School(Resource):
         cursor = conn.cursor()
 
         if school_id is None:
-            
-            check_scope(APIScopes.LIST_SCHOOLS)
+
+            check_permissions([APIScopes.LIST_SCHOOLS])
 
             school_list = []
             summary_schema = SchoolSchema(
@@ -135,7 +135,7 @@ class School(Resource):
 
         else:
 
-            check_scope(APIScopes.LIST_SCHOOLS)
+            check_permissions([APIScopes.LIST_SCHOOLS])
 
             detail_schema = SchoolSchema(
                 only=('identifier', 'full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date'))
@@ -165,7 +165,7 @@ class School(Resource):
     @requires_admin
     def post(self):
 
-        check_scope(APIScopes.CREATE_SCHOOL)
+        check_permissions([APIScopes.CREATE_SCHOOL])
         if get_app_metadata_for_authorizing_user().owns_schools != None:
             raise Oops(
                 "Authorizing user is already the owner of another school", 401)
@@ -237,8 +237,7 @@ class School(Resource):
         }
         """
 
-        check_scope(APIScopes.EDIT_SCHOOL)
-        check_owns_school(school_id)
+        check_permissions([APIScopes.EDIT_SCHOOL])
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
@@ -284,16 +283,21 @@ class School(Resource):
     @requires_admin
     def delete(self, school_id):
 
-        check_scopes([APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
-        check_owns_school(school_id)
+        check_permissions(
+            [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
 
-        sql = ('DELETE FROM schools WHERE school_id=UNHEX(%s)')
+        sql = ('DELETE FROM schools WHERE school_id=UNHEX(%s) AND owner_id=%s')
 
-        cursor.execute(sql, (uuid.UUID(school_id).hex,))
+        cursor.execute(sql, (uuid.UUID(school_id).hex, get_api_user_id()))
         conn.commit()
+
+        if cursor.rowcount == 0:
+            raise Oops("No records were found. Please make sure you are the owner for the school you are trying to delete",
+                       404, title="No Records Updated")
+
         cursor.close()
         conn.close()
         # should this just archive the school? or delete it and all related records?
@@ -312,7 +316,7 @@ class BellSchedule(Resource):
 
         if bell_schedule_id is None:
 
-            check_scope(APIScopes.LIST_BELL_SCHEDULES)
+            check_permissions([APIScopes.LIST_BELL_SCHEDULES])
 
             bell_schedule_list = []
 
@@ -342,8 +346,8 @@ class BellSchedule(Resource):
             return bell_schedule_list
 
         else:
-            
-            check_scope(APIScopes.READ_BELL_SCHEDULE)
+
+            check_permissions([APIScopes.READ_BELL_SCHEDULE])
 
             cursor.execute(
                 'SELECT bell_schedule_name, bell_schedule_display_name, creation_date, last_modified FROM bellschedules WHERE bell_schedule_id=UNHEX(%s)',
@@ -415,13 +419,10 @@ class BellSchedule(Resource):
             conn.close()
             return make_jsonapi_resource_object(result, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 
-
     @requires_admin
     def post(self, school_id):
 
-
-        check_scope(APIScopes.CREATE_BELL_SCHEDULE)
-        check_owns_school(school_id)
+        check_permissions([APIScopes.CREATE_BELL_SCHEDULE])
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
@@ -489,8 +490,7 @@ class BellSchedule(Resource):
     @requires_admin
     def patch(self, school_id, bell_schedule_id):
 
-        check_scope(APIScopes.EDIT_BELL_SCHEDULE)
-        check_owns_school(school_id)
+        check_permissions([APIScopes.EDIT_BELL_SCHEDULE])
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
@@ -597,8 +597,7 @@ class BellSchedule(Resource):
     @requires_admin
     def delete(self, school_id, bell_schedule_id):
 
-        check_scope(APIScopes.DELETE_BELL_SCHEDULE)
-        check_owns_school(school_id)
+        check_permissions([APIScopes.DELETE_BELL_SCHEDULE])
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()

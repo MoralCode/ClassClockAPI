@@ -287,22 +287,7 @@ def get_valid_auth_header_of_type(auth_header_type):
     return parts[1]  # return the value provided with the token
 
 
-def scope_is_present(scope_to_check):
-    """Determines if the required scope is present in the access token
-    Args:
-        scope_to_check (str): The scope required to access the resource
-    """
-    token = get_token_auth_header()
-    unverified_claims = jwt.get_unverified_claims(token)
-    if unverified_claims.get("scope"):
-        token_scopes = unverified_claims["scope"].split()
-        for token_scope in token_scopes:
-            if token_scope == scope_to_check:
-                return True
-    return False
-
-
-def check_scope(scope):
+def has_permission(permission):
     """Raises an AuthError if the specified scope is not present
 
     Arguments:
@@ -311,12 +296,13 @@ def check_scope(scope):
     Raises:
         AuthError: An authentication error
     """
-    if not scope_is_present(scope):
+    return
+    if not permission in _request_ctx_stack.top.current_user.permissions:
         raise AuthError(
-            "Access to this resource requires the " + scope + " scope", 403)
+            "You do not have the necessary permission (" + permission.value + ") to access to this resource", 403)
 
 
-def check_scopes(scopes):
+def check_permissions(permissions_to_check):
     """Raises an AuthError if the specified scopes are not present
 
     Arguments:
@@ -325,8 +311,8 @@ def check_scopes(scopes):
     Raises:
         AuthError: An authentication error
     """
-    for scope in scopes:
-        check_scope(scope)
+    for perm in permissions_to_check:
+        has_permission(perm)
 
 
 def check_for_role(role):

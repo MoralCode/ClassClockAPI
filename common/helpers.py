@@ -329,39 +329,10 @@ def check_scopes(scopes):
         check_scope(scope)
 
 
-def check_owns_school(school_id):
-
-    app_metadata = get_app_metadata_for_authorizing_user()
-    if app_metadata is None:
-        raise Oops("There must be a user signed in to perform this action",
-                   400, title="No User Authorization")
-    elif app_metadata.schools_owned is None or school_id not in app_metadata.owns_schools:
-        raise Oops("Authorizing user is not the owner of this school",
-                   401)
-
-
 def check_for_role(role):
     user_id = get_api_user_id()
     if user_id != "":
         return role in management_API.get_roles_for_user(user_id)
-    else:
-        return None
-
-
-def get_app_metadata_for_authorizing_user():
-    user_id = get_api_user_id()
-    if user_id != "":
-        return management_API.get_user(user_id)["app_metadata"]
-    else:
-        return None
-
-
-def set_user_as_school_owner(school_id):
-
-    user_id = get_api_user_id()
-    app_metadata = {"owns_schools": [school_id]}
-    if user_id != "":
-        return management_API.update_user_app_metadata(user_id, app_metadata)
     else:
         return None
 

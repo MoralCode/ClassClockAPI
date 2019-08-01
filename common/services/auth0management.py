@@ -26,19 +26,6 @@ class Auth0ManagementService:
         return data.decode("utf-8")
         # print(access_token)
 
-    def update_user_app_metadata(self, user_id, app_metadata):
-
-        url = Auth0ManagementService.base_path + "/users/" + user_id
-        heads = {**Auth0ManagementService.headers, **
-                 {"Authorization": "Bearer " + self.access_token}}
-        self.conn.request("PATCH", url, {"app_metadata": app_metadata}, heads)
-
-        res = self.conn.getresponse()
-        data = res.read()
-
-        return data.decode("utf-8")
-        # print(access_token)
-
     def get_roles_for_user(self, user_id):
         url = Auth0ManagementService.base_path + "/users/" + user_id + "/roles"
         heads = {**Auth0ManagementService.headers, **

@@ -116,9 +116,9 @@ class School(Resource):
                 only=('identifier', 'full_name', 'acronym'))
 
             cursor.execute(
-                "SELECT HEX(school_id) as school_id, school_name, school_acronym FROM schools")
+                "SELECT HEX(school_id) as school_id, owner_id, school_name, school_acronym FROM schools")
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            dict_keys_map = ("id", "full_name", "acronym")
+            dict_keys_map = ("id", "owner_id", "full_name", "acronym")
 
             for school in cursor:
                 result = summary_schema.load(make_dict(school, dict_keys_map))
@@ -140,12 +140,12 @@ class School(Resource):
             detail_schema = SchoolSchema(
                 only=('identifier', 'full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date'))
             # .format(self.db_scan_table)
-            sql = ('SELECT HEX(school_id) as school_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id=UNHEX(%s)')
+            sql = ('SELECT HEX(school_id) as school_id, owner_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id=UNHEX(%s)')
 
             cursor.execute(sql, (uuid.UUID(school_id).hex,))
 
             # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            dict_keys_map = ("id", "full_name", "acronym",
+            dict_keys_map = ("id", "owner_id", "full_name", "acronym",
                              "alternate_freeperiod_name", "creation_date")
 
             fetch = cursor.fetchone()

@@ -4,6 +4,7 @@ from common.models import SchoolModel, BellScheduleModel, ClassPeriod
 
 class SchoolSchema(Schema):
     identifier = fields.UUID(load_from='id', dump_to='id')
+    owner_id = fields.Str()
     full_name = fields.Str(allow_none=True)
     acronym = fields.Str(allow_none=True)
     alternate_freeperiod_name = fields.Str(allow_none=True)

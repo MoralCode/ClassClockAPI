@@ -14,7 +14,7 @@ from mysql.connector import pooling
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_permissions, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin, get_api_user_id
+from common.helpers import requires_auth, check_permissions, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin, get_api_user_id, check_ownership
 from common.constants import APIScopes
 from common.schemas import SchoolSchema, BellScheduleSchema, ClassPeriodSchema
 from common.services import auth0management
@@ -190,22 +190,18 @@ class School(Resource):
 
 
         '''
-
         # print(vars(new_object.data))
         # sql, sql_values = build_sql_column_insert_list(
         #     new_object.data, SchoolSchema(), {"id": "school_id", "acronym": "school_acronym", "full_name": "school_name"}, "schools")
 
-        sql = ("INSERT INTO schools (school_id, school_name, school_acronym, alternate_freeperiod_name, last_modified, creation_date) VALUES (UNHEX(%s), %s, %s, %s, NOW(), NOW())")
+        sql = ("INSERT INTO schools (school_id, owner_id, school_name, school_acronym, alternate_freeperiod_name, last_modified, creation_date) VALUES (UNHEX(%s), %s, %s, %s, %s, NOW(), NOW())")
 
-        sql_values = (new_object.data.identifier.hex, new_object.data.full_name,
+        sql_values = (new_object.data.identifier.hex, get_api_user_id(), new_object.data.full_name,
                       new_object.data.acronym, new_object.data.alternate_freeperiod_name)
         cursor.execute(sql, sql_values)
         conn.commit()
         cursor.close()
         conn.close()
-
-        # set school owner
-        set_user_as_school_owner(new_object.data.identifier.hex)
 
         # print(cursor.lastrowid)
         # print(vars(cursor))
@@ -270,12 +266,17 @@ class School(Resource):
             values += (new_object.data.alternate_freeperiod_name,)
 
         sql += "last_modified=NOW() "
-        sql += 'WHERE school_id=UNHEX(%s)'
+        sql += 'WHERE school_id=UNHEX(%s) AND owner_id=%s'
 
-        values += (uuid.UUID(school_id).hex,)
+        values += (uuid.UUID(school_id).hex, get_api_user_id())
 
         cursor.execute(sql, values)
         conn.commit()
+
+        if cursor.rowcount == 0:
+            raise Oops("No records were found. Please make sure you are the owner for the school you are trying to modify",
+                       404, title="No Records Updated")
+
         cursor.close()
         conn.close()
         return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
@@ -427,6 +428,8 @@ class BellSchedule(Resource):
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
 
+        check_ownership(cursor, school_id)
+
         # also need to be able to process bell schedule days and bell schedule meeting times as input from request to update the database
 
         schema = BellScheduleSchema()
@@ -494,6 +497,9 @@ class BellSchedule(Resource):
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
+
+        check_ownership(cursor, school_id)
+
         schema = BellScheduleSchema()
         data = deconstruct_resource_object(request.get_json()["data"])
         data["school_id"] = uuid.UUID(school_id)
@@ -601,6 +607,9 @@ class BellSchedule(Resource):
 
         conn = connection_pool.get_connection()
         cursor = conn.cursor()
+
+        check_ownership(cursor, school_id)
+
         # need to delete the whole bell schedule (meeting times and days too)
         # DELETE FROM bellschedules, bellscheduledates, bellschedulemeetingtimes WHERE bell_schedule_id=%s AND school_id=%s
         schedule_delete = (

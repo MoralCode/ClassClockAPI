@@ -14,7 +14,7 @@ from mysql.connector import pooling
 # from bson.objectid import ObjectId
 import http.client
 
-from common.helpers import requires_auth, check_permissions, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin, get_api_user_id, check_ownership
+from common.helpers import requires_auth, check_permissions, AuthError, Oops, make_dict, make_jsonapi_response, make_jsonapi_resource_object, make_jsonapi_error_object, register_api, check_headers, deconstruct_resource_object, build_sql_column_update_list, handle_marshmallow_errors, time_from_delta, requires_admin, get_api_user_id, check_ownership, list_owned_school_ids
 from common.constants import APIScopes
 from common.schemas import SchoolSchema, BellScheduleSchema, ClassPeriodSchema
 from common.services import auth0management
@@ -166,7 +166,7 @@ class School(Resource):
     def post(self):
 
         check_permissions([APIScopes.CREATE_SCHOOL])
-        if get_app_metadata_for_authorizing_user().owns_schools != None:
+        if len(list_owned_school_ids()) > 0:
             raise Oops(
                 "Authorizing user is already the owner of another school", 401)
 

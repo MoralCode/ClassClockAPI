@@ -333,6 +333,16 @@ def check_ownership(cursor, school_id):
     if get_api_user_id() not in owners:
         raise Oops("Authorizing user is not the owner of this school", 401)
 
+
+def list_owned_school_ids(cursor, school_id):
+    cursor.execute(
+        "SELECT UNHEX(school_id) as id FROM schools WHERE owner_id=%s", (school_id,))
+    # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
+    # dict_keys_map = ("id", "full_name", "acronym")
+
+    return [sch_id[0] for sch_id in cursor]
+
+
 # from https://stackoverflow.com/a/3675423
 
 

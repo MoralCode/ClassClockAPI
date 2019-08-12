@@ -44,8 +44,8 @@ connection_pool = pooling.MySQLConnectionPool(
 
 
 blueprint = Blueprint('v0', __name__)
-api = Api(blueprint, decorators=[
-          requires_auth, check_headers], default_mediatype="application/vnd.api+json")
+api = Api(blueprint, decorators=[check_headers],
+          default_mediatype="application/vnd.api+json")
 
 
 @api.representation('application/vnd.api+json')
@@ -162,6 +162,7 @@ class School(Resource):
 
             return make_jsonapi_resource_object(result.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
+    @requires_auth
     @requires_admin
     def post(self):
 
@@ -213,6 +214,7 @@ class School(Resource):
 
         return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
+    @requires_auth
     @requires_admin
     def patch(self, school_id):
         """ input:
@@ -281,6 +283,7 @@ class School(Resource):
         conn.close()
         return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
 
+    @requires_auth
     @requires_admin
     def delete(self, school_id):
 
@@ -420,6 +423,7 @@ class BellSchedule(Resource):
             conn.close()
             return make_jsonapi_resource_object(result, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 
+    @requires_auth
     @requires_admin
     def post(self, school_id):
 
@@ -490,6 +494,7 @@ class BellSchedule(Resource):
 
         return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
 
+    @requires_auth
     @requires_admin
     def patch(self, school_id, bell_schedule_id):
 
@@ -600,6 +605,7 @@ class BellSchedule(Resource):
 
         return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier')), "v0")
 
+    @requires_auth
     @requires_admin
     def delete(self, school_id, bell_schedule_id):
 

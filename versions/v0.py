@@ -113,7 +113,7 @@ class School(Resource):
 
             school_list = []
             summary_schema = SchoolSchema(
-                only=('identifier', 'full_name', 'acronym'))
+                only=('identifier', 'owner_id', 'full_name', 'acronym'))
 
             cursor.execute(
                 "SELECT HEX(school_id) as school_id, owner_id, school_name, school_acronym FROM schools")

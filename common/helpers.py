@@ -9,6 +9,7 @@ import json
 from uuid import UUID, uuid4
 from datetime import datetime
 from common.services import auth0management
+import flask_limiter
 
 
 from common.constants import AuthType
@@ -234,7 +235,8 @@ def handle_marshmallow_errors(errors):
 
 
 def get_request_origin_identifier():
-    return get_api_client_id() + get_api_user_id().split("|")[1]
+    user_id_parts = get_api_user_id().split("|")
+    return flask_limiter.util.get_remote_address() + get_api_client_id() + user_id_parts[1] if len(user_id_parts) > 2 else ""
 
 
 def get_api_client_id():

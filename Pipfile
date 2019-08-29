@@ -17,6 +17,7 @@ Flask = "*"
 Flask-Cors = "*"
 Flask-Limiter = "*"
 Flask-RESTful = "*"
+gunicorn = "*"
 
 [requires]
 python_version = "3.6"

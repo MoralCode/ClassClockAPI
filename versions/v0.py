@@ -53,7 +53,7 @@ def output_json(data, code, headers={}):
     return make_jsonapi_response(response_data=data, code=code, headers=headers)
 
 
-CORS(blueprint, origins="http://localhost:3000", allow_headers=[
+CORS(blueprint, origins="https://api.classclock.app", allow_headers=[
     "Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
     supports_credentials=True)
 

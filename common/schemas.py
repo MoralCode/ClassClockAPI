@@ -3,7 +3,7 @@ from common.models import SchoolModel, BellScheduleModel, ClassPeriod
 
 
 class SchoolSchema(Schema):
-    identifier = fields.UUID(load_from='id', dump_to='id')
+    identifier = fields.UUID(data_key="id")
     owner_id = fields.Str()
     full_name = fields.Str(allow_none=True)
     acronym = fields.Str(allow_none=True)
@@ -12,8 +12,8 @@ class SchoolSchema(Schema):
     last_modified = fields.DateTime(allow_none=True)
 
     @post_load
-    def make_school(self, data):
-        return SchoolModel(**data)
+    def make_school(self, item, many, partial, **kwargs):
+        return SchoolModel(**item)
 
 
 class ClassPeriodSchema(Schema):
@@ -23,20 +23,20 @@ class ClassPeriodSchema(Schema):
     creation_date = fields.DateTime(allow_none=True)
 
     @post_load
-    def make_class_period(self, data):
-        return ClassPeriod(**data)
+    def make_class_period(self, item, many, partial, **kwargs):
+        return ClassPeriod(**item)
 
 
 class BellScheduleSchema(Schema):
-    identifier = fields.UUID(load_from='id', dump_to='id')
+    identifier = fields.UUID(data_key='id')
     full_name = fields.Str(allow_none=True)
     display_name = fields.Str(allow_none=True)
-    school_id = fields.UUID(load_from='school_id', dump_to='school_id')
+    school_id = fields.UUID(data_key='school_id')
     dates = fields.List(fields.Date())
     meeting_times = fields.Nested(ClassPeriodSchema, many=True)
     creation_date = fields.DateTime(allow_none=True)
     last_modified = fields.DateTime(allow_none=True)
 
     @post_load
-    def make_bell_schedule(self, data):
-        return BellScheduleModel(**data)
+    def make_bell_schedule(self, item, many, partial, **kwargs):
+        return BellScheduleModel(**item)

@@ -125,7 +125,7 @@ class School(Resource):
 
                 school_list.append(
                     make_jsonapi_resource_object(
-                        result.data, SchoolSchema(
+                        result, SchoolSchema(
                             only=('full_name', 'acronym')), "v0")
                 )
 
@@ -333,11 +333,11 @@ class BellSchedule(Resource):
 
                 data = make_dict(bell_schedule, dict_keys_map)
                 data["school_id"] = uuid.UUID(school_id)
-                # print(data)
-                result, errors = BellScheduleSchema().load(data)
+
+                result = BellScheduleSchema().load(data)
                 # print(errors)
-                if errors != {}:
-                    return handle_marshmallow_errors(errors)
+                # if errors != {}:
+                #     return handle_marshmallow_errors(errors)
                 # print(result)
                 # # print(type(result))
 
@@ -414,10 +414,10 @@ class BellSchedule(Resource):
 
             return_data["meeting_times"] = meeting_times
 
-            result, errors = BellScheduleSchema().load(return_data)
+            result = BellScheduleSchema().load(return_data)
 
-            if errors != {}:
-                return handle_marshmallow_errors(errors)
+            # if errors != {}:
+            #     return handle_marshmallow_errors(errors)
 
             cursor.close()
             conn.close()

@@ -189,7 +189,7 @@ def make_jsonapi_resource_object(resource, attributes_schema, blueprint_name):
     resource_object["links"] = make_jsonapi_links_object(
         self=resource.get_uri(blueprint_name))
 
-    resource_object["attributes"] = attributes_schema.dump(resource).data
+    resource_object["attributes"] = attributes_schema.dump(resource)
 
     if resource.type == "bellschedule":
         resource_object["relationships"] = {}

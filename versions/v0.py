@@ -160,7 +160,8 @@ class School(Resource):
             data["creation_date"] = data["creation_date"].isoformat()
             result = SchoolSchema().load(data)
 
-            return make_jsonapi_resource_object(result.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
+            return make_jsonapi_resource_object(result, SchoolSchema(exclude=('identifier',)), "v0")
+
 
     @requires_auth
     @requires_admin
@@ -421,7 +422,7 @@ class BellSchedule(Resource):
 
             cursor.close()
             conn.close()
-            return make_jsonapi_resource_object(result, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
+            return make_jsonapi_resource_object(result, BellScheduleSchema(exclude=('identifier', 'school_id')), "v0")
 
     @requires_auth
     @requires_admin

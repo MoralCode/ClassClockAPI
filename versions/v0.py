@@ -54,7 +54,7 @@ def output_json(data, code, headers={}):
 
 
 CORS(blueprint, origins="https://api.classclock.app", allow_headers=[
-    "Content-Type", "Authorization", "Access-Control-Allow-Credentials"],
+    "Accept", "Authorization"],
     supports_credentials=True)
 
 

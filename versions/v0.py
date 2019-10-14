@@ -1,6 +1,8 @@
 import json
 import uuid
 import datetime
+from flask_limiter import util
+from flask import current_app
 from os import environ as env
 
 from flask import Blueprint, abort, jsonify, request
@@ -657,6 +659,12 @@ register_api(api, School, "v0", name_of_optional_param="school_id")
 register_api(api, BellSchedule, "v0", url_prefix="/school/<string:school_id>",
              name_of_optional_param="bell_schedule_id")
 
+
+
+@blueprint.before_request
+def before():
+    current_app.logger.info( "Handling " + request.method + " Request for endpoint " +  request.path + " from API user '" + get_api_user_id() + "' from address " + util.get_remote_address() )
+    pass    
 
 #
 #

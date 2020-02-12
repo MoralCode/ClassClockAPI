@@ -19,6 +19,7 @@ Flask-Limiter = "*"
 Flask-RESTful = "*"
 gunicorn = "*"
 sqlalchemy = "*"
+safrs = "*"
 
 [requires]
 python_version = "3.6"

@@ -155,6 +155,8 @@ def make_jsonapi_response(response_data=None, code=None, headers={}):
     else:
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
+def filter_dict(dict, filter, is_whitelist=True):
+    return {key: val for key, val in dict.items() if ((key in filter) if is_whitelist else (key not in filter))}
 
 def make_jsonapi_links_object(**kwargs):
     """Creates a JSON:API "links object" from a dict of data

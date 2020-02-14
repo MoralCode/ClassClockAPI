@@ -148,6 +148,14 @@
             ],
             "version": "==2.11.1"
         },
+        "json-api-doc": {
+            "hashes": [
+                "sha256:3a4724d9b86c5a52686a76f2c7538101f1a933fc1a08b85b20541f9885ec2433",
+                "sha256:a073be2309ec90fc33a02701a5f73a715cb6475a2dffa71d0e9df63e0fbe9182"
+            ],
+            "index": "pypi",
+            "version": "==0.11.0"
+        },
         "jsonschema": {
             "hashes": [
                 "sha256:0c0a81564f181de3212efa2d17de1910f8732fa1b71c42266d983cd74304e20d",

@@ -116,25 +116,14 @@ class School(Resource):
             check_permissions([APIScopes.LIST_SCHOOLS])
 
             school_list = []
-            summary_schema = SchoolSchema(
-                only=('identifier', 'owner_id', 'full_name', 'acronym'))
+            schools = SchoolDB.query.all()
 
-            cursor.execute(
-                "SELECT HEX(school_id) as school_id, owner_id, school_name, school_acronym FROM schools")
-            # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            dict_keys_map = ("id", "owner_id", "full_name", "acronym")
-
-            for school in cursor:
-                result = summary_schema.load(make_dict(school, dict_keys_map))
-
+            for school in schools:
                 school_list.append(
                     make_jsonapi_resource_object(
-                        result, SchoolSchema(
-                            only=('full_name', 'acronym')), "v0")
+                        school, SchoolSchema(only=('full_name', 'acronym')),
+                            "v0")
                 )
-
-            cursor.close()
-            conn.close()
             return school_list
 
         else:

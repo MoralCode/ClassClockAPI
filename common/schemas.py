@@ -1,19 +1,18 @@
 from marshmallow import Schema, fields, post_load
-from common.models import SchoolModel, BellScheduleModel, ClassPeriod
+from common.models import BellScheduleModel, ClassPeriod
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
+from common.db_schema import School
 
 
-class SchoolSchema(Schema):
-    identifier = fields.UUID(data_key="id")
-    owner_id = fields.Str()
-    full_name = fields.Str(allow_none=True)
-    acronym = fields.Str(allow_none=True)
-    alternate_freeperiod_name = fields.Str(allow_none=True)
-    creation_date = fields.DateTime(allow_none=True)
-    last_modified = fields.DateTime(allow_none=True)
-
-    @post_load
-    def make_school(self, item, many, partial, **kwargs):
-        return SchoolModel(**item)
+class SchoolSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = School
+        include_relationships = True
+        load_instance = True
+        
+    # @post_load
+    # def make_school(self, item, many, partial, **kwargs):
+    #     return SchoolModel(**item)
 
 
 class ClassPeriodSchema(Schema):

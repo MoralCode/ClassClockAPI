@@ -227,24 +227,17 @@ class School(Resource):
         check_permissions(
             [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
 
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
+        school = SchoolDB.query.filter_by(
+            identifier=school_id, owner_id=get_api_user_id()).first()
 
-        sql = ('DELETE FROM schools WHERE school_id=UNHEX(%s) AND owner_id=%s')
-
-        cursor.execute(sql, (uuid.UUID(school_id).hex, get_api_user_id()))
-        conn.commit()
-
-        if cursor.rowcount == 0:
+        if school == None:
             raise Oops("No records were found. Please make sure you are the owner for the school you are trying to delete",
                        404, title="No Records Updated")
-
-        cursor.close()
-        conn.close()
+        
+        db.session.delete(school)
+        db.session.commit()
         # should this just archive the school? or delete it and all related records?
-        # just remembered it can auto-cascade because foreign keys
-        # operation = 'SELECT 1; INSERT INTO t1 VALUES (); SELECT 2'
-        # cursor.execute(operation, multi=True):
+        # sqlalchemy can be set to cascade deletes (i think).
         return None, 204
 
 

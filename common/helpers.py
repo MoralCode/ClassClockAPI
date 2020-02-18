@@ -69,6 +69,10 @@ def is_client_error(code):
 def is_server_error(code):
     return code >= 500 and code <= 599
 
+def new_patch_val(body_val, db_val):
+    if body_val is not None and body_val != db_val:
+        return body_val
+    return db_val
 
 def register_api(api, resource, api_version, name_of_optional_param='id', type_of_optional_param='string', url_prefix=""):
     name = resource.__name__.lower()

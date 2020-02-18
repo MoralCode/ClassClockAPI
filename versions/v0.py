@@ -203,14 +203,9 @@ class School(Resource):
             raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
                        400, title="Identifier Mismatch")
 
-        def new_val(body_val, db_val):
-            if body_val is not None and body_val != db_val:
-                return body_val
-            return db_val
-        
-        school.full_name = new_val(data.full_name, school.full_name)
-        school.acronym = new_val(data.acronym, school.acronym)
-        school.alternate_freeperiod_name = new_val(
+        school.full_name = new_patch_val(data.full_name, school.full_name)
+        school.acronym = new_patch_val(data.acronym, school.acronym)
+        school.alternate_freeperiod_name = new_patch_val(
             data.alternate_freeperiod_name, school.alternate_freeperiod_name)
         # last_modified is automatically set in db_schema
 

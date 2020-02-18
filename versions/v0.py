@@ -187,51 +187,38 @@ class School(Resource):
 
         check_permissions([APIScopes.EDIT_SCHOOL])
 
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
+        data = deconstruct_resource_object(request.get_json()["data"])
 
-        schema = SchoolSchema()
-        data = request.get_json()
-        new_object = schema.load(deconstruct_resource_object(data["data"]))
+        # if new_object.errors != {}:
+        #     return handle_marshmallow_errors(new_object.errors)
 
-        if new_object.errors != {}:
-            return handle_marshmallow_errors(new_object.errors)
+        school = SchoolDB.query.filter_by(
+            identifier=school_id, owner_id=get_api_user_id()).first()
 
-        if new_object.data.identifier.hex != school_id.lower():
-            raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
-                       400, title="Identifier Mismatch")
-        # build SQL command
-
-        values = ()
-        sql = 'UPDATE schools SET '
-
-        if new_object.data.full_name is not None:
-            sql += "school_name=%s, "
-            values += (new_object.data.full_name,)
-
-        if new_object.data.acronym is not None:
-            sql += "school_acronym=%s, "
-            values += (new_object.data.acronym,)
-
-        if new_object.data.alternate_freeperiod_name is not None:
-            sql += "alternate_freeperiod_name=%s, "
-            values += (new_object.data.alternate_freeperiod_name,)
-
-        sql += "last_modified=NOW() "
-        sql += 'WHERE school_id=UNHEX(%s) AND owner_id=%s'
-
-        values += (uuid.UUID(school_id).hex, get_api_user_id())
-
-        cursor.execute(sql, values)
-        conn.commit()
-
-        if cursor.rowcount == 0:
+        if school == None:
             raise Oops("No records were found. Please make sure you are the owner for the school you are trying to modify",
                        404, title="No Records Updated")
 
-        cursor.close()
-        conn.close()
-        return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
+        if data.identifier.hex.lower() != school.id.lower():
+            raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
+                       400, title="Identifier Mismatch")
+
+        def new_val(body_val, db_val):
+            if body_val is not None and body_val != db_val:
+                return body_val
+            return db_val
+        
+        school.full_name = new_val(data.full_name, school.full_name)
+        school.acronym = new_val(data.acronym, school.acronym)
+        school.alternate_freeperiod_name = new_val(
+            data.alternate_freeperiod_name, school.alternate_freeperiod_name)
+        # last_modified is automatically set in db_schema
+
+
+        db.session.commit()
+        #TODO: need to verify that the update worked?
+
+        return make_jsonapi_resource_object(school, SchoolSchema(exclude=('identifier',)), "v0")
 
     @requires_auth
     @requires_admin

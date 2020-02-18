@@ -9,6 +9,8 @@ from flask.helpers import url_for
 
 db = SQLAlchemy()
 
+def get_uuid():
+	return uuid.uuid4().hex
 
 class School(db.Model):
 	"""
@@ -17,7 +19,7 @@ class School(db.Model):
 	__tablename__ = "schools"
 	type="school"
 	identifier = db.Column('school_id', HashColumn(length=16),
-	                      primary_key=True, default=uuid.uuid4().hex)
+                        primary_key=True, default=get_uuid)
 	owner_id = db.Column('owner_id', db.VARCHAR(length=35))
 	full_name = db.Column('school_name', db.VARCHAR(length=75))
 	acronym = db.Column(

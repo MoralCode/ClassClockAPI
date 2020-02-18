@@ -130,30 +130,13 @@ class School(Resource):
 
             check_permissions([APIScopes.LIST_SCHOOLS])
 
-            detail_schema = SchoolSchema(
-                only=('identifier', 'full_name', 'acronym', 'alternate_freeperiod_name', 'creation_date'))
-            # .format(self.db_scan_table)
-            sql = ('SELECT HEX(school_id) as school_id, owner_id, school_name, school_acronym, alternate_freeperiod_name, creation_date FROM schools WHERE school_id=UNHEX(%s)')
-
-            cursor.execute(sql, (uuid.UUID(school_id).hex,))
-
-            # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            dict_keys_map = ("id", "owner_id", "full_name", "acronym",
-                             "alternate_freeperiod_name", "creation_date")
-
-            fetch = cursor.fetchone()
-            cursor.close()
-            conn.close()
-
-            if fetch is None:
+            school = SchoolDB.query.filter_by(identifier=school_id).first()
+            #double check this
+            if school is None:
                 raise Oops("No school was found with the specified id.",
                            404, title="Resource Not Found")
 
-            data = make_dict(fetch, dict_keys_map)
-            data["creation_date"] = data["creation_date"].isoformat()
-            result = SchoolSchema().load(data)
-
-            return make_jsonapi_resource_object(result, SchoolSchema(exclude=('identifier',)), "v0")
+            return make_jsonapi_resource_object(school, SchoolSchema(exclude=('identifier',)), "v0")
 
 
     @requires_auth

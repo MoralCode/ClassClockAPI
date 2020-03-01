@@ -144,52 +144,28 @@ class School(Resource):
     def post(self):
 
         check_permissions([APIScopes.CREATE_SCHOOL])
-        if len(list_owned_school_ids()) > 0:
-            raise Oops(
-                "Authorizing user is already the owner of another school", 401)
+        # if len(list_owned_school_ids()) > 0:
+        #     raise Oops(
+        #         "Authorizing user is already the owner of another school", 401)
 
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
+        data = deconstruct_resource_object(request.get_json()["data"])
+        
+        new_object = SchoolDB(
+            full_name=data['full_name'],
+            alternate_freeperiod_name=data['alternate_freeperiod_name'],
+            acronym=data['acronym'],
+            owner_id=data['owner_id']
+            )
 
-        schema = SchoolSchema()
-        data = request.get_json()
-        new_object = schema.load(deconstruct_resource_object(data["data"]))
+        # if new_object.errors != {}:
+        #     return handle_marshmallow_errors(new_object.errors)
 
-        if new_object.errors != {}:
-            return handle_marshmallow_errors(new_object.errors)
+        db.session.add(new_object)
+        db.session.commit()
 
-        # build SQL command
-        # INSERT INTO schools (last_modified, school_name, creation_date, alternate_freeperiod_name, school_acronym, school_id) VALUES (%s, %s, %s, %s, %s, %s)
-        '''
-        Needs custom mysql command:
-        school_id
-        last_modified
-        creation_date - determeined by if its new or not
-
-
-        '''
-        # print(vars(new_object.data))
-        # sql, sql_values = build_sql_column_insert_list(
-        #     new_object.data, SchoolSchema(), {"id": "school_id", "acronym": "school_acronym", "full_name": "school_name"}, "schools")
-
-        sql = ("INSERT INTO schools (school_id, owner_id, school_name, school_acronym, alternate_freeperiod_name, last_modified, creation_date) VALUES (UNHEX(%s), %s, %s, %s, %s, NOW(), NOW())")
-
-        sql_values = (new_object.data.identifier.hex, get_api_user_id(), new_object.data.full_name,
-                      new_object.data.acronym, new_object.data.alternate_freeperiod_name)
-        cursor.execute(sql, sql_values)
-        conn.commit()
-        cursor.close()
-        conn.close()
-
-        # print(cursor.lastrowid)
-        # print(vars(cursor))
-        # # print()
-        # # print(vars(connection))
-        # new_object.data.identifier = cursor.lastrowid
-
-        # cursor.lastrowid TO GET THTE ID OF THE LAST ROW INSERTED
-
-        return make_jsonapi_resource_object(new_object.data, SchoolSchema(exclude=('type', 'identifier')), "v0")
+        #TODO: need to verify that the insert worked?
+    
+        return make_jsonapi_resource_object(new_object, SchoolSchema(exclude=('identifier',)), "v0")
 
     @requires_auth
     @requires_admin

@@ -108,9 +108,6 @@ class School(Resource):
 
     def get(self, school_id):
 
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
-
         if school_id is None:
 
             check_permissions([APIScopes.LIST_SCHOOLS])

@@ -19,7 +19,6 @@ Flask-Limiter = "*"
 Flask-RESTful = "*"
 gunicorn = "*"
 sqlalchemy = "*"
-safrs = "*"
 json-api-doc = "*"
 
 [requires]

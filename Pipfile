@@ -20,6 +20,7 @@ Flask-RESTful = "*"
 gunicorn = "*"
 sqlalchemy = "*"
 json-api-doc = "*"
+marshmallow-jsonapi = "*"
 
 [requires]
 python_version = "3.6"

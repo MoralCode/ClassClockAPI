@@ -11,6 +11,10 @@ from datetime import datetime
 from common.services import auth0management
 import flask_limiter
 
+import marshmallow
+import marshmallow_jsonapi
+import marshmallow_jsonapi.flask
+import marshmallow_sqlalchemy
 
 from common.constants import AuthType
 
@@ -73,6 +77,42 @@ def new_patch_val(body_val, db_val):
     if body_val is not None and body_val != db_val:
         return body_val
     return db_val
+
+# this is literally the most important part of how this API works
+# it basically combines marshmallow_sqlalchemy and marshmallow_jsonapi
+# allowing BOTH autogeneration of marshmallow schemas from SQLAlchemy
+# models, AND serializing those schemas to a JSONAPI 1.0 compatible format
+# thank you to the gods of coding at https://stackoverflow.com/a/53035144
+def make_jsonapi_schema_class(model_class):
+    class SchemaOpts(marshmallow_sqlalchemy.ModelSchemaOpts, marshmallow_jsonapi.SchemaOpts):
+        pass
+
+    class Schema(marshmallow_sqlalchemy.ModelSchema, marshmallow_jsonapi.flask.Schema):
+        OPTIONS_CLASS = SchemaOpts
+
+        @marshmallow.post_load
+        def make_instance(self, data):
+            # Return deserialized data as a dict, not a model instance
+            return data
+
+        # You can add default behavior here, for example
+        # id = fields.Str(dump_only=True)
+
+    # https://marshmallow-sqlalchemy.readthedocs.io/en/latest/recipes.html#automatically-generating-schemas-for-sqlalchemy-models
+    class Meta:
+        # Marshmallow-SQLAlchemy
+        model = model_class
+        sqla_session = db.session
+
+        # Marshmallow-JSONAPI
+        type_ = model_class.__name__.lower()
+        self_view = type_ + '_detail'
+        self_view_kwargs = {'id': '<id>'}
+        self_view_many = type_ + '_list'
+
+    schema_class = type(model_class.__name__ + 'Schema',
+                        (Schema,), {'Meta': Meta})
+    return schema_class
 
 def register_api(api, resource, api_version, name_of_optional_param='id', type_of_optional_param='string', url_prefix=""):
     name = resource.__name__.lower()

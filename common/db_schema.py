@@ -47,10 +47,11 @@ class BellSchedule(db.Model):
 	type = "bellschedule"
 	identifier = db.Column('bell_schedule_id', HashColumn(length=16),
                         primary_key=True, default=get_uuid)
-	school_id = db.Column(HashColumn(length=16), ForeignKey('school.identifier'))
+	school_id = db.Column(HashColumn(length=16), ForeignKey('schools.school_id'))
 	name = db.Column('bell_schedule_name', db.VARCHAR(length=75))
 	dates = db.relationship("BellScheduleDate")
 	meetingtimes = db.relationship("BellScheduleMeetingTime")
+	display_name = db.Column('bell_schedule_display_name', db.VARCHAR(length=75))
 	creation_date = db.Column('creation_date', db.DateTime,
                            default=datetime.utcnow())
 	last_modified = db.Column('last_modified', db.DateTime,
@@ -66,14 +67,14 @@ class BellScheduleDate(db.Model):
 	"""
 		description: A date during which a particular bell schedule is in effect
 	"""
-	__tablename__ = "bellschedules"
+	__tablename__ = "bellscheduledates"
 	type = "bellscheduledate"
 	identifier = db.Column('bell_schedule_id', HashColumn(length=16),
                         primary_key=True, default=get_uuid)
-	schedule_id = db.Column(HashColumn(length=16), ForeignKey('bellschedule.identifier'))
-	name = db.Column('bell_schedule_name', db.VARCHAR(length=75))
+	schedule_id = db.Column(HashColumn(length=16), ForeignKey('bellschedules.bell_schedule_id'))
+	date = db.Column('date', db.Date, primary_key=True)
 	creation_date = db.Column('creation_date', db.Date,
-                           default=date.isoformat())
+                           default=datetime.today().isoformat())
 
 
 	# def get_uri(self, blueprint_name):
@@ -88,15 +89,19 @@ class BellScheduleMeetingTime(db.Model):
 	"""
 	__tablename__ = "bellschedulemeetingtimes"
 	type = "bellschedulemeetingtime"
-	schedule_id = db.Column(HashColumn(length=16), ForeignKey('bellschedule.identifier'))
-	school_id = db.Column(HashColumn(length=16), ForeignKey('school.identifier'))
-	name = db.Column('classperiod_name', db.VARCHAR(length=75))
+	schedule_id = db.Column(HashColumn(length=16), ForeignKey(
+		'bellschedules.bell_schedule_id'), primary_key=True)
+	school_id = db.Column(HashColumn(length=16), ForeignKey('schools.school_id'))
+	name = db.Column('classperiod_name', db.VARCHAR(length=75),
+                  primary_key=True)
 	start_time = db.Column('start_time', db.Time,
-                        default=datetime.time())
+                        default=datetime.now().time(),
+                        primary_key=True)
 	end_time = db.Column('end_time', db.Time,
-                        default=datetime.time())
+                      default=datetime.now().time(),
+                      primary_key=True)
 	creation_date = db.Column('creation_date', db.Date,
-                           default=date.isoformat())
+                           default=datetime.now().isoformat())
 
 	# def get_uri(self, blueprint_name):
 	#         # here the second time blueprint_name is called, it is acting like the api version number

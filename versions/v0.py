@@ -15,7 +15,7 @@ from mysql.connector import pooling
 # from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
-from common.db_schema import School as SchoolDB, db
+from common.db_schema import School as SchoolDB, db, BellSchedule as BellScheduleDB
 from sqlalchemy import create_engine
 
 from common.helpers import *
@@ -247,106 +247,31 @@ class BellSchedule(Resource):
 
             check_permissions([APIScopes.LIST_BELL_SCHEDULES])
 
-            bell_schedule_list = []
+            schedule_list = []
+            schedules = BellScheduleDB.query.all()
 
-            cursor.execute(
-                "SELECT HEX(bell_schedule_id) as bell_schedule_id, bell_schedule_name, bell_schedule_display_name FROM bellschedules WHERE school_id=UNHEX(%s)", (uuid.UUID(school_id).hex,))
-            # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            dict_keys_map = ("id", "full_name", "display_name")
-
-            for bell_schedule in cursor:
-
-                data = make_dict(bell_schedule, dict_keys_map)
-                data["school_id"] = uuid.UUID(school_id)
-
-                result = BellScheduleSchema().load(data)
-                # print(errors)
-                # if errors != {}:
-                #     return handle_marshmallow_errors(errors)
-                # print(result)
-                # # print(type(result))
-
-                bell_schedule_list.append(
+            for schedule in schedules:
+                print(vars(schedule))
+                schedule_list.append(
                     make_jsonapi_resource_object(
-                        result, BellScheduleSchema(only=('full_name', 'display_name')), "v0")
+                        schedule, BellScheduleSchema(
+                            only=('name', 'display_name')),
+                        "v0")
                 )
-            cursor.close()
-            conn.close()
-            return bell_schedule_list
+            return schedule_list
 
         else:
 
             check_permissions([APIScopes.READ_BELL_SCHEDULE])
 
-            cursor.execute(
-                'SELECT bell_schedule_name, bell_schedule_display_name, creation_date, last_modified FROM bellschedules WHERE bell_schedule_id=UNHEX(%s)',
-                (uuid.UUID(bell_schedule_id).hex, )
-            )
-
-            requested_bell_schedule = cursor.fetchone()
-
-            if not requested_bell_schedule:
-                raise Oops("No bell schedule was found with the specified id.",
+            schedule = BellSchedule.query.filter_by(identifier=bell_schedule_id, school_id=school_id).first()
+            #double check this
+            if schedule is None:
+                raise Oops("No school was found with the specified id.",
                            404, title="Resource Not Found")
 
-            cursor.execute(
-                'SELECT date FROM bellscheduledates WHERE bell_schedule_id=UNHEX(%s)',
-                (uuid.UUID(bell_schedule_id).hex, )
-            )
-            dates = cursor.fetchall()
-            if not dates:
-                dates = []
+            return make_jsonapi_resource_object(schedule, BellScheduleSchema(exclude=('identifier', 'school_id')), "v0")
 
-            cursor.execute(
-                'SELECT classperiod_name, start_time, end_time, creation_date FROM bellschedulemeetingtimes WHERE bell_schedule_id=UNHEX(%s)',
-                (uuid.UUID(bell_schedule_id).hex, )
-            )
-            meeting_times = cursor.fetchall()
-            if not meeting_times:
-                meeting_times = []
-
-            # key maps define the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-            schedule_keys_map = ("full_name", "display_name",
-                                 "creation_date", "last_modified")
-            meetingtime_keys_map = (
-                "name", "start_time", "end_time", "creation_date")
-
-            return_data = make_dict(requested_bell_schedule, schedule_keys_map)
-            return_data["id"] = uuid.UUID(bell_schedule_id)
-            return_data["school_id"] = uuid.UUID(school_id)
-            return_data["creation_date"] = return_data["creation_date"].isoformat()
-            return_data["last_modified"] = return_data["last_modified"].isoformat()
-            # extract list of dates from list of tuples of dates
-            return_data["dates"] = [date[0].isoformat() for date in dates]
-
-            # convert timedeltas to times
-            classes = []
-
-            for meeting_time in meeting_times:
-                values = []
-                for value in meeting_time:
-                    if isinstance(value, datetime.timedelta):
-                        values.append(time_from_delta(value))
-                    elif isinstance(value, datetime.datetime):
-                        values.append(value.isoformat())
-                    else:
-                        values.append(value)
-
-                classes.append(values)
-
-            meeting_times = [make_dict(meetingtime, meetingtime_keys_map)
-                             for meetingtime in classes]
-
-            return_data["meeting_times"] = meeting_times
-
-            result = BellScheduleSchema().load(return_data)
-
-            # if errors != {}:
-            #     return handle_marshmallow_errors(errors)
-
-            cursor.close()
-            conn.close()
-            return make_jsonapi_resource_object(result, BellScheduleSchema(exclude=('identifier', 'school_id')), "v0")
 
     @requires_auth
     @requires_admin

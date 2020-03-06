@@ -22,14 +22,9 @@ class BellScheduleSchema(SQLAlchemyAutoSchema):
     #     return BellScheduleModel(**item)
 
 
-class ClassPeriodSchema(Schema):
-    name = fields.Str()
-    start_time = fields.Time()
-    end_time = fields.Time()
-    creation_date = fields.DateTime(allow_none=True)
-
-    @post_load
-    def make_class_period(self, item, many, partial, **kwargs):
-        return ClassPeriod(**item)
-
-
+class ClassPeriodSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = BellScheduleMeetingTime
+        include_relationships = True
+        load_instance = True
+        include_fk = True

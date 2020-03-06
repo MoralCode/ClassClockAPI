@@ -1,5 +1,4 @@
 from marshmallow import Schema, fields, post_load
-from common.models import BellScheduleModel, ClassPeriod
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 from common.db_schema import BellSchedule, BellScheduleMeetingTime, School
 

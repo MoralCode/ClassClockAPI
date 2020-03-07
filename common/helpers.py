@@ -17,6 +17,7 @@ import marshmallow_jsonapi.flask
 import marshmallow_sqlalchemy
 
 from common.constants import AuthType
+from common.db_schema import db
 
 
 AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
@@ -26,7 +27,6 @@ ALGORITHMS = ["RS256"]
 management_API = auth0management.Auth0ManagementService()
 
 # Format error response and append status code.
-
 
 class AuthError(Exception):
     def __init__(self, error, status_code):
@@ -78,25 +78,27 @@ def new_patch_val(body_val, db_val):
         return body_val
     return db_val
 
+#https: // github.com/rgant/saas-api-boilerplate/blob/d1599716eb77b4994781b465fec27c91f8721cb5/common/utilities.py  # L16
+def camel_to_delimiter_separated(name, glue='_'):
+    """
+    Convert CamelCase to a delimiter-separated naming convention. Snake_case by default.
+    :param str name: CamelCase name to convert
+    :param str glue: Delimiter to use, default is an underscore for snake_case.
+    :return str: delimiter-separated version of name
+    """
+    # From https://stackoverflow.com/a/1176023
+    first_cap_re = re.compile('(.)([A-Z][a-z]+)')
+    all_cap_re = re.compile('([a-z0-9])([A-Z])')
+    replacement = fr'\1{glue}\2'
+    ex = first_cap_re.sub(replacement, name)
+    return all_cap_re.sub(replacement, ex).lower()
+
 # this is literally the most important part of how this API works
 # it basically combines marshmallow_sqlalchemy and marshmallow_jsonapi
 # allowing BOTH autogeneration of marshmallow schemas from SQLAlchemy
 # models, AND serializing those schemas to a JSONAPI 1.0 compatible format
 # thank you to the gods of coding at https://stackoverflow.com/a/53035144
 def make_jsonapi_schema_class(model_class):
-    class SchemaOpts(marshmallow_sqlalchemy.ModelSchemaOpts, marshmallow_jsonapi.SchemaOpts):
-        pass
-
-    class Schema(marshmallow_sqlalchemy.ModelSchema, marshmallow_jsonapi.flask.Schema):
-        OPTIONS_CLASS = SchemaOpts
-
-        @marshmallow.post_load
-        def make_instance(self, data):
-            # Return deserialized data as a dict, not a model instance
-            return data
-
-        # You can add default behavior here, for example
-        # id = fields.Str(dump_only=True)
 
     # https://marshmallow-sqlalchemy.readthedocs.io/en/latest/recipes.html#automatically-generating-schemas-for-sqlalchemy-models
     class Meta:
@@ -198,6 +200,14 @@ def make_jsonapi_response(response_data=None, code=None, headers={}):
         return make_response(json.dumps(content, cls=JSONEncoder), headers)
     else:
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
+
+def J(*args, **kwargs):
+    """Wrapper around jsonify that sets the Content-Type of the response to
+    application/vnd.api+json.
+    """
+    response = jsonify(*args, **kwargs)
+    response.mimetype = "application/vnd.api+json"
+    return response
 
 def filter_dict(dict, filter, is_whitelist=True):
     return {key: val for key, val in dict.items() if ((key in filter) if is_whitelist else (key not in filter))}

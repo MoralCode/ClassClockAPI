@@ -1,22 +1,17 @@
-from marshmallow import Schema, fields, post_load
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
-from common.db_schema import BellSchedule, BellScheduleMeetingTime, School
-
-
 """
 Customized Marshmallow-SQLAlchemy and Marshmallow-JSONAPI Schemas to combine Schema Meta data.
 """
-
 import marshmallow as ma
 import marshmallow_jsonapi
 import marshmallow_sqlalchemy
 
-import common.helpers
+from common.helpers import camel_to_delimiter_separated, make_jsonapi_schema_class
 from common.db_schema import db
 
 from .convert import ModelConverter
 from .exceptions import ForbiddenIdError, MismatchIdError, NullPrimaryData
 from .fields import MetaData
+from common.db_schema import BellSchedule, BellScheduleMeetingTime, School
 
 
 class SchemaOpts(marshmallow_jsonapi.SchemaOpts, marshmallow_sqlalchemy.ModelSchemaOpts):  # pylint: disable=too-few-public-methods
@@ -42,7 +37,7 @@ class SchemaOpts(marshmallow_jsonapi.SchemaOpts, marshmallow_sqlalchemy.ModelSch
         if model:
             # Automatically set the JSONAPI type (marshmallow-jsonapi) based on model name.
             # JSONAPI recommends kebab-case for naming: http://jsonapi.org/recommendations/#naming
-            type_ = helpers.camel_to_delimiter_separated(
+            type_ = camel_to_delimiter_separated(
                 model.__name__, glue='-')
             meta.type_ = type_
 
@@ -175,27 +170,6 @@ class Schema(marshmallow_jsonapi.Schema, marshmallow_sqlalchemy.ModelSchema):
             raise MismatchIdError(actual=value, expected=self.instance.id)
 
 
-class SchoolSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = School
-        include_relationships = True
-        load_instance = True
-        
-class BellScheduleSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = BellSchedule
-        include_relationships = True
-        load_instance = True
-        include_fk = True
-
-    # @post_load
-    # def make_bell_schedule(self, item, many, partial, **kwargs):
-    #     return BellScheduleModel(**item)
-
-
-class ClassPeriodSchema(SQLAlchemyAutoSchema):
-    class Meta:
-        model = BellScheduleMeetingTime
-        include_relationships = True
-        load_instance = True
-        include_fk = True
+SchoolSchema = make_jsonapi_schema_class(School)
+BellScheduleSchema = make_jsonapi_schema_class(BellSchedule)
+ClassPeriodSchema = make_jsonapi_schema_class(BellScheduleMeetingTime)

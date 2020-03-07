@@ -20,6 +20,7 @@ from common.constants import AuthType
 from common.db_schema import db
 
 from common.exceptions import Oops, AuthError
+from common.schemas import Schema
 
 AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
 API_IDENTIFIER = env.get("API_IDENTIFIER")

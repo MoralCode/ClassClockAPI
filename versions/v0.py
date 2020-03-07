@@ -22,6 +22,7 @@ from common.helpers import *
 from common.constants import APIScopes
 from common.schemas import SchoolSchema, BellScheduleSchema, ClassPeriodSchema
 from common.services import auth0management
+import common.exceptions
 
 #
 # App Setup

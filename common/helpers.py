@@ -19,27 +19,13 @@ import marshmallow_sqlalchemy
 from common.constants import AuthType
 from common.db_schema import db
 
+from common.exceptions import Oops, AuthError
 
 AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
 API_IDENTIFIER = env.get("API_IDENTIFIER")
 ALGORITHMS = ["RS256"]
 
 management_API = auth0management.Auth0ManagementService()
-
-# Format error response and append status code.
-
-class AuthError(Exception):
-    def __init__(self, error, status_code):
-        self.error = error
-        self.status_code = status_code
-
-
-class Oops(Exception):
-    def __init__(self, message, status_code, title=None):
-        self.message = message
-        self.status_code = status_code
-        self.title = title
-
 
 class JSONEncoder(json.JSONEncoder):
     # this was copied from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/utils.py under the terms of the MIT license.

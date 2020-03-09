@@ -5,8 +5,8 @@ Customized Marshmallow-SQLAlchemy ModelConverter to combine Related and Relation
 
 import marshmallow_sqlalchemy
 
-import common.helpers
-from .fields import Relationship
+from common.helpers import camel_to_delimiter_separated
+from common.fields import Relationship
 
 
 class ModelConverter(marshmallow_sqlalchemy.ModelConverter):
@@ -36,7 +36,7 @@ class ModelConverter(marshmallow_sqlalchemy.ModelConverter):
         # If the relation uses a list then the Relationship is many
         kwargs['many'] = prop.uselist
         # JSONAPI type is calculated from Model name to kebab-case.
-        kwargs['type_'] = helpers.camel_to_delimiter_separated(prop.mapper.class_.__name__,
+        kwargs['type_'] = camel_to_delimiter_separated(prop.mapper.class_.__name__,
                                                                  glue='-')
         # Attribute of the model for this relationship.
         kwargs['attribute'] = prop.key

@@ -128,7 +128,7 @@ class School(Resource):
 
             check_permissions([APIScopes.LIST_SCHOOLS])
 
-            school = SchoolDB.query.filter_by(identifier=school_id).first()
+            school = SchoolDB.query.filter_by(id=school_id).first()
             #double check this
             if school is None:
                 raise Oops("No school was found with the specified id.",
@@ -194,14 +194,14 @@ class School(Resource):
         #     return handle_marshmallow_errors(new_object.errors)
 
         school = SchoolDB.query.filter_by(
-            identifier=school_id, owner_id=get_api_user_id()).first()
+            id=school_id, owner_id=get_api_user_id()).first()
 
         if school == None:
             raise Oops("No records were found. Please make sure you are the owner for the school you are trying to modify",
                        404, title="No Records Updated")
 
-        if data.identifier.hex.lower() != school.id.lower():
-            raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
+        if data.id.hex.lower() != school.id.lower():
+            raise Oops("The id provided in the request body must match the id specified in the URL",
                        400, title="Identifier Mismatch")
 
         school.full_name = new_patch_val(data.full_name, school.full_name)
@@ -224,7 +224,7 @@ class School(Resource):
             [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
 
         school = SchoolDB.query.filter_by(
-            identifier=school_id, owner_id=get_api_user_id()).first()
+            id=school_id, owner_id=get_api_user_id()).first()
 
         if school == None:
             raise Oops("No records were found. Please make sure you are the owner for the school you are trying to delete",

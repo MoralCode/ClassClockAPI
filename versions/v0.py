@@ -122,7 +122,7 @@ class School(Resource):
                         school, SchoolSchema(only=('full_name', 'acronym')),
                             "v0")
                 )
-            return school_list
+            return SchoolSchema().dump(school_list, many=True)
 
         else:
 
@@ -134,7 +134,7 @@ class School(Resource):
                 raise Oops("No school was found with the specified id.",
                            404, title="Resource Not Found")
 
-            return make_jsonapi_resource_object(school, SchoolSchema(exclude=('identifier',)), "v0")
+            return SchoolSchema().dump(school)
 
 
     @requires_auth
@@ -163,7 +163,7 @@ class School(Resource):
 
         #TODO: need to verify that the insert worked?
     
-        return make_jsonapi_resource_object(new_object, SchoolSchema(exclude=('identifier',)), "v0")
+        return SchoolSchema().dump(new_object)
 
     @requires_auth
     @requires_admin
@@ -214,7 +214,7 @@ class School(Resource):
         db.session.commit()
         #TODO: need to verify that the update worked?
 
-        return make_jsonapi_resource_object(school, SchoolSchema(exclude=('identifier',)), "v0")
+        return SchoolSchema().dump(school)
 
     @requires_auth
     @requires_admin

@@ -251,14 +251,8 @@ class BellSchedule(Resource):
             schedules = BellScheduleDB.query.all()
 
             for schedule in schedules:
-                print(vars(schedule))
-                schedule_list.append(
-                    make_jsonapi_resource_object(
-                        schedule, BellScheduleSchema(
-                            only=('name', 'display_name')),
-                        "v0")
-                )
-            return schedule_list
+                schedule_list.append(schedule)
+            return BellScheduleSchema(exclude=('school_id',)).dump(schedule_list, many=True)
 
         else:
 

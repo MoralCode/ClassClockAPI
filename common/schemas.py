@@ -92,8 +92,7 @@ class Schema(marshmallow_jsonapi.Schema, marshmallow_sqlalchemy.ModelSchema):
     OPTIONS_CLASS = SchemaOpts
 
     # id must be a string: http://jsonapi.org/format/#document-resource-object-identification
-    id = marshmallow_jsonapi.fields.Integer(
-        as_string=True)  # pylint: disable=invalid-name
+    id = marshmallow_jsonapi.fields.String(length=16)  # pylint: disable=invalid-name
     # This field is read only, place in meta data: http://jsonapi.org/format/#document-meta
     modified_at = MetaData(marshmallow_jsonapi.fields.DateTime())
 

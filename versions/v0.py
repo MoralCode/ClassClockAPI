@@ -117,11 +117,7 @@ class School(Resource):
             schools = SchoolDB.query.all()
 
             for school in schools:
-                school_list.append(
-                    make_jsonapi_resource_object(
-                        school, SchoolSchema(only=('full_name', 'acronym')),
-                            "v0")
-                )
+                school_list.append(school)
             return SchoolSchema().dump(school_list, many=True)
 
         else:

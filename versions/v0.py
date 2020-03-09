@@ -264,13 +264,13 @@ class BellSchedule(Resource):
 
             check_permissions([APIScopes.READ_BELL_SCHEDULE])
 
-            schedule = BellSchedule.query.filter_by(identifier=bell_schedule_id, school_id=school_id).first()
+            schedule = BellSchedule.query.filter_by(id=bell_schedule_id, school_id=school_id).first()
             #double check this
             if schedule is None:
                 raise Oops("No school was found with the specified id.",
                            404, title="Resource Not Found")
 
-            return make_jsonapi_resource_object(schedule, BellScheduleSchema(exclude=('identifier', 'school_id')), "v0")
+            return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
 
 
     @requires_auth
@@ -299,7 +299,7 @@ class BellSchedule(Resource):
         # build SQL command
         cursor.execute(
             "INSERT INTO bellschedules (bell_schedule_id, bell_schedule_name, bell_schedule_display_name, school_id, creation_date, last_modified) VALUES (UNHEX(%s), %s, %s, UNHEX(%s), NOW(), NOW())",
-            (new_object.data.identifier.hex, new_object.data.full_name,
+            (new_object.data.id.hex, new_object.data.full_name,
              new_object.data.display_name, new_object.data.school_id.hex)
         )
 
@@ -342,7 +342,7 @@ class BellSchedule(Resource):
         cursor.close()
         conn.close()
 
-        return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier', 'school_id')), "v0")
+        return BellScheduleSchema(exclude=('school_id',)).dump(new_object.data)
 
     @requires_auth
     @requires_admin
@@ -453,7 +453,7 @@ class BellSchedule(Resource):
             print("Message", err.msg)
             conn.rollback()  # ?
 
-        return make_jsonapi_resource_object(new_object.data, BellScheduleSchema(exclude=('type', 'identifier')), "v0")
+        return BellScheduleSchema().dump(new_object.data)
 
     @requires_auth
     @requires_admin

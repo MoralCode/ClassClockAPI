@@ -45,7 +45,7 @@ class BellSchedule(db.Model):
 	"""
 	__tablename__ = "bellschedules"
 	type = "bellschedule"
-	identifier = db.Column('bell_schedule_id', HashColumn(length=16),
+	id = db.Column('bell_schedule_id', HashColumn(length=16),
                         primary_key=True, default=get_uuid)
 	school_id = db.Column(HashColumn(length=16), ForeignKey('schools.school_id'))
 	name = db.Column('bell_schedule_name', db.VARCHAR(length=75))
@@ -60,7 +60,7 @@ class BellSchedule(db.Model):
 	def get_uri(self, blueprint_name):
         # here the second time blueprint_name is called, it is acting like the api version number
 		return url_for(
-            blueprint_name + "." + blueprint_name + "_single_bellschedule", school_id=self.identifier, _external=True)
+            blueprint_name + "." + blueprint_name + "_single_bellschedule", school_id=self.id, _external=True)
 
 
 class BellScheduleDate(db.Model):

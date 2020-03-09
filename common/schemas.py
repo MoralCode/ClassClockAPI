@@ -5,7 +5,7 @@ import marshmallow as ma
 import marshmallow_jsonapi
 import marshmallow_sqlalchemy
 
-from common.helpers import camel_to_delimiter_separated, make_jsonapi_schema_class
+from common.helpers import camel_to_delimiter_separated
 from common.db_schema import db
 
 from .convert import ModelConverter
@@ -14,6 +14,30 @@ from .fields import MetaData
 from common.db_schema import BellSchedule, BellScheduleMeetingTime, School
 
 
+# this is literally the most important part of how this API works
+# it basically combines marshmallow_sqlalchemy and marshmallow_jsonapi
+# allowing BOTH autogeneration of marshmallow schemas from SQLAlchemy
+# models, AND serializing those schemas to a JSONAPI 1.0 compatible format
+# thank you to the gods of coding at https://stackoverflow.com/a/53035144
+def make_jsonapi_schema_class(model_class):
+
+    # https://marshmallow-sqlalchemy.readthedocs.io/en/latest/recipes.html#automatically-generating-schemas-for-sqlalchemy-models
+    class Meta:
+        # Marshmallow-SQLAlchemy
+        model = model_class
+        sqla_session = db.session
+
+        # Marshmallow-JSONAPI
+        type_ = model_class.__name__.lower()
+        self_view = type_ + '_detail'
+        self_view_kwargs = {'id': '<id>'}
+        self_view_many = type_ + '_list'
+
+    schema_class = type(model_class.__name__ + 'Schema',
+                        (Schema,), {'Meta': Meta})
+    return schema_class
+
+    
 class SchemaOpts(marshmallow_jsonapi.SchemaOpts, marshmallow_sqlalchemy.ModelSchemaOpts):  # pylint: disable=too-few-public-methods
     """ Combine JSON API Schema Opts with SQLAlchemy Schema Opts.
     This fixes the error: AttributeError: 'SchemaOpts' object has no attribute 'model_converter """

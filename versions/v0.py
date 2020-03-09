@@ -55,7 +55,10 @@ api = Api(blueprint, decorators=[check_headers],
 
 @api.representation('application/vnd.api+json')
 def output_json(data, code, headers={}):
-    return make_jsonapi_response(response_data=data, code=code, headers=headers)
+    if code is None:
+        return make_response(data, headers)
+    else:
+        return make_response(data, code, headers)
 
 
 CORS(blueprint, origins="https://web.classclock.app", allow_headers=[

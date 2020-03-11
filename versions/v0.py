@@ -290,110 +290,26 @@ class BellSchedule(Resource):
 
         check_permissions([APIScopes.EDIT_BELL_SCHEDULE])
 
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
+        school = SchoolDB.query.filter_by(id=school_id).first()
 
-        check_ownership(cursor, school_id)
+        check_ownership(school)
 
-        schema = BellScheduleSchema()
-        data = deconstruct_resource_object(request.get_json()["data"])
-        data["school_id"] = uuid.UUID(school_id)
+        schedule = school.schedules.filter_by(id=bell_schedule_id).first()
 
-        new_object = schema.load(data)
+        updated_schedule = BellScheduleSchema().load(
+            request.get_json()["data"]).data
 
-        if new_object.errors != {}:
-            return handle_marshmallow_errors(new_object.errors)
-
-        if new_object.data.identifier.hex != bell_schedule_id.lower():
-            # TODO: is this necessary? maybe just use the URL one???
+        if not updated_schedule.id or updated_schedule.id.lower() != bell_schedule_id.lower():
             raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
                        400, title="Identifier Mismatch")
 
-        # build SQL command
+        schedule.name = new_patch_val(updated_schedule.name, schedule.name)
+        schedule.display_name = new_patch_val(
+            updated_schedule.display_name, schedule.display_name)
+                                
+        db.session.commit()
 
-        values = ()
-        update_bellschedule_sql = 'UPDATE bellschedules SET '
-
-        if new_object.data.full_name is not None:
-            update_bellschedule_sql += "bell_schedule_name=%s, "
-            values += (new_object.data.full_name,)
-
-        if new_object.data.display_name is not None:
-            update_bellschedule_sql += "bell_schedule_display_name=%s, "
-            values += (new_object.data.display_name,)
-
-        # if new_object.data.alternate_freeperiod_name is not None:
-        #     update_bellschedule_sql += "alternate_freeperiod_name=%s, "
-        #     values += (new_object.data.alternate_freeperiod_name,)
-
-        update_bellschedule_sql += "last_modified=NOW() "
-        update_bellschedule_sql += 'WHERE bell_schedule_id=UNHEX(%s)'
-
-        values += (new_object.data.identifier.hex,)
-
-        print(new_object.data.dates)
-        print(new_object.data.meeting_times)
-
-        # might be better to delete and remake
-        delete_dates_sql = "DELETE FROM bellscheduledates WHERE bell_schedule_id=UNHEX(%s)"
-
-        schedule_id_tuple = (new_object.data.identifier.hex,)
-
-        dates_to_add = []
-
-        if new_object.data.dates is not None:
-            for date in new_object.data.dates:
-                dates_to_add.append(
-                    (new_object.data.identifier.hex,
-                     new_object.data.school_id.hex,
-                     date)
-                )
-        # TODO: Maybe check that one date isnt set for two bell schedules
-        create_dates_sql = "INSERT INTO bellscheduledates (bell_schedule_id, school_id, date, creation_date) VALUES (UNHEX(%s), UNHEX(%s), %s, NOW())"
-
-        delete_meeting_times_sql = "DELETE bellschedulemeetingtimes WHERE bell_schedule_id=UNHEX(%s)"
-
-        meeting_times_to_add = []
-        if new_object.data.meeting_times is not None:
-            for meeting_time in new_object.data.meeting_times:
-                meeting_times_to_add.append(
-                    (new_object.data.identifier.hex,
-                     new_object.data.school_id.hex,
-                     meeting_time.name,
-                     meeting_time.start_time,
-                     meeting_time.end_time)
-                )
-
-        create_meeting_times_sql = "INSERT INTO bellschedulemeetingtimes (bell_schedule_id, school_id, classperiod_name, start_time, end_time, creation_date) VALUES (UNHEX(%s), UNHEX(%s), %s, %s, %s, NOW())"
-
-        try:
-            cursor.execute(update_bellschedule_sql, values)
-
-            if cursor.rowcount == 0:
-                raise Oops("No schedule was found with the specified id",
-                           404, title="Schedule not found")
-
-            if new_object.data.dates is not None:
-                cursor.execute(delete_dates_sql, schedule_id_tuple)
-                cursor.executemany(create_dates_sql, dates_to_add)
-
-            if new_object.data.meeting_times is not None:
-                cursor.execute(delete_meeting_times_sql, schedule_id_tuple)
-                cursor.executemany(create_meeting_times_sql,
-                                   meeting_times_to_add)
-
-            conn.commit()
-            cursor.close()
-            conn.close()
-
-        except mariadb.Error as err:
-            print(err)
-            print("Error Code:", err.errno)
-            print("SQLSTATE", err.sqlstate)
-            print("Message", err.msg)
-            conn.rollback()  # ?
-
-        return BellScheduleSchema().dump(new_object.data)
+        return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
 
     @requires_auth
     @requires_admin

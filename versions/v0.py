@@ -245,7 +245,7 @@ class BellSchedule(Resource):
             check_permissions([APIScopes.LIST_BELL_SCHEDULES])
 
             schedule_list = []
-            schedules = BellScheduleDB.query.all()
+            schedules = BellScheduleDB.query.filter_by(school_id=school_id)
 
             for schedule in schedules:
                 schedule_list.append(schedule)

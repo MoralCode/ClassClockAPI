@@ -5,6 +5,7 @@ from flask_limiter import Limiter
 from flasgger import Swagger
 from common.helpers import get_request_origin_identifier
 from common.db_schema import db
+from os import environ as env
 
 app = Flask(__name__)
 limiter = Limiter(app, default_limits=[
@@ -61,7 +62,7 @@ swagger = Swagger(app, config={
 })
 
 app.config.update(
-    SQLALCHEMY_DATABASE_URI="mysql+mysqlconnector://ace:password@localhost/classclock", DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
+    SQLALCHEMY_DATABASE_URI='mysql://{user}:{pw}@{url}/{db}'.format(user=env.get("DB_USERNAME"), pw=env.get("DB_PASSWORD"), url=env.get("DB_HOST"), db="classclock"), DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
 db.init_app(app)
 
 if __name__ == "__main__":

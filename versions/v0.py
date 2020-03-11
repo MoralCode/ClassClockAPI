@@ -10,8 +10,6 @@ from flask_restful import Api, Resource
 from werkzeug.exceptions import HTTPException
 from flask_cors import CORS
 
-import mysql.connector as mariadb
-from mysql.connector import pooling
 # from bson import json_util
 # from bson.objectid import ObjectId
 import http.client
@@ -32,20 +30,6 @@ import common.exceptions
 DB_HOST = env.get("DB_HOST")
 DB_USERNAME = env.get("DB_USERNAME")
 DB_PASSWORD = env.get("DB_PASSWORD")
-
-
-connection_pool = pooling.MySQLConnectionPool(
-    pool_name="mariadb_connection_pool",
-    pool_size=5,
-    pool_reset_session=True,
-    host=DB_HOST,
-    database='classclock',
-    user=DB_USERNAME,
-    password=DB_PASSWORD)
-
-# database = mariadb.connect(
-#     host=DB_HOST, user=DB_USERNAME, password=DB_PASSWORD, database='classclock')
-# cursor = database.cursor()
 
 
 blueprint = Blueprint('v0', __name__)

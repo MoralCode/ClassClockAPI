@@ -11,7 +11,7 @@ from common.db_schema import db
 from .convert import ModelConverter
 from .exceptions import ForbiddenIdError, MismatchIdError, NullPrimaryData
 from .fields import MetaData
-from common.db_schema import BellSchedule, BellScheduleMeetingTime, School
+from common.db_schema import BellSchedule, BellScheduleMeetingTime, School, BellScheduleDate
 
 class SchemaOpts(marshmallow_jsonapi.SchemaOpts, marshmallow_sqlalchemy.ModelSchemaOpts):  # pylint: disable=too-few-public-methods
     """ Combine JSON API Schema Opts with SQLAlchemy Schema Opts.
@@ -171,6 +171,20 @@ class Schema(marshmallow_jsonapi.Schema, marshmallow_sqlalchemy.ModelSchema):
 class SchoolSchema(Schema):
     class Meta:
         model = School
+        include_relationships = True
+        load_instance = True
+        include_fk = True
+
+        # Marshmallow-JSONAPI
+        type_ = model.__name__.lower()
+        self_view = type_ + '_detail'
+        self_view_kwargs = {'id': '<id>'}
+        self_view_many = type_ + '_list'
+
+class BellScheduleDateSchema(Schema):
+
+    class Meta:
+        model = BellScheduleDate
         include_relationships = True
         load_instance = True
         include_fk = True

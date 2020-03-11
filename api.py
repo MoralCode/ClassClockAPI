@@ -62,7 +62,7 @@ swagger = Swagger(app, config={
 })
 
 app.config.update(
-    SQLALCHEMY_DATABASE_URI='mysql://{user}:{pw}@{url}/{db}'.format(user=env.get("DB_USERNAME"), pw=env.get("DB_PASSWORD"), url=env.get("DB_HOST"), db="classclock"), DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
+    SQLALCHEMY_DATABASE_URI='mysql+mysqlconnector://{user}:{pw}@{url}/{db}'.format(user=env.get("DB_USERNAME"), pw=env.get("DB_PASSWORD"), url=env.get("DB_HOST"), db="classclock"), DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
 db.init_app(app)
 
 if __name__ == "__main__":

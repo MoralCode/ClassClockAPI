@@ -274,8 +274,7 @@ class BellSchedule(Resource):
 
         school = SchoolDB.query.filter_by(id=school_id).first()
 
-        if get_api_user_id() != school.owner_id:
-            raise Oops("Authorizing user is not the owner of this school", 401)
+        check_ownership(school)
 
         new_schedule = BellScheduleSchema().load(request.get_json()["data"]).data
 

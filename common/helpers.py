@@ -344,15 +344,8 @@ def check_for_role(role):
     else:
         return None
 
-
-def check_ownership(cursor, school_id):
-    cursor.execute(
-        "SELECT owner_id FROM schools WHERE school_id=(UNHEX(%s))", (school_id,))
-    # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-    # dict_keys_map = ("id", "full_name", "acronym")
-
-    owners = [owner_id[0] for owner_id in cursor]
-    if get_api_user_id() not in owners:
+def check_ownership(school):
+    if get_api_user_id() not in school.owner_id:
         raise Oops("Authorizing user is not the owner of this school", 401)
 
 

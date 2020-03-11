@@ -36,8 +36,7 @@ class ModelConverter(marshmallow_sqlalchemy.ModelConverter):
         # If the relation uses a list then the Relationship is many
         kwargs['many'] = prop.uselist
         # JSONAPI type is calculated from Model name to kebab-case.
-        kwargs['type_'] = camel_to_delimiter_separated(prop.mapper.class_.__name__,
-                                                                 glue='-')
+        kwargs['type_'] = camel_to_delimiter_separated(prop.mapper.class_.__name__, glue='-')
         # Attribute of the model for this relationship.
         kwargs['attribute'] = prop.key
         # self.schema_cls is not an instance of the class so we need to use the options directly.

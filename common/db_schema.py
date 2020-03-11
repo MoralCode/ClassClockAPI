@@ -33,12 +33,6 @@ class School(db.Model):
 	last_modified = db.Column('last_modified', db.DateTime,
                            default=datetime.utcnow(), onupdate=datetime.utcnow)
 
-	def get_uri(self, blueprint_name):
-        # here the second time blueprint_name is called, it is acting like the api version number
-		return url_for(
-            blueprint_name + "." + blueprint_name + "_single_school", school_id=self.identifier, _external=True)
-
-
 class BellSchedule(db.Model):
 	"""
 		description: A BellSchedule

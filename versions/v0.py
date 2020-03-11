@@ -20,7 +20,7 @@ from sqlalchemy import create_engine
 
 from common.helpers import *
 from common.constants import APIScopes
-from common.schemas import SchoolSchema, BellScheduleSchema, ClassPeriodSchema
+from common.schemas import SchoolSchema, BellScheduleSchema
 from common.services import auth0management
 import common.exceptions
 
@@ -107,7 +107,7 @@ CORS(blueprint, origins="https://web.classclock.app", allow_headers=[
 
 class School(Resource):
 
-    # for identifiers in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
+    # for id's in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
     keys_uri_map = {"id": "v0.single_school"}
 
     def get(self, school_id):
@@ -240,9 +240,6 @@ class BellSchedule(Resource):
 
     def get(self, school_id, bell_schedule_id):
 
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
-
         if bell_schedule_id is None:
 
             check_permissions([APIScopes.LIST_BELL_SCHEDULES])
@@ -258,7 +255,9 @@ class BellSchedule(Resource):
 
             check_permissions([APIScopes.READ_BELL_SCHEDULE])
 
-            schedule = BellSchedule.query.filter_by(id=bell_schedule_id, school_id=school_id).first()
+            schedule = BellSchedule.query.filter_by(
+                id=bell_schedule_id, school_id=school_id).first()
+
             #double check this
             if schedule is None:
                 raise Oops("No school was found with the specified id.",

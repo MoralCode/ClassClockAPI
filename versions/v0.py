@@ -272,70 +272,18 @@ class BellSchedule(Resource):
 
         check_permissions([APIScopes.CREATE_BELL_SCHEDULE])
 
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
+        school = SchoolDB.query.filter_by(id=school_id).first()
 
-        check_ownership(cursor, school_id)
+        if get_api_user_id() != school.owner_id:
+            raise Oops("Authorizing user is not the owner of this school", 401)
 
-        # also need to be able to process bell schedule days and bell schedule meeting times as input from request to update the database
+        new_schedule = BellScheduleSchema().load(request.get_json()["data"]).data
 
-        schema = BellScheduleSchema()
-        data = deconstruct_resource_object(request.get_json()["data"])
-        data["school_id"] = uuid.UUID(school_id)
-        new_object = schema.load(data)
+        school.schedules.append(new_schedule)
 
-        if new_object.errors != {}:
-            return handle_marshmallow_errors(new_object.errors)
+        db.session.commit()
 
-        # print(new_object)
-
-        # build SQL command
-        cursor.execute(
-            "INSERT INTO bellschedules (bell_schedule_id, bell_schedule_name, bell_schedule_display_name, school_id, creation_date, last_modified) VALUES (UNHEX(%s), %s, %s, UNHEX(%s), NOW(), NOW())",
-            (new_object.data.id.hex, new_object.data.full_name,
-             new_object.data.display_name, new_object.data.school_id.hex)
-        )
-
-        dates_to_add = []
-
-        for date in new_object.data.dates:
-            dates_to_add.append(
-                (new_object.data.identifier.hex,
-                 new_object.data.school_id.hex,
-                 date)
-            )
-
-        dates_sql = "INSERT INTO bellscheduledates (bell_schedule_id, school_id, date, creation_date) VALUES (UNHEX(%s), UNHEX(%s), %s, NOW())"
-
-        try:
-            cursor.executemany(dates_sql, dates_to_add)
-            conn.commit()
-        except:
-            conn.rollback()
-
-        meeting_times_to_add = []
-
-        for meeting_time in new_object.data.meeting_times:
-            meeting_times_to_add.append(
-                (new_object.data.identifier.bytes,
-                 new_object.data.school_id.bytes,
-                 meeting_time.name,
-                 meeting_time.start_time,
-                 meeting_time.end_time)
-            )
-
-        meeting_times_sql = "INSERT INTO bellschedulemeetingtimes (bell_schedule_id, school_id, classperiod_name, start_time, end_time, creation_date) VALUES (UNHEX(%s), UNHEX(%s), %s, %s, %s, NOW())"
-
-        try:
-            cursor.executemany(meeting_times_sql, meeting_times_to_add)
-            conn.commit()
-        except:
-            conn.rollback()
-
-        cursor.close()
-        conn.close()
-
-        return BellScheduleSchema(exclude=('school_id',)).dump(new_object.data)
+        return BellScheduleSchema(exclude=('school_id',)).dump(new_schedule)
 
     @requires_auth
     @requires_admin

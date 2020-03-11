@@ -316,41 +316,16 @@ class BellSchedule(Resource):
     def delete(self, school_id, bell_schedule_id):
 
         check_permissions([APIScopes.DELETE_BELL_SCHEDULE])
+        
+        school = SchoolDB.query.filter_by(id=school_id).first()
 
-        conn = connection_pool.get_connection()
-        cursor = conn.cursor()
+        check_ownership(school)
 
-        check_ownership(cursor, school_id)
+        schedule = school.schedules.filter_by(id=bell_schedule_id).first()
 
-        # need to delete the whole bell schedule (meeting times and days too)
-        # DELETE FROM bellschedules, bellscheduledates, bellschedulemeetingtimes WHERE bell_schedule_id=%s AND school_id=%s
-        schedule_delete = (
-            'DELETE FROM bellschedules WHERE bell_schedule_id=UNHEX(%s)')
-        days_delete = (
-            'DELETE FROM bellscheduledates WHERE bell_schedule_id=UNHEX(%s)')
-        meeting_times_delete = (
-            'DELETE FROM bellschedulemeetingtimes WHERE bell_schedule_id=UNHEX(%s)')
+        db.session.delete(schedule)
 
-        try:
-
-            cursor.execute(days_delete, (uuid.UUID(bell_schedule_id).hex,))
-            cursor.execute(meeting_times_delete,
-                           (uuid.UUID(bell_schedule_id).hex,))
-            cursor.execute(schedule_delete,
-                           (uuid.UUID(bell_schedule_id).hex,))
-            if cursor.rowcount == 0:
-                raise Oops("No schedule was found with the specified id",
-                           404, title="Schedule not found")
-
-            conn.commit()
-        except mariadb.Error as e:
-            print(e)
-            conn.rollback()
-
-        cursor.close()
-        conn.close()
         return None, 204
-
 
 #
 # Routes

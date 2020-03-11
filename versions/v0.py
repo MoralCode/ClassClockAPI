@@ -255,7 +255,7 @@ class BellSchedule(Resource):
 
             check_permissions([APIScopes.READ_BELL_SCHEDULE])
 
-            schedule = BellSchedule.query.filter_by(
+            schedule = BellScheduleDB.query.filter_by(
                 id=bell_schedule_id, school_id=school_id).first()
 
             #double check this

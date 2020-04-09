@@ -6,7 +6,6 @@ from flask import current_app
 from os import environ as env
 
 from flask import Blueprint, abort, jsonify, request
-from flask_restful import Api, Resource
 from werkzeug.exceptions import HTTPException
 from flask_cors import CORS
 
@@ -33,17 +32,6 @@ DB_PASSWORD = env.get("DB_PASSWORD")
 
 
 blueprint = Blueprint('v0', __name__)
-api = Api(blueprint, decorators=[check_headers],
-          default_mediatype="application/vnd.api+json")
-
-
-@api.representation('application/vnd.api+json')
-def output_json(data, code, headers={}):
-    if code is None:
-        return make_response(data, headers)
-    else:
-        return make_response(data, code, headers)
-
 
 CORS(blueprint, origins="https://web.classclock.app", allow_headers=[
     "Accept", "Authorization"],
@@ -89,237 +77,251 @@ CORS(blueprint, origins="https://web.classclock.app", allow_headers=[
 
 #     """
 
-class School(Resource):
 
-    # for id's in the response, keys_uri_map specifies the function that would be needed to request the resource that the ID points to (so if the id is a schedule id, this would map to the name of the schedule function). this is used for generating URI's in responses
-    keys_uri_map = {"id": "v0.single_school"}
+@blueprint.route("/schools/", methods=['GET'])
+@check_headers
+def list_schools():
+    check_permissions([APIScopes.LIST_SCHOOLS])
 
-    def get(self, school_id):
+    school_list = []
+    schools = SchoolDB.query.all()
 
-        if school_id is None:
-
-            check_permissions([APIScopes.LIST_SCHOOLS])
-
-            school_list = []
-            schools = SchoolDB.query.all()
-
-            for school in schools:
-                school_list.append(school)
-            return SchoolSchema().dump(school_list, many=True)
-
-        else:
-
-            check_permissions([APIScopes.LIST_SCHOOLS])
-
-            school = SchoolDB.query.filter_by(id=school_id).first()
-            #double check this
-            if school is None:
-                raise Oops("No school was found with the specified id.",
-                           404, title="Resource Not Found")
-
-            return SchoolSchema().dump(school)
+    for school in schools:
+        school_list.append(school)
+    return SchoolSchema().dump(school_list, many=True)
 
 
-    @requires_auth
-    @requires_admin
-    def post(self):
+@blueprint.route("/school/<string:school_id>/", methods=['GET'])
+@check_headers
+def get_school(school_id):
+    check_permissions([APIScopes.LIST_SCHOOLS])
 
-        check_permissions([APIScopes.CREATE_SCHOOL])
-        # if len(list_owned_school_ids()) > 0:
-        #     raise Oops(
-        #         "Authorizing user is already the owner of another school", 401)
+    school = SchoolDB.query.filter_by(id=school_id).first()
+    #double check this
+    if school is None:
+        raise Oops("No school was found with the specified id.",
+                    404, title="Resource Not Found")
 
-        data = deconstruct_resource_object(request.get_json()["data"])
-        
-        new_object = SchoolDB(
-            full_name=data['full_name'],
-            alternate_freeperiod_name=data['alternate_freeperiod_name'],
-            acronym=data['acronym'],
-            owner_id=data['owner_id']
-            )
+    return SchoolSchema().dump(school)
 
-        # if new_object.errors != {}:
-        #     return handle_marshmallow_errors(new_object.errors)
 
-        db.session.add(new_object)
-        db.session.commit()
+@blueprint.route("/school/", methods=['POST'])
+@check_headers
+@requires_auth
+@requires_admin
+def create_school(self):
 
-        #TODO: need to verify that the insert worked?
+    check_permissions([APIScopes.CREATE_SCHOOL])
+    # if len(list_owned_school_ids()) > 0:
+    #     raise Oops(
+    #         "Authorizing user is already the owner of another school", 401)
+
+    data = deconstruct_resource_object(request.get_json()["data"])
     
-        return SchoolSchema().dump(new_object)
+    new_object = SchoolDB(
+        full_name=data['full_name'],
+        alternate_freeperiod_name=data['alternate_freeperiod_name'],
+        acronym=data['acronym'],
+        owner_id=data['owner_id']
+        )
 
-    @requires_auth
-    @requires_admin
-    def patch(self, school_id):
-        """ input:
-        {
-            "data": {
-                "type": "school",
-                "id": "2C49E3159EE011E986F2181DEA92AD79",
-                "links": {
-                    "self": "http://localhost:5000/v0/school/2C49E3159EE011E986F2181DEA92AD79"
-                },
-                "attributes": {
-                    "acronym": "LMHS",
-                    "creation_date": "2019-07-04T21:48:46+00:00",
-                    "alternate_freeperiod_name": null,
-                    "full_name": "Lake Mosswego High School"
-                }
+    # if new_object.errors != {}:
+    #     return handle_marshmallow_errors(new_object.errors)
+
+    db.session.add(new_object)
+    db.session.commit()
+
+    #TODO: need to verify that the insert worked?
+
+    return SchoolSchema().dump(new_object)
+
+
+@blueprint.route("/school/<string:school_id>/", methods=['PATCH'])
+@check_headers
+@requires_auth
+@requires_admin
+def update_school(self, school_id):
+    """ input:
+    {
+        "data": {
+            "type": "school",
+            "id": "2C49E3159EE011E986F2181DEA92AD79",
+            "links": {
+                "self": "http://localhost:5000/v0/school/2C49E3159EE011E986F2181DEA92AD79"
+            },
+            "attributes": {
+                "acronym": "LMHS",
+                "creation_date": "2019-07-04T21:48:46+00:00",
+                "alternate_freeperiod_name": null,
+                "full_name": "Lake Mosswego High School"
             }
         }
-        """
+    }
+    """
 
-        check_permissions([APIScopes.EDIT_SCHOOL])
+    check_permissions([APIScopes.EDIT_SCHOOL])
 
-        data = deconstruct_resource_object(request.get_json()["data"])
+    data = deconstruct_resource_object(request.get_json()["data"])
 
-        # if new_object.errors != {}:
-        #     return handle_marshmallow_errors(new_object.errors)
+    # if new_object.errors != {}:
+    #     return handle_marshmallow_errors(new_object.errors)
 
-        school = SchoolDB.query.filter_by(
-            id=school_id, owner_id=get_api_user_id()).first()
+    school = SchoolDB.query.filter_by(
+        id=school_id, owner_id=get_api_user_id()).first()
 
-        if school == None:
-            raise Oops("No records were found. Please make sure you are the owner for the school you are trying to modify",
-                       404, title="No Records Updated")
+    if school == None:
+        raise Oops("No records were found. Please make sure you are the owner for the school you are trying to modify",
+                    404, title="No Records Updated")
 
-        if data.id.hex.lower() != school.id.lower():
-            raise Oops("The id provided in the request body must match the id specified in the URL",
-                       400, title="Identifier Mismatch")
+    if data.id.hex.lower() != school.id.lower():
+        raise Oops("The id provided in the request body must match the id specified in the URL",
+                    400, title="Identifier Mismatch")
 
-        school.full_name = new_patch_val(data.full_name, school.full_name)
-        school.acronym = new_patch_val(data.acronym, school.acronym)
-        school.alternate_freeperiod_name = new_patch_val(
-            data.alternate_freeperiod_name, school.alternate_freeperiod_name)
-        # last_modified is automatically set in db_schema
-
-
-        db.session.commit()
-        #TODO: need to verify that the update worked?
-
-        return SchoolSchema().dump(school)
-
-    @requires_auth
-    @requires_admin
-    def delete(self, school_id):
-
-        check_permissions(
-            [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
-
-        school = SchoolDB.query.filter_by(
-            id=school_id, owner_id=get_api_user_id()).first()
-
-        if school == None:
-            raise Oops("No records were found. Please make sure you are the owner for the school you are trying to delete",
-                       404, title="No Records Updated")
-        
-        db.session.delete(school)
-        db.session.commit()
-        # should this just archive the school? or delete it and all related records?
-        # sqlalchemy can be set to cascade deletes (i think).
-        return None, 204
+    school.full_name = new_patch_val(data.full_name, school.full_name)
+    school.acronym = new_patch_val(data.acronym, school.acronym)
+    school.alternate_freeperiod_name = new_patch_val(
+        data.alternate_freeperiod_name, school.alternate_freeperiod_name)
+    # last_modified is automatically set in db_schema
 
 
-class BellSchedule(Resource):
+    db.session.commit()
+    #TODO: need to verify that the update worked?
 
-    def get(self, school_id, bell_schedule_id):
-
-        if bell_schedule_id is None:
-
-            check_permissions([APIScopes.LIST_BELL_SCHEDULES])
-
-            schedule_list = []
-            schedules = BellScheduleDB.query.filter_by(school_id=school_id)
-
-            for schedule in schedules:
-                schedule_list.append(schedule)
-            return BellScheduleSchema(exclude=('school_id',)).dump(schedule_list, many=True)
-
-        else:
-
-            check_permissions([APIScopes.READ_BELL_SCHEDULE])
-
-            schedule = BellScheduleDB.query.filter_by(
-                id=bell_schedule_id, school_id=school_id).first()
-
-            #double check this
-            if schedule is None:
-                raise Oops("No school was found with the specified id.",
-                           404, title="Resource Not Found")
-
-            return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
+    return SchoolSchema().dump(school)
 
 
-    @requires_auth
-    @requires_admin
-    def post(self, school_id):
+@blueprint.route("/school/<string:school_id>/", methods=['DELETE'])
+@check_headers
+@requires_auth
+@requires_admin
+def delete_school(self, school_id):
 
-        check_permissions([APIScopes.CREATE_BELL_SCHEDULE])
+    check_permissions(
+        [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
 
-        school = SchoolDB.query.filter_by(id=school_id).first()
+    school = SchoolDB.query.filter_by(
+        id=school_id, owner_id=get_api_user_id()).first()
 
-        check_ownership(school)
+    if school == None:
+        raise Oops("No records were found. Please make sure you are the owner for the school you are trying to delete",
+                    404, title="No Records Updated")
+    
+    db.session.delete(school)
+    db.session.commit()
+    # should this just archive the school? or delete it and all related records?
+    # sqlalchemy can be set to cascade deletes (i think).
+    return None, 204
+    
 
-        new_schedule = BellScheduleSchema().load(request.get_json()["data"]).data
+@blueprint.route("/school/<string:school_id>/schedules/", methods=['GET'])
+@check_headers
+def list_bellschedules(self, school_id):
 
-        school.schedules.append(new_schedule)
+    check_permissions([APIScopes.LIST_BELL_SCHEDULES])
 
-        db.session.commit()
+    schedule_list = []
+    schedules = BellScheduleDB.query.filter_by(school_id=school_id)
 
-        return BellScheduleSchema(exclude=('school_id',)).dump(new_schedule)
+    for schedule in schedules:
+        schedule_list.append(schedule)
+    return BellScheduleSchema(exclude=('school_id',)).dump(schedule_list, many=True)
 
-    @requires_auth
-    @requires_admin
-    def patch(self, school_id, bell_schedule_id):
 
-        check_permissions([APIScopes.EDIT_BELL_SCHEDULE])
+@blueprint.route("/school/<string:school_id>/schedule/<string:bell_schedule_id>", methods=['GET'])
+@check_headers
+def get_bellschedule(self, school_id, bell_schedule_id):
 
-        school = SchoolDB.query.filter_by(id=school_id).first()
+    check_permissions([APIScopes.READ_BELL_SCHEDULE])
 
-        check_ownership(school)
+    schedule = BellScheduleDB.query.filter_by(
+        id=bell_schedule_id, school_id=school_id).first()
 
-        schedule = school.schedules.filter_by(id=bell_schedule_id).first()
+    #double check this
+    if schedule is None:
+        raise Oops("No school was found with the specified id.",
+                    404, title="Resource Not Found")
 
-        updated_schedule = BellScheduleSchema().load(
-            request.get_json()["data"]).data
+    return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
 
-        if not updated_schedule.id or updated_schedule.id.lower() != bell_schedule_id.lower():
-            raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
-                       400, title="Identifier Mismatch")
 
-        schedule.name = new_patch_val(updated_schedule.name, schedule.name)
-        schedule.display_name = new_patch_val(
-            updated_schedule.display_name, schedule.display_name)
-                                
-        db.session.commit()
+@blueprint.route("/school/<string:school_id>/schedule/", methods=['POST'])
+@check_headers
+@requires_auth
+@requires_admin
+def create_bellschedule(self, school_id):
 
-        return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
+    check_permissions([APIScopes.CREATE_BELL_SCHEDULE])
 
-    @requires_auth
-    @requires_admin
-    def delete(self, school_id, bell_schedule_id):
+    school = SchoolDB.query.filter_by(id=school_id).first()
 
-        check_permissions([APIScopes.DELETE_BELL_SCHEDULE])
-        
-        school = SchoolDB.query.filter_by(id=school_id).first()
+    check_ownership(school)
 
-        check_ownership(school)
+    new_schedule = BellScheduleSchema().load(request.get_json()["data"]).data
 
-        schedule = school.schedules.filter_by(id=bell_schedule_id).first()
+    school.schedules.append(new_schedule)
 
-        db.session.delete(schedule)
+    db.session.commit()
 
-        return None, 204
+    return BellScheduleSchema(exclude=('school_id',)).dump(new_schedule)
+
+
+@blueprint.route("/school/<string:school_id>/schedule/<string:bell_schedule_id>", methods=['PATCH'])
+@check_headers
+@requires_auth
+@requires_admin
+def update_bellschedule(self, school_id, bell_schedule_id):
+
+    check_permissions([APIScopes.EDIT_BELL_SCHEDULE])
+
+    school = SchoolDB.query.filter_by(id=school_id).first()
+
+    check_ownership(school)
+
+    schedule = school.schedules.filter_by(id=bell_schedule_id).first()
+
+    updated_schedule = BellScheduleSchema().load(
+        request.get_json()["data"]).data
+
+    if not updated_schedule.id or updated_schedule.id.lower() != bell_schedule_id.lower():
+        raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
+                    400, title="Identifier Mismatch")
+
+    schedule.name = new_patch_val(updated_schedule.name, schedule.name)
+    schedule.display_name = new_patch_val(
+        updated_schedule.display_name, schedule.display_name)
+                            
+    db.session.commit()
+
+    return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
+
+
+@blueprint.route("/school/<string:school_id>/schedule/<string:bell_schedule_id>", methods=['DELETE'])
+@check_headers
+@requires_auth
+@requires_admin
+def delete_bellschedule(self, school_id, bell_schedule_id):
+
+    check_permissions([APIScopes.DELETE_BELL_SCHEDULE])
+    
+    school = SchoolDB.query.filter_by(id=school_id).first()
+
+    check_ownership(school)
+
+    schedule = school.schedules.filter_by(id=bell_schedule_id).first()
+
+    db.session.delete(schedule)
+
+    return None, 204
 
 #
 # Routes
 #
 
 
-register_api(api, School, "v0", name_of_optional_param="school_id")
+# register_api(api, School, "v0", name_of_optional_param="school_id")
 
-register_api(api, BellSchedule, "v0", url_prefix="/school/<string:school_id>",
-             name_of_optional_param="bell_schedule_id")
+# register_api(api, BellSchedule, "v0", url_prefix="/school/<string:school_id>",
+#              name_of_optional_param="bell_schedule_id")
 
 
 

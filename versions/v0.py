@@ -213,7 +213,7 @@ def delete_school(self, school_id):
     return None, 204
     
 
-@blueprint.route("/school/<string:school_id>/schedules/", methods=['GET'])
+@blueprint.route("/school/<string:school_id>/bellschedules/", methods=['GET'])
 @check_headers
 def list_bellschedules(self, school_id):
 
@@ -227,7 +227,7 @@ def list_bellschedules(self, school_id):
     return BellScheduleSchema(exclude=('school_id',)).dump(schedule_list, many=True)
 
 
-@blueprint.route("/school/<string:school_id>/schedule/<string:bell_schedule_id>", methods=['GET'])
+@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>", methods=['GET'])
 @check_headers
 def get_bellschedule(self, school_id, bell_schedule_id):
 
@@ -244,7 +244,7 @@ def get_bellschedule(self, school_id, bell_schedule_id):
     return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
 
 
-@blueprint.route("/school/<string:school_id>/schedule/", methods=['POST'])
+@blueprint.route("/school/<string:school_id>/bellschedule/", methods=['POST'])
 @check_headers
 @requires_auth
 @requires_admin
@@ -265,7 +265,7 @@ def create_bellschedule(self, school_id):
     return BellScheduleSchema(exclude=('school_id',)).dump(new_schedule)
 
 
-@blueprint.route("/school/<string:school_id>/schedule/<string:bell_schedule_id>", methods=['PATCH'])
+@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>", methods=['PATCH'])
 @check_headers
 @requires_auth
 @requires_admin
@@ -295,7 +295,7 @@ def update_bellschedule(self, school_id, bell_schedule_id):
     return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
 
 
-@blueprint.route("/school/<string:school_id>/schedule/<string:bell_schedule_id>", methods=['DELETE'])
+@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>", methods=['DELETE'])
 @check_headers
 @requires_auth
 @requires_admin

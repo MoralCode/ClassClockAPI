@@ -10,32 +10,23 @@ from uuid import UUID, uuid4
 from datetime import datetime
 from common.services import auth0management
 import flask_limiter
+import re
 
+import marshmallow
+import marshmallow_jsonapi
+import marshmallow_jsonapi.flask
+import marshmallow_sqlalchemy
 
 from common.constants import AuthType
+from common.db_schema import db
 
+from common.exceptions import Oops, AuthError
 
 AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
 API_IDENTIFIER = env.get("API_IDENTIFIER")
 ALGORITHMS = ["RS256"]
 
 management_API = auth0management.Auth0ManagementService()
-
-# Format error response and append status code.
-
-
-class AuthError(Exception):
-    def __init__(self, error, status_code):
-        self.error = error
-        self.status_code = status_code
-
-
-class Oops(Exception):
-    def __init__(self, message, status_code, title=None):
-        self.message = message
-        self.status_code = status_code
-        self.title = title
-
 
 class JSONEncoder(json.JSONEncoder):
     # this was copied from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/utils.py under the terms of the MIT license.
@@ -69,6 +60,25 @@ def is_client_error(code):
 def is_server_error(code):
     return code >= 500 and code <= 599
 
+def new_patch_val(body_val, db_val):
+    if body_val is not None and body_val != db_val:
+        return body_val
+    return db_val
+
+#https: // github.com/rgant/saas-api-boilerplate/blob/d1599716eb77b4994781b465fec27c91f8721cb5/common/utilities.py  # L16
+def camel_to_delimiter_separated(name, glue='_'):
+    """
+    Convert CamelCase to a delimiter-separated naming convention. Snake_case by default.
+    :param str name: CamelCase name to convert
+    :param str glue: Delimiter to use, default is an underscore for snake_case.
+    :return str: delimiter-separated version of name
+    """
+    # From https://stackoverflow.com/a/1176023
+    first_cap_re = re.compile('(.)([A-Z][a-z]+)')
+    all_cap_re = re.compile('([a-z0-9])([A-Z])')
+    replacement = fr'\1{glue}\2'
+    ex = first_cap_re.sub(replacement, name)
+    return all_cap_re.sub(replacement, ex).lower()
 
 def register_api(api, resource, api_version, name_of_optional_param='id', type_of_optional_param='string', url_prefix=""):
     name = resource.__name__.lower()
@@ -155,6 +165,16 @@ def make_jsonapi_response(response_data=None, code=None, headers={}):
     else:
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
+def J(*args, **kwargs):
+    """Wrapper around jsonify that sets the Content-Type of the response to
+    application/vnd.api+json.
+    """
+    response = jsonify(*args, **kwargs)
+    response.mimetype = "application/vnd.api+json"
+    return response
+
+def filter_dict(dict, filter, is_whitelist=True):
+    return {key: val for key, val in dict.items() if ((key in filter) if is_whitelist else (key not in filter))}
 
 def make_jsonapi_links_object(**kwargs):
     """Creates a JSON:API "links object" from a dict of data
@@ -184,7 +204,7 @@ def make_jsonapi_resource_object(resource, attributes_schema, blueprint_name):
     """
     resource_object = {}
     resource_object["type"] = resource.type
-    resource_object["id"] = resource.identifier
+    resource_object["id"] = resource.id
 
     resource_object["links"] = make_jsonapi_links_object(
         self=resource.get_uri(blueprint_name))
@@ -324,15 +344,8 @@ def check_for_role(role):
     else:
         return None
 
-
-def check_ownership(cursor, school_id):
-    cursor.execute(
-        "SELECT owner_id FROM schools WHERE school_id=(UNHEX(%s))", (school_id,))
-    # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
-    # dict_keys_map = ("id", "full_name", "acronym")
-
-    owners = [owner_id[0] for owner_id in cursor]
-    if get_api_user_id() not in owners:
+def check_ownership(school):
+    if get_api_user_id() not in school.owner_id:
         raise Oops("Authorizing user is not the owner of this school", 401)
 
 

@@ -226,7 +226,7 @@ def list_bellschedules(school_id):
     return BellScheduleSchema(exclude=('school_id',)).dump(schedule_list, many=True)
 
 
-@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>", methods=['GET'])
+@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
 @check_headers
 def get_bellschedule(school_id, bell_schedule_id):
 

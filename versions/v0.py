@@ -34,8 +34,8 @@ DB_PASSWORD = env.get("DB_PASSWORD")
 blueprint = Blueprint('v0', __name__)
 
 CORS(blueprint, origins="https://web.classclock.app", allow_headers=[
-    "Accept", "Authorization"],
-    supports_credentials=True)
+    "Accept", "Authorization"])
+    # supports_credentials=True)
 
 
 # @blueprint.route("/schools", methods=['GET'])

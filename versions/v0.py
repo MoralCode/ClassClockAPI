@@ -140,7 +140,7 @@ def create_school(self):
 @check_headers
 @requires_auth
 @requires_admin
-def update_school(self, school_id):
+def update_school(school_id):
     """ input:
     {
         "data": {
@@ -194,7 +194,7 @@ def update_school(self, school_id):
 @check_headers
 @requires_auth
 @requires_admin
-def delete_school(self, school_id):
+def delete_school(school_id):
 
     check_permissions(
         [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
@@ -215,8 +215,7 @@ def delete_school(self, school_id):
 
 @blueprint.route("/school/<string:school_id>/bellschedules/", methods=['GET'])
 @check_headers
-def list_bellschedules(self, school_id):
-
+def list_bellschedules(school_id):
     check_permissions([APIScopes.LIST_BELL_SCHEDULES])
 
     schedule_list = []
@@ -229,7 +228,7 @@ def list_bellschedules(self, school_id):
 
 @blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>", methods=['GET'])
 @check_headers
-def get_bellschedule(self, school_id, bell_schedule_id):
+def get_bellschedule(school_id, bell_schedule_id):
 
     check_permissions([APIScopes.READ_BELL_SCHEDULE])
 
@@ -248,7 +247,7 @@ def get_bellschedule(self, school_id, bell_schedule_id):
 @check_headers
 @requires_auth
 @requires_admin
-def create_bellschedule(self, school_id):
+def create_bellschedule(school_id):
 
     check_permissions([APIScopes.CREATE_BELL_SCHEDULE])
 
@@ -269,7 +268,7 @@ def create_bellschedule(self, school_id):
 @check_headers
 @requires_auth
 @requires_admin
-def update_bellschedule(self, school_id, bell_schedule_id):
+def update_bellschedule(school_id, bell_schedule_id):
 
     check_permissions([APIScopes.EDIT_BELL_SCHEDULE])
 
@@ -299,7 +298,7 @@ def update_bellschedule(self, school_id, bell_schedule_id):
 @check_headers
 @requires_auth
 @requires_admin
-def delete_bellschedule(self, school_id, bell_schedule_id):
+def delete_bellschedule(school_id, bell_schedule_id):
 
     check_permissions([APIScopes.DELETE_BELL_SCHEDULE])
     

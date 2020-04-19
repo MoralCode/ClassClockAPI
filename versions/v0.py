@@ -329,6 +329,12 @@ def before():
     current_app.logger.info( "Handling " + request.method + " Request for endpoint " +  request.path + " from API user '" + get_api_user_id() + "' from address " + util.get_remote_address() )
     pass    
 
+
+@blueprint.after_request
+def after_request(response):
+    response.headers['Content-Type'] = 'application/vnd.api+json'
+    return response
+
 #
 #
 #   Error Handler Section

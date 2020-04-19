@@ -46,10 +46,10 @@ class Relationship(marshmallow_jsonapi.fields.Relationship, marshmallow_sqlalche
         :param models.bases.BaseModel parent_model: Model Class of Schema containing this field.
         """
         # Calculate our relationship URLs beased on the parent schema's self_url
-        if parent_self_url and relationship_name and kwargs['self_url_kwargs']:
-            kwargs['self_url'] = '{0}/relationships/{1}'.format(parent_self_url, relationship_name)
-            kwargs['related_url'] = '{0}/{1}'.format(parent_self_url, relationship_name)
-            kwargs['related_url_kwargs'] = kwargs['self_url_kwargs']
+        #if parent_self_url and relationship_name and kwargs['self_url_kwargs']:
+            # kwargs['self_url'] = '{0}/relationships/{1}'.format(parent_self_url, relationship_name)
+            # kwargs['related_url'] = '{0}/{1}'.format(parent_self_url, relationship_name)
+            # kwargs['related_url_kwargs'] = kwargs['self_url_kwargs']
 
         # Set the class of the model for the schema containing this field.
         self.parent_model = parent_model

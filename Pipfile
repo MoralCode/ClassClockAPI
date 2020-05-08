@@ -20,6 +20,8 @@ gunicorn = "*"
 sqlalchemy = "*"
 json-api-doc = "*"
 marshmallow-jsonapi = "*"
+flask-sqlalchemy = "*"
+marshmallow-sqlalchemy = "*"
 
 [requires]
 python_version = "3.6"

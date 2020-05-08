@@ -5,7 +5,29 @@ from flask_limiter import Limiter
 from flasgger import Swagger
 from common.helpers import get_request_origin_identifier
 from common.db_schema import db
+import os, sys, getpass
 from os import environ as env
+
+#default values are only needed for some of these
+db_username = env.get("DB_USERNAME")
+db_password = env.get("DB_PASSWORD")
+db_host = os.getenv("DB_HOST", "localhost")
+db_name = os.getenv("DB_NAME", "classclock")
+
+if not db_username:
+    db_username = input('database username: ')
+if not db_password:
+    db_password = getpass.getpass('database password (input not shown): ')
+
+
+db_connection_string=os.getenv("DB_CONNECTION_URL", 
+    'mysql+mysqlconnector://{user}:{pw}@{url}/{db}'.format(
+        user=db_username,
+        pw=db_password,
+        url=db_host,
+        db=db_name
+    )
+)
 
 app = Flask(__name__)
 limiter = Limiter(app, default_limits=[
@@ -61,8 +83,18 @@ swagger = Swagger(app, config={
     ]
 })
 
-app.config.update(DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
+app.config.update(SQLALCHEMY_DATABASE_URI=db_connection_string,DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
 db.init_app(app)
+
+if sys.argv[1] == "setup":
+   
+# https://stackoverflow.com/a/46541219
+    with app.app_context():
+        db.create_all()
+        db.session.commit()
+        print("Done.")
+        exit(0)
+    
 
 if __name__ == "__main__":
     app.run()

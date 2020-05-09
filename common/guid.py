@@ -1,13 +1,18 @@
 from __future__ import absolute_import
-# import uuid
+import uuid
 from sqlalchemy import types, func
 
-class HashColumn(types.VARCHAR):
+#https://docs.sqlalchemy.org/en/13/core/custom_types.html#backend-agnostic-guid-type
+class HashColumn(types.TypeDecorator):
+    impl=types.BINARY
 
-    def bind_expression(self, bindvalue):
-        # convert the bind's type from Hex string to binary
-        return func.UNHEX(bindvalue)
+    def process_bind_param(self, value, dialect):
+        if value is not None:
+            return uuid.UUID(hex=value).bytes
 
-    def column_expression(self, col):
-        # convert select value from binary to hex String
-        return func.HEX(col)
+    def process_result_value(self, value, dialect):
+        return uuid.UUID(bytes=value).hex
+        
+
+    def copy(self, **kw):
+        return HashColumn(self.impl.length)

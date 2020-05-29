@@ -7,7 +7,6 @@ from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 from common.helpers import camel_to_delimiter_separated
 from common.db_schema import db
 
-from .exceptions import ForbiddenIdError, MismatchIdError, NullPrimaryData
 from common.db_schema import BellSchedule, BellScheduleMeetingTime, School, BellScheduleDate
 
 

@@ -13,8 +13,6 @@ import flask_limiter
 import re
 
 import marshmallow
-import marshmallow_jsonapi
-import marshmallow_jsonapi.flask
 import marshmallow_sqlalchemy
 
 from common.constants import AuthType

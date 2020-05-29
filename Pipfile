@@ -19,7 +19,6 @@ Flask-Limiter = "*"
 gunicorn = "*"
 sqlalchemy = "*"
 json-api-doc = "*"
-marshmallow-jsonapi = "*"
 flask-sqlalchemy = "*"
 marshmallow-sqlalchemy = "*"
 

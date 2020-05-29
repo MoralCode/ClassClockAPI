@@ -213,46 +213,46 @@ def delete_school(school_id):
     return None, 204
     
 
-@blueprint.route("/school/<string:school_id>/bellschedules/", methods=['GET'])
+# @blueprint.route("/school/<string:school_id>/bellschedules/", methods=['GET'])
+# @check_headers
+# def list_bellschedules(school_id):
+#     check_permissions([APIScopes.LIST_BELL_SCHEDULES])
+
+#     schedule_list = []
+#     schedules = BellScheduleDB.query.filter_by(school_id=school_id)
+
+#     for schedule in schedules:
+#         schedule_list.append(schedule)
+#     return BellScheduleSchema(exclude=('school_id',)).dump(schedule_list, many=True)
+
+
+@blueprint.route("/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
 @check_headers
-def list_bellschedules(school_id):
-    check_permissions([APIScopes.LIST_BELL_SCHEDULES])
-
-    schedule_list = []
-    schedules = BellScheduleDB.query.filter_by(school_id=school_id)
-
-    for schedule in schedules:
-        schedule_list.append(schedule)
-    return BellScheduleSchema(exclude=('school_id',)).dump(schedule_list, many=True)
-
-
-@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
-@check_headers
-def get_bellschedule(school_id, bell_schedule_id):
+def get_bellschedule(bell_schedule_id):
 
     check_permissions([APIScopes.READ_BELL_SCHEDULE])
 
     schedule = BellScheduleDB.query.filter_by(
-        id=bell_schedule_id, school_id=school_id).first()
+        id=bell_schedule_id).first()
 
     #double check this
     if schedule is None:
-        raise Oops("No school was found with the specified id.",
+        raise Oops("No bell schedule was found with the specified id.",
                     404, title="Resource Not Found")
 
     return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
 
 
-@blueprint.route("/school/<string:school_id>/bellschedule/", methods=['POST'])
+@blueprint.route("/bellschedule/", methods=['POST'])
 @check_headers
 @requires_auth
 @requires_admin
-def create_bellschedule(school_id):
+def create_bellschedule():
 
     check_permissions([APIScopes.CREATE_BELL_SCHEDULE])
 
+    # get school_id from a data parameter
     school = SchoolDB.query.filter_by(id=school_id).first()
-
     check_ownership(school)
 
     new_schedule = BellScheduleSchema().load(request.get_json()["data"]).data
@@ -264,26 +264,25 @@ def create_bellschedule(school_id):
     return BellScheduleSchema(exclude=('school_id',)).dump(new_schedule)
 
 
-@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>", methods=['PATCH'])
+@blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['PATCH'])
 @check_headers
 @requires_auth
 @requires_admin
-def update_bellschedule(school_id, bell_schedule_id):
+def update_bellschedule(bell_schedule_id):
 
     check_permissions([APIScopes.EDIT_BELL_SCHEDULE])
 
-    school = SchoolDB.query.filter_by(id=school_id).first()
-
+    schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
+    school = SchoolDB.query.filter_by(id=schedule.school_id).first()
     check_ownership(school)
-
-    schedule = school.schedules.filter_by(id=bell_schedule_id).first()
 
     updated_schedule = BellScheduleSchema().load(
         request.get_json()["data"]).data
 
-    if not updated_schedule.id or updated_schedule.id.lower() != bell_schedule_id.lower():
-        raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
-                    400, title="Identifier Mismatch")
+# no need to check for this. just overwrite the id value with the url-provided one
+    # if not updated_schedule.id or updated_schedule.id.lower() != bell_schedule_id.lower():
+    #     raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
+    #                 400, title="Identifier Mismatch")
 
     schedule.name = new_patch_val(updated_schedule.name, schedule.name)
     schedule.display_name = new_patch_val(
@@ -294,19 +293,17 @@ def update_bellschedule(school_id, bell_schedule_id):
     return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
 
 
-@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>", methods=['DELETE'])
+@blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['DELETE'])
 @check_headers
 @requires_auth
 @requires_admin
-def delete_bellschedule(school_id, bell_schedule_id):
+def delete_bellschedule(bell_schedule_id):
 
     check_permissions([APIScopes.DELETE_BELL_SCHEDULE])
-    
-    school = SchoolDB.query.filter_by(id=school_id).first()
 
+    schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
+    school = SchoolDB.query.filter_by(id=schedule.school_id).first()
     check_ownership(school)
-
-    schedule = school.schedules.filter_by(id=bell_schedule_id).first()
 
     db.session.delete(schedule)
 
@@ -332,7 +329,7 @@ def before():
 
 @blueprint.after_request
 def after_request(response):
-    response.headers['Content-Type'] = 'application/vnd.api+json'
+    response.headers['Content-Type'] = 'application/json'
     return response
 
 #
@@ -349,14 +346,14 @@ def ratelimit_handler(e):
     return make_jsonapi_response(
         make_jsonapi_error_object(429, title="Ratelimit Exceeded",
                                   message="ratelimit of " + e.description + " exceeded"),
-        code=429, headers={'Content-Type': 'application/vnd.api+json'}
+        code=429, headers={'Content-Type': 'application/json'}
     )
 
 
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
     return make_jsonapi_response(
-        make_jsonapi_error_object(e.status_code, message=e.error), code=e.status_code, headers={'Content-Type': 'application/vnd.api+json'}
+        make_jsonapi_error_object(e.status_code, message=e.error), code=e.status_code, headers={'Content-Type': 'application/json'}
     )
 
 
@@ -364,11 +361,11 @@ def handle_auth_error(e):
 def handle_error(e):
     if e.title is not None:
         return make_jsonapi_response(
-            make_jsonapi_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code, headers={'Content-Type': 'application/vnd.api+json'}
+            make_jsonapi_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code, headers={'Content-Type': 'application/json'}
         )
     else:
         return make_jsonapi_response(
-            make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code, headers={'Content-Type': 'application/vnd.api+json'}
+            make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code, headers={'Content-Type': 'application/json'}
         )
 
 
@@ -377,7 +374,7 @@ def handle_HTTP_error(e):
     return make_jsonapi_response(
         make_jsonapi_error_object(
             e.code, title=e.name(), message=e.description),
-        code=e.code, headers={'Content-Type': 'application/vnd.api+json'}
+        code=e.code, headers={'Content-Type': 'application/json'}
     )
 
 
@@ -387,5 +384,5 @@ def handle_HTTP_error(e):
 #     print("an exception occurred")
 #     print(e)
 #     return make_jsonapi_response(
-#         make_jsonapi_error_object(500), code=500, headers={'Content-Type': 'application/vnd.api+json'}
+#         make_jsonapi_error_object(500), code=500, headers={'Content-Type': 'application/json'}
 #     )

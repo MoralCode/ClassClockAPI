@@ -344,7 +344,7 @@ def after_request(response):
 def ratelimit_handler(e):
     print(e)
     return respond(
-        make_jsonapi_error_object(429, title="Ratelimit Exceeded",
+        make_error_object(429, title="Ratelimit Exceeded",
                                   message="ratelimit of " + e.description + " exceeded"),
         code=429
     )
@@ -353,7 +353,7 @@ def ratelimit_handler(e):
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
     return respond(
-        make_jsonapi_error_object(e.status_code, message=e.error), code=e.status_code
+        make_error_object(e.status_code, message=e.error), code=e.status_code
     )
 
 
@@ -361,18 +361,18 @@ def handle_auth_error(e):
 def handle_error(e):
     if e.title is not None:
         return respond(
-            make_jsonapi_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code
+            make_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code
         )
     else:
         return respond(
-            make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code
+            make_error_object(e.status_code, message=e.message), code=e.status_code
         )
 
 
 @blueprint.errorhandler(HTTPException)
 def handle_HTTP_error(e):
     return respond(
-        make_jsonapi_error_object(
+        make_error_object(
             e.code, title=e.name(), message=e.description),
         code=e.code
     )
@@ -384,5 +384,5 @@ def handle_HTTP_error(e):
 #     print("an exception occurred")
 #     print(e)
 #     return respond(
-#         make_jsonapi_error_object(500), code=500, headers={'Content-Type': 'application/json'}
+#         make_error_object(500), code=500, headers={'Content-Type': 'application/json'}
 #     )

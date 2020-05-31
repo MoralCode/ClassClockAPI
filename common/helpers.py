@@ -107,8 +107,8 @@ def register_api(api, resource, api_version, name_of_optional_param='id', type_o
     )
 
 
-def make_jsonapi_error_object(code, error_id=None, title=None, message=None):
-    """ Generates a JSON:API error response
+def make_error_object(code, error_id=None, title=None, message=None):
+    """ Generates an error response object
 
     Arguments:
         code {number} -- The HTTP status code to return for the error; both through HTTP and in the JSON response.
@@ -118,7 +118,7 @@ def make_jsonapi_error_object(code, error_id=None, title=None, message=None):
         message {string} -- An optional message giving more details about the error (default: {None})
 
     Returns:
-        A flask Response object for the web server
+        an error JSON object 
     """
 
     error_data = {'status': str(code)}
@@ -136,10 +136,10 @@ def make_jsonapi_error_object(code, error_id=None, title=None, message=None):
 
 
 def respond(response_data=None, code=None, headers={'Content-Type': 'application/json'}):
-    """ Forms a Flask-and-JSON:API-compatible JSON response
+    """ Forms the data into a JSON response
 
     Arguments:
-        response_data {dict} -- The jsonapi object dict to return in the JSON response
+        response_data {dict} -- The object dict to return in the JSON response
 
     Keyword Arguments:
         code {number} -- The optional HTTP status code to return with the response (used for errors) (default: {None})
@@ -150,7 +150,6 @@ def respond(response_data=None, code=None, headers={'Content-Type': 'application
     """
 
     content = {}
-    content["jsonapi"] = {"version": "1.0"}
 
     if code is not None and (is_client_error(code) or is_server_error(code)):
         # error
@@ -174,64 +173,64 @@ def J(*args, **kwargs):
 def filter_dict(dict, filter, is_whitelist=True):
     return {key: val for key, val in dict.items() if ((key in filter) if is_whitelist else (key not in filter))}
 
-def make_jsonapi_links_object(**kwargs):
-    """Creates a JSON:API "links object" from a dict of data
-    Returns:
-        dict -- A links object dict with contents formatted per the JSON:API spec
-    """
-    links_object = {}
-    for link_name in kwargs:
-        links_object[link_name] = kwargs[link_name]
+# def make_jsonapi_links_object(**kwargs):
+#     """Creates a JSON:API "links object" from a dict of data
+#     Returns:
+#         dict -- A links object dict with contents formatted per the JSON:API spec
+#     """
+#     links_object = {}
+#     for link_name in kwargs:
+#         links_object[link_name] = kwargs[link_name]
 
-    return links_object
-
-
-def make_jsonapi_resource_object(resource, attributes_schema, blueprint_name):
-    """Creates a JSON:API "resource object" from a dict of data
-
-    Arguments:
-        data_dict {dict} -- The data to create the resource object from
-        data_domain {string} -- A string describing what the data in data_dict represents (i.e. "school", "schedule", etc.)
-        uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in data_dict to the name of the function whose route should be used to generate URI's for responses
-        TODO: maybe make uri_function_name_mappings an enum or something
-    Raises:
-        e: A Key Error if the data_dict somehow does not contain an "id" field. should never happen
-
-    Returns:
-        dict -- A resource object dict with contents formatted per the JSON:API spec
-    """
-    resource_object = {}
-    resource_object["type"] = resource.type
-    resource_object["id"] = resource.id
-
-    resource_object["links"] = make_jsonapi_links_object(
-        self=resource.get_uri(blueprint_name))
-
-    resource_object["attributes"] = attributes_schema.dump(resource)
-
-    if resource.type == "bellschedule":
-        resource_object["relationships"] = {}
-        resource_object["relationships"]["schools"] = {}
-        resource_object["relationships"]["schools"]["links"] = make_jsonapi_links_object(self=url_for(
-            blueprint_name + "." + blueprint_name + "_single_school", school_id=resource.school_id.hex, _external=True))
-
-    return resource_object
+#     return links_object
 
 
-def deconstruct_resource_object(resource_object):
-    """extracts a more processable dict from a JSON:API "resource object" 
+# def make_jsonapi_resource_object(resource, attributes_schema, blueprint_name):
+#     """Creates a JSON:API "resource object" from a dict of data
 
-    Arguments:
-        resource_object {dict} -- a dict in JSON:API format
+#     Arguments:
+#         data_dict {dict} -- The data to create the resource object from
+#         data_domain {string} -- A string describing what the data in data_dict represents (i.e. "school", "schedule", etc.)
+#         uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in data_dict to the name of the function whose route should be used to generate URI's for responses
+#         TODO: maybe make uri_function_name_mappings an enum or something
+#     Raises:
+#         e: A Key Error if the data_dict somehow does not contain an "id" field. should never happen
 
-    Returns:
-        dict -- a flatter dict for easier processing
-    """
-    resource = {}
-    resource["type"] = resource_object.get("type", None)
-    resource["id"] = UUID(resource_object.get("id", uuid4().hex))
+#     Returns:
+#         dict -- A resource object dict with contents formatted per the JSON:API spec
+#     """
+#     resource_object = {}
+#     resource_object["type"] = resource.type
+#     resource_object["id"] = resource.id
 
-    return {**resource, **resource_object["attributes"]}
+#     resource_object["links"] = make_jsonapi_links_object(
+#         self=resource.get_uri(blueprint_name))
+
+#     resource_object["attributes"] = attributes_schema.dump(resource)
+
+#     if resource.type == "bellschedule":
+#         resource_object["relationships"] = {}
+#         resource_object["relationships"]["schools"] = {}
+#         resource_object["relationships"]["schools"]["links"] = make_jsonapi_links_object(self=url_for(
+#             blueprint_name + "." + blueprint_name + "_single_school", school_id=resource.school_id.hex, _external=True))
+
+#     return resource_object
+
+
+# def deconstruct_resource_object(resource_object):
+#     """extracts a more processable dict from a JSON:API "resource object" 
+
+#     Arguments:
+#         resource_object {dict} -- a dict in JSON:API format
+
+#     Returns:
+#         dict -- a flatter dict for easier processing
+#     """
+#     resource = {}
+#     resource["type"] = resource_object.get("type", None)
+#     resource["id"] = UUID(resource_object.get("id", uuid4().hex))
+
+#     return {**resource, **resource_object["attributes"]}
 
 
 def handle_marshmallow_errors(errors):
@@ -245,7 +244,7 @@ def handle_marshmallow_errors(errors):
                 message = input_error[:-1] + " provided to " + \
                     property_name + " of type " + value_type
 
-                error = make_jsonapi_error_object(
+                error = make_error_object(
                     400, title="Validation failure", message=message)
                 error_list.append(error)
 
@@ -530,26 +529,26 @@ def requires_admin(f):
 
 # decorator modified from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/decorators.py
 def check_headers(func):
-    """Check headers according to jsonapi reference
+    """decorator that provides a place to check headers
     :param callable func: the function to decorate
     :return callable: the wrapped function
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        if request.method in ('POST', 'PATCH', 'PUT'):
-            if 'Content-Type' in request.headers and request.headers['Content-Type'] != 'application/vnd.api+json':
+        # if request.method in ('POST', 'PATCH', 'PUT'):
+        #     if 'Content-Type' in request.headers and request.headers['Content-Type'] != 'application/vnd.api+json':
 
-                error = make_jsonapi_error_object(
-                    message='Content-Type header must be application/vnd.api+json', title='Invalid request header', code=415)
-                return respond(response_data=error, code=415)
+        #         error = make_error_object(
+        #             message='Content-Type header must be application/vnd.api+json', title='Invalid request header', code=415)
+        #         return respond(response_data=error, code=415)
 
-        if 'Accept' in request.headers:
-            for accept in request.headers['Accept'].split(','):
-                if accept.strip() != 'application/vnd.api+json':
+        # if 'Accept' in request.headers:
+        #     for accept in request.headers['Accept'].split(','):
+        #         if accept.strip() != 'application/vnd.api+json':
 
-                    error = make_jsonapi_error_object(
-                        message='Accept header must be application/vnd.api+json without media type parameters', title='Invalid request header', code=406)
-                    return respond(response_data=error, code=406)
+        #             error = make_error_object(
+        #                 message='Accept header must be application/vnd.api+json without media type parameters', title='Invalid request header', code=406)
+        #             return respond(response_data=error, code=406)
 
         return func(*args, **kwargs)
 

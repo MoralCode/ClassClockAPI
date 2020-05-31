@@ -343,38 +343,38 @@ def after_request(response):
 @blueprint.errorhandler(429)
 def ratelimit_handler(e):
     print(e)
-    return make_jsonapi_response(
+    return respond(
         make_jsonapi_error_object(429, title="Ratelimit Exceeded",
                                   message="ratelimit of " + e.description + " exceeded"),
-        code=429, headers={'Content-Type': 'application/json'}
+        code=429
     )
 
 
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
-    return make_jsonapi_response(
-        make_jsonapi_error_object(e.status_code, message=e.error), code=e.status_code, headers={'Content-Type': 'application/json'}
+    return respond(
+        make_jsonapi_error_object(e.status_code, message=e.error), code=e.status_code
     )
 
 
 @blueprint.errorhandler(Oops)
 def handle_error(e):
     if e.title is not None:
-        return make_jsonapi_response(
-            make_jsonapi_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code, headers={'Content-Type': 'application/json'}
+        return respond(
+            make_jsonapi_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code
         )
     else:
-        return make_jsonapi_response(
-            make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code, headers={'Content-Type': 'application/json'}
+        return respond(
+            make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code
         )
 
 
 @blueprint.errorhandler(HTTPException)
 def handle_HTTP_error(e):
-    return make_jsonapi_response(
+    return respond(
         make_jsonapi_error_object(
             e.code, title=e.name(), message=e.description),
-        code=e.code, headers={'Content-Type': 'application/json'}
+        code=e.code
     )
 
 
@@ -383,6 +383,6 @@ def handle_HTTP_error(e):
 #     # "We're sorry, but the electrons that were tasked with handling your request became terribly misguided and forgot what it is that they were supposed to be doing. Our team of scientists in the Electron Amnesia Recovery Ward is currently nursing them back to health; if you have any information about what it is these electrons were supposed to be doing at the time of this incident, please contact the maintainer of this service."
 #     print("an exception occurred")
 #     print(e)
-#     return make_jsonapi_response(
+#     return respond(
 #         make_jsonapi_error_object(500), code=500, headers={'Content-Type': 'application/json'}
 #     )

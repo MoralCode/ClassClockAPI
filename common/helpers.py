@@ -135,7 +135,7 @@ def make_jsonapi_error_object(code, error_id=None, title=None, message=None):
     return error_data
 
 
-def make_jsonapi_response(response_data=None, code=None, headers={}):
+def respond(response_data=None, code=None, headers={'Content-Type': 'application/json'}):
     """ Forms a Flask-and-JSON:API-compatible JSON response
 
     Arguments:
@@ -541,7 +541,7 @@ def check_headers(func):
 
                 error = make_jsonapi_error_object(
                     message='Content-Type header must be application/vnd.api+json', title='Invalid request header', code=415)
-                return make_jsonapi_response(response_data=error, code=415, headers={'Content-Type': 'application/vnd.api+json'})
+                return respond(response_data=error, code=415)
 
         if 'Accept' in request.headers:
             for accept in request.headers['Accept'].split(','):
@@ -549,7 +549,7 @@ def check_headers(func):
 
                     error = make_jsonapi_error_object(
                         message='Accept header must be application/vnd.api+json without media type parameters', title='Invalid request header', code=406)
-                    return make_jsonapi_response(response_data=error, code=406, headers={'Content-Type': 'application/vnd.api+json'})
+                    return respond(response_data=error, code=406)
 
         return func(*args, **kwargs)
 

@@ -18,7 +18,6 @@ Flask-Cors = "*"
 Flask-Limiter = "*"
 gunicorn = "*"
 sqlalchemy = "*"
-json-api-doc = "*"
 flask-sqlalchemy = "*"
 marshmallow-sqlalchemy = "*"
 

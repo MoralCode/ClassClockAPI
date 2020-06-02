@@ -88,7 +88,7 @@ def list_schools():
 
     for school in schools:
         school_list.append(school)
-    return respond(response_data=SchoolSchema().dump(school_list, many=True), code=200)
+    return respond(response_data=SchoolSchema().dump(school_list, many=True))
 
 
 @blueprint.route("/school/<string:school_id>/", methods=['GET'])

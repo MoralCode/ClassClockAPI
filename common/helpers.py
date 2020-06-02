@@ -135,7 +135,7 @@ def make_error_object(code, error_id=None, title=None, message=None):
     return error_data
 
 
-def respond(response_data=None, code=None, headers={'Content-Type': 'application/json'}):
+def respond(response_data=None, code=200, headers={'Content-Type': 'application/json'}):
     """ Forms the data into a JSON response
 
     Arguments:

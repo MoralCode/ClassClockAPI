@@ -20,6 +20,8 @@ gunicorn = "*"
 sqlalchemy = "*"
 flask-sqlalchemy = "*"
 marshmallow-sqlalchemy = "*"
+apispec = "*"
+apispec-webframeworks = "*"
 
 [requires]
 python_version = "3.6"

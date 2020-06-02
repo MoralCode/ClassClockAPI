@@ -102,7 +102,7 @@ def get_school(school_id):
         raise Oops("No school was found with the specified id.",
                     404, title="Resource Not Found")
 
-    return SchoolSchema().dump(school)
+    return respond(response_data=SchoolSchema().dump(school))
 
 
 @blueprint.route("/school/", methods=['POST'])
@@ -133,7 +133,7 @@ def create_school(self):
 
     #TODO: need to verify that the insert worked?
 
-    return SchoolSchema().dump(new_object)
+    return respond(response_data=respond(response_data=SchoolSchema().dump(new_object)) #error checking
 
 
 @blueprint.route("/school/<string:school_id>/", methods=['PATCH'])
@@ -187,7 +187,7 @@ def update_school(school_id):
     db.session.commit()
     #TODO: need to verify that the update worked?
 
-    return SchoolSchema().dump(school)
+    return respond(response_data=SchoolSchema().dump(school))
 
 
 @blueprint.route("/school/<string:school_id>/", methods=['DELETE'])
@@ -240,7 +240,7 @@ def get_bellschedule(bell_schedule_id):
         raise Oops("No bell schedule was found with the specified id.",
                     404, title="Resource Not Found")
 
-    return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
+    return respond(response_data=BellScheduleSchema(exclude=('school_id',)).dump(schedule))
 
 
 @blueprint.route("/bellschedule/", methods=['POST'])
@@ -261,7 +261,7 @@ def create_bellschedule():
 
     db.session.commit()
 
-    return BellScheduleSchema(exclude=('school_id',)).dump(new_schedule)
+    return respond(response_data=BellScheduleSchema(exclude=('school_id',)).dump(new_schedule))
 
 
 @blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['PATCH'])
@@ -290,7 +290,7 @@ def update_bellschedule(bell_schedule_id):
                             
     db.session.commit()
 
-    return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
+    return respond(response_data=BellScheduleSchema(exclude=('school_id',)).dump(schedule))
 
 
 @blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['DELETE'])

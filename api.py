@@ -5,6 +5,10 @@ from flask_limiter import Limiter
 from flasgger import Swagger
 from common.helpers import get_request_origin_identifier
 from common.db_schema import db
+from common.schemas import *
+from flasgger import APISpec, Schema, Swagger, fields
+from apispec.ext.marshmallow import MarshmallowPlugin
+from apispec_webframeworks.flask import FlaskPlugin
 import os, sys, getpass
 from os import environ as env
 
@@ -38,6 +42,59 @@ limiter = Limiter(app, default_limits=[
 app.register_blueprint(v0.blueprint, url_prefix='/v0')
 
 
+#     "info": {
+#         "title": "ClassClock API",
+#         "version": "0.1",
+#         "description": "The first beta development version of the ClassClock API",
+#         "contact": {
+#             # "responsibleOrganization": "ME",
+#             # "responsibleDeveloper": "Me",
+#             # "email": "me@me.com",
+#             # "url": "www.me.com",
+#         },
+#         "termsOfService": "http://me.com/terms",
+#     },
+    
+#     # "host": "api.classclock.app",  # overrides localhost:500
+#     # "basePath": "/v0",  # base bash for blueprint registration
+#     "schemes": [
+#         "https"
+#     ]
+# }
+# Create an APISpec
+spec = APISpec(
+    title="ClassClock API",
+    version="0.1",
+    openapi_version='2.0',
+    plugins=[
+        FlaskPlugin(),
+        MarshmallowPlugin(),
+    ],
+    options= {
+        "description": "The development version of the ClassClock API",
+        "servers": [
+            {
+                "url": "https://api.classclock.app/v0",
+                "description": "ClassClock API Server"
+            },
+            {
+                "url": "https://localhost:8000/v0",
+                "description": "Dev server"
+            }
+        ],
+        "externalDocs": {
+            "description": "This API might loosely follow the JSON:API specofocation",
+            "url": "https://jsonapi.org"
+        }
+    }
+)
+
+template = spec.to_flasgger(
+    app,
+    definitions=[SchoolSchema, BellScheduleDateSchema, BellScheduleMeetingTimeSchema, BellScheduleSchema],
+    paths=[]
+)
+
 swagger = Swagger(app, config={
     "headers": [
     ],
@@ -54,36 +111,8 @@ swagger = Swagger(app, config={
     "swagger_ui": True,
     "specs_route": "/docs/"
 },
-    template={
+    template=template)
 
-    "info": {
-        "title": "ClassClock API",
-        "version": "0.1",
-        "description": "The first beta development version of the ClassClock API",
-        "contact": {
-            # "responsibleOrganization": "ME",
-            # "responsibleDeveloper": "Me",
-            # "email": "me@me.com",
-            # "url": "www.me.com",
-        },
-        "termsOfService": "http://me.com/terms",
-    },
-    "servers": [
-        {
-            "url": "https://api.classclock.app/",
-            "description": "ClassClock API Server"
-        },
-        {
-            "url": "https://localhost:5000/",
-            "description": "Dev server"
-        }
-    ],
-    # "host": "api.classclock.app",  # overrides localhost:500
-    # "basePath": "/v0",  # base bash for blueprint registration
-    "schemes": [
-        "https"
-    ]
-})
 
 app.config.update(SQLALCHEMY_DATABASE_URI=db_connection_string,DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
 db.init_app(app)

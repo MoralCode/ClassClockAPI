@@ -133,7 +133,7 @@ def create_school(self):
 
     #TODO: need to verify that the insert worked?
 
-    return respond(response_data=respond(response_data=SchoolSchema().dump(new_object)) #error checking
+    return respond(response_data=SchoolSchema().dump(new_object)) #error checking
 
 
 @blueprint.route("/school/<string:school_id>/", methods=['PATCH'])

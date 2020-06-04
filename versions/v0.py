@@ -148,7 +148,7 @@ def create_school(self):
     #     raise Oops(
     #         "Authorizing user is already the owner of another school", 401)
 
-    data = deconstruct_resource_object(get_request_body(request))
+    data = get_request_body(request)
     
     new_object = SchoolDB(
         full_name=data['full_name'],
@@ -183,7 +183,7 @@ def update_school(school_id):
 
     check_permissions([APIScopes.EDIT_SCHOOL])
 
-    data = deconstruct_resource_object(get_request_body(request))
+    data = get_request_body(request)
 
     # if new_object.errors != {}:
     #     return handle_marshmallow_errors(new_object.errors)

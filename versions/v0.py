@@ -8,6 +8,7 @@ from os import environ as env
 from flask import Blueprint, abort, jsonify, request
 from werkzeug.exceptions import HTTPException
 from flask_cors import CORS
+from marshmallow.exceptions import ValidationError
 
 # from bson import json_util
 # from bson.objectid import ObjectId
@@ -150,12 +151,17 @@ def create_school():
 
     data = get_request_body(request)
     
-    new_object = SchoolDB(
-        full_name=data['full_name'],
-        alternate_freeperiod_name=data['alternate_freeperiod_name'],
-        acronym=data['acronym'],
-        owner_id=data['owner_id']
-        )
+    if data is None:
+        raise Oops("Invalid or non-JSON request body provided.", 400)
+
+    new_object = None 
+    try:
+        #Numbers, booleans, strings, and ``None`` are considered invalid input to `Schema.load
+        new_object = SchoolSchema().load(data, session=db.session)#, session=session
+    except ValidationError as err:
+        # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
+        # print(err.valid_data)
+        return respond(err.messages, code=400)
 
     # if new_object.errors != {}:
     #     return handle_marshmallow_errors(new_object.errors)
@@ -198,6 +204,11 @@ def update_school(school_id):
     if data.id.hex.lower() != school.id.lower():
         raise Oops("The id provided in the request body must match the id specified in the URL",
                     400, title="Identifier Mismatch")
+    try:
+        new_object = SchoolSchema().load(data, session=session)
+    except ValidationError as err:
+        print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
+        # print(err.valid_data)
 
     school.full_name = new_patch_val(data.full_name, school.full_name)
     school.acronym = new_patch_val(data.acronym, school.acronym)

@@ -181,6 +181,7 @@ def create_school():
 def update_school(school_id):
     """
     updates a school
+    the id field in the request body will be overwritten with the id value from the header upon receiving the request
     ---
     security:
       - ApiKeyAuth: []
@@ -201,9 +202,9 @@ def update_school(school_id):
         raise Oops("No records were found. Please make sure you are the owner for the school you are trying to modify",
                     404, title="No Records Updated")
 
-    if data.id.hex.lower() != school.id.lower():
-        raise Oops("The id provided in the request body must match the id specified in the URL",
-                    400, title="Identifier Mismatch")
+    #only for updating
+    data['id'] = school_id
+
     try:
         new_object = SchoolSchema().load(data, session=session)
     except ValidationError as err:

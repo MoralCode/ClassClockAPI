@@ -1,4 +1,4 @@
-from flask import Flask
+from flask import Flask, render_template
 import logging
 from versions import v0
 from flask_limiter import Limiter
@@ -187,6 +187,14 @@ elif sys.argv[1] == "demo":
         print("Done.")
         exit(0)
     
+
+
+
+@app.route("/", methods=['GET'])
+def home():
+    return render_template('home.html')
+
+
 
 if __name__ == "__main__":
     app.run()

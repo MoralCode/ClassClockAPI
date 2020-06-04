@@ -81,6 +81,14 @@ CORS(blueprint, origins="https://web.classclock.app", allow_headers=[
 @blueprint.route("/schools/", methods=['GET'])
 @check_headers
 def list_schools():
+    """ Returns a list of schools
+    ---
+    responses:
+      200:
+        description: A list of schools
+        schema:
+          $ref: '#/definitions/School'
+    """
     check_permissions([APIScopes.LIST_SCHOOLS])
 
     school_list = []
@@ -94,6 +102,14 @@ def list_schools():
 @blueprint.route("/school/<string:school_id>/", methods=['GET'])
 @check_headers
 def get_school(school_id):
+    """ Returns a single school
+    ---
+    responses:
+      200:
+        description: A single school object
+        schema:
+          $ref: '#/definitions/School'
+    """
     check_permissions([APIScopes.LIST_SCHOOLS])
 
     school = SchoolDB.query.filter_by(id=school_id).first()
@@ -110,6 +126,22 @@ def get_school(school_id):
 @requires_auth
 @requires_admin
 def create_school(self):
+    """ Creates a new school
+    ---
+    parameters:
+      - name: school
+        in: body
+        type: object
+        schema:
+          $ref: '#/definitions/School'
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: A list of schools
+        schema:
+          $ref: '#/definitions/School'
+    """
 
     check_permissions([APIScopes.CREATE_SCHOOL])
     # if len(list_owned_school_ids()) > 0:
@@ -141,22 +173,12 @@ def create_school(self):
 @requires_auth
 @requires_admin
 def update_school(school_id):
-    """ input:
-    {
-        "data": {
-            "type": "school",
-            "id": "2C49E3159EE011E986F2181DEA92AD79",
-            "links": {
-                "self": "http://localhost:5000/v0/school/2C49E3159EE011E986F2181DEA92AD79"
-            },
-            "attributes": {
-                "acronym": "LMHS",
-                "creation_date": "2019-07-04T21:48:46+00:00",
-                "alternate_freeperiod_name": null,
-                "full_name": "Lake Mosswego High School"
-            }
-        }
-    }
+    """
+    updates a school
+    ---
+    security:
+      - ApiKeyAuth: []
+    
     """
 
     check_permissions([APIScopes.EDIT_SCHOOL])
@@ -195,6 +217,13 @@ def update_school(school_id):
 @requires_auth
 @requires_admin
 def delete_school(school_id):
+    """
+    deletes a school
+    ---
+    security:
+      - ApiKeyAuth: []
+
+    """
 
     check_permissions(
         [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])

@@ -12,6 +12,7 @@ from marshmallow.exceptions import ValidationError
 
 # from bson import json_util
 # from bson.objectid import ObjectId
+from dateutil.parser import isoparse
 import http.client
 from common.db_schema import School as SchoolDB, db, BellSchedule as BellScheduleDB
 from sqlalchemy import create_engine

@@ -125,7 +125,7 @@ def get_school(school_id):
 @check_headers
 @requires_auth
 @requires_admin
-def create_school(self):
+def create_school():
     """ Creates a new school
     ---
     parameters:

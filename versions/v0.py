@@ -148,7 +148,7 @@ def create_school(self):
     #     raise Oops(
     #         "Authorizing user is already the owner of another school", 401)
 
-    data = deconstruct_resource_object(request.get_json()["data"])
+    data = deconstruct_resource_object(get_request_body(request))
     
     new_object = SchoolDB(
         full_name=data['full_name'],
@@ -183,7 +183,7 @@ def update_school(school_id):
 
     check_permissions([APIScopes.EDIT_SCHOOL])
 
-    data = deconstruct_resource_object(request.get_json()["data"])
+    data = deconstruct_resource_object(get_request_body(request))
 
     # if new_object.errors != {}:
     #     return handle_marshmallow_errors(new_object.errors)
@@ -284,7 +284,7 @@ def create_bellschedule():
     school = SchoolDB.query.filter_by(id=school_id).first()
     check_ownership(school)
 
-    new_schedule = BellScheduleSchema().load(request.get_json()["data"]).data
+    new_schedule = BellScheduleSchema().load(get_request_body(request)).data
 
     school.schedules.append(new_schedule)
 
@@ -306,7 +306,7 @@ def update_bellschedule(bell_schedule_id):
     check_ownership(school)
 
     updated_schedule = BellScheduleSchema().load(
-        request.get_json()["data"]).data
+        get_request_body(request)).data
 
 # no need to check for this. just overwrite the id value with the url-provided one
     # if not updated_schedule.id or updated_schedule.id.lower() != bell_schedule_id.lower():

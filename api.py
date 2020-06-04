@@ -42,26 +42,8 @@ limiter = Limiter(app, default_limits=[
 app.register_blueprint(v0.blueprint, url_prefix='/v0')
 
 
-#     "info": {
-#         "title": "ClassClock API",
-#         "version": "0.1",
-#         "description": "The first beta development version of the ClassClock API",
-#         "contact": {
-#             # "responsibleOrganization": "ME",
-#             # "responsibleDeveloper": "Me",
-#             # "email": "me@me.com",
-#             # "url": "www.me.com",
-#         },
-#         "termsOfService": "http://me.com/terms",
-#     },
-    
-#     # "host": "api.classclock.app",  # overrides localhost:500
-#     # "basePath": "/v0",  # base bash for blueprint registration
-#     "schemes": [
-#         "https"
-#     ]
-# }
 # Create an APISpec
+#info: {
 spec = APISpec(
     title="ClassClock API",
     version="0.1",
@@ -85,9 +67,17 @@ spec = APISpec(
         "externalDocs": {
             "description": "This API might loosely follow the JSON:API specofocation",
             "url": "https://jsonapi.org"
-        }
+        }#,
+#  "contact": {
+#             # "responsibleOrganization": "ME",
+#             # "responsibleDeveloper": "Me",
+#             # "email": "me@me.com",
+#             # "url": "www.me.com",
+#         },
+#         "termsOfService": "http://me.com/terms",
     }
 )
+
 
 template = spec.to_flasgger(
     app,
@@ -109,9 +99,22 @@ swagger = Swagger(app, config={
     "static_url_path": "/flasgger_static",
     # "static_folder": "static",  # must be set by user
     "swagger_ui": True,
-    "specs_route": "/docs/"
+    "specs_route": "/v0/docs/",
+    "basePath": "/v0",
+    "host": "api.classclock.app",  # overrides localhost:500
+    "schemes": [
+        "https"
+    ],
+    "securityDefinitions": {
+        "ApiKeyAuth": {
+            "type": "apiKey",
+            "in": "header",
+            "name": "Authentication"
+        }
+    }
 },
-    template=template)
+template=template)
+
 
 
 app.config.update(SQLALCHEMY_DATABASE_URI=db_connection_string,DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)

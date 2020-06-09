@@ -199,9 +199,9 @@ def update_school(school_id):
     school = SchoolDB.query.filter_by(
         id=school_id, owner_id=get_api_user_id()).first()
 
-    if school == None:
-        raise Oops("No records were found. Please make sure you are the owner for the school you are trying to modify",
-                    404, title="No Records Updated")
+    if school is None:
+        raise Oops("No records could be updated because none were found",
+                    404, title="No Records Found")
 
      # check modification times
      # this needs to happen after the school is retreived from the DB for comparison
@@ -249,15 +249,15 @@ def delete_school(school_id):
 
     school = SchoolDB.query.filter_by(
         id=school_id, owner_id=get_api_user_id()).first()
+    if school is None:
+        raise Oops("No records could be deleted because none were found",
+                    404, title="No Records Found")
+
     # check modification times
     # this needs to happen after the school is retreived from the DB for comparison
     if 'If-Unmodified-Since' in request.headers:
         since = isoparse(request.headers.get('If-Unmodified-Since'))
         trap_object_modified_since(school.last_modified, since)
-
-    if school == None:
-        raise Oops("No records were found. Please make sure you are the owner for the school you are trying to delete",
-                    404, title="No Records Updated")
     
     db.session.delete(school)
     db.session.commit()

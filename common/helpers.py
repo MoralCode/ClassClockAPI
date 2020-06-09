@@ -318,23 +318,7 @@ def get_valid_auth_header_of_type(auth_header_type):
 
     return parts[1]  # return the value provided with the token
 
-
-def has_permission(permission):
-    """Raises an AuthError if the specified scope is not present
-
-    Arguments:
-        scope {string} -- The scope to check
-
-    Raises:
-        AuthError: An authentication error
-    """
-    return
-    if not permission in _request_ctx_stack.top.current_user.permissions:
-        raise AuthError(
-            "You do not have the necessary permission (" + permission.value + ") to access to this resource", 403)
-
-
-def check_permissions(permissions_to_check):
+def check_permissions(user, permissions_to_check):
     """Raises an AuthError if the specified scopes are not present
 
     Arguments:
@@ -343,8 +327,15 @@ def check_permissions(permissions_to_check):
     Raises:
         AuthError: An authentication error
     """
+# _request_ctx_stack.top.current_user
+    perms_not_present = []
     for perm in permissions_to_check:
-        has_permission(perm)
+        if not perm in user.permissions:
+           perms_not_present.append(perm)
+    if perms_not_present != []:
+        perms_needed = " ".join(perm.value for perm in perms_not_present)
+        raise AuthError(
+            "You have not been granted the necessary permissions to access to this resource. You are missing the following permissions: " + perms_needed, 403)
 
 
 def check_for_role(role):

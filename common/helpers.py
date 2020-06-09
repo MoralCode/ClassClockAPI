@@ -232,6 +232,13 @@ def filter_dict(dict, filter, is_whitelist=True):
 
 #     return {**resource, **resource_object["attributes"]}
 
+def trap_object_modified_since(obj_last_modification, since):
+    if since > datetime.now():
+        raise Oops("The date provided to the If-Modified-Since header cannot be in the future", 412, title="No Future Modification Dates")
+
+    if since < obj_last_modification:
+        raise Oops("The resource you are trying to change has been modified elsewhere", 412, title="Resource has been Modified")
+
 
 def handle_marshmallow_errors(errors):
     error_list = []

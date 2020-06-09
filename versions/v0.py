@@ -203,6 +203,12 @@ def update_school(school_id):
         raise Oops("No records were found. Please make sure you are the owner for the school you are trying to modify",
                     404, title="No Records Updated")
 
+     # check modification times
+     # this needs to happen after the school is retreived from the DB for comparison
+    if 'If-Unmodified-Since' in request.headers:
+        since = isoparse(request.headers.get('If-Unmodified-Since'))
+        trap_object_modified_since(school.last_modified, since)
+
     #only for updating
     data['id'] = school_id
 
@@ -243,6 +249,11 @@ def delete_school(school_id):
 
     school = SchoolDB.query.filter_by(
         id=school_id, owner_id=get_api_user_id()).first()
+    # check modification times
+    # this needs to happen after the school is retreived from the DB for comparison
+    if 'If-Unmodified-Since' in request.headers:
+        since = isoparse(request.headers.get('If-Unmodified-Since'))
+        trap_object_modified_since(school.last_modified, since)
 
     if school == None:
         raise Oops("No records were found. Please make sure you are the owner for the school you are trying to delete",
@@ -321,6 +332,10 @@ def update_bellschedule(bell_schedule_id):
     updated_schedule = BellScheduleSchema().load(
         get_request_body(request)).data
 
+    if 'If-Unmodified-Since' in request.headers:
+        since = isoparse(request.headers.get('If-Unmodified-Since'))
+        trap_object_modified_since(school.last_modified, since)
+
 # no need to check for this. just overwrite the id value with the url-provided one
     # if not updated_schedule.id or updated_schedule.id.lower() != bell_schedule_id.lower():
     #     raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
@@ -346,6 +361,10 @@ def delete_bellschedule(bell_schedule_id):
     schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
     school = SchoolDB.query.filter_by(id=schedule.school_id).first()
     check_ownership(school)
+    
+    if 'If-Unmodified-Since' in request.headers:
+        since = isoparse(request.headers.get('If-Unmodified-Since'))
+        trap_object_modified_since(school.last_modified, since)
 
     db.session.delete(schedule)
 

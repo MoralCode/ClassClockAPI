@@ -209,10 +209,11 @@ def update_school(school_id):
     data['id'] = school_id
 
     try:
-        new_object = SchoolSchema().load(data, session=session)
+        new_object = SchoolSchema().load(data, session=db.session)
     except ValidationError as err:
-        print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
+        # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
         # print(err.valid_data)
+        return respond(err.messages, code=400)
 
     school.full_name = new_patch_val(data.full_name, school.full_name)
     school.acronym = new_patch_val(data.acronym, school.acronym)

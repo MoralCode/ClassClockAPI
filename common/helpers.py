@@ -465,7 +465,7 @@ def build_sql_column_update_list(input_object, updateable_fields_schema, colname
 #
 
 
-def requires_auth(f):
+def requires_auth(f, permissions=None):
     """Determines if the access token is valid
     """
     @wraps(f)
@@ -509,6 +509,11 @@ def requires_auth(f):
                 raise AuthError("Unable to parse authentication token.", 401)
 
             _request_ctx_stack.top.current_user = payload
+
+            #this permissions check was added separately from the auth0 validation code 
+            if permissions is not None:
+                check_permissions(payload, permissions)
+
             return f(*args, **kwargs)
         raise AuthError("Unable to find appropriate key", 401)
     return decorated

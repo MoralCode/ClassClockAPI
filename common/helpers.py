@@ -465,58 +465,67 @@ def build_sql_column_update_list(input_object, updateable_fields_schema, colname
 #
 
 
-def requires_auth(f, permissions=None):
+def requires_auth(_func=None, *, permissions=None):
     """Determines if the access token is valid
     """
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        token = get_token_auth_header()
-        jsonurl = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
-        jwks = json.loads(jsonurl.read())
-        try:
-            unverified_header = jwt.get_unverified_header(token)
-        except jwt.JWTError:
-            raise AuthError(
-                "Invalid token. Use an RS256 signed JWT Access Token", 401)
-        if unverified_header["alg"] == "HS256":
-            raise AuthError(
-                "Invalid token algorithm. Use an RS256 signed JWT Access Token", 401)
-        rsa_key = {}
-        for key in jwks["keys"]:
-            if key["kid"] == unverified_header["kid"]:
-                rsa_key = {
-                    "kty": key["kty"],
-                    "kid": key["kid"],
-                    "use": key["use"],
-                    "n": key["n"],
-                    "e": key["e"]
-                }
-        if rsa_key:
+    # https://realpython.com/primer-on-python-decorators/#decorators-with-arguments
+    def args_or_no(func):
+        @wraps(func)
+        def decorated(*args, **kwargs):
+            token = get_token_auth_header()
+            jsonurl = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
+            jwks = json.loads(jsonurl.read())
             try:
-                payload = jwt.decode(
-                    token,
-                    rsa_key,
-                    algorithms=ALGORITHMS,
-                    audience=API_IDENTIFIER,
-                    issuer="https://"+AUTH0_DOMAIN+"/"
-                )
-            except jwt.ExpiredSignatureError:
-                raise AuthError("Token has expired", 401)
-            except jwt.JWTClaimsError:
+                unverified_header = jwt.get_unverified_header(token)
+            except jwt.JWTError:
                 raise AuthError(
-                    "Incorrect JWT claims. Please check the audience and issuer", 401)
-            except Exception:
-                raise AuthError("Unable to parse authentication token.", 401)
+                    "Invalid token. Use an RS256 signed JWT Access Token", 401)
+            if unverified_header["alg"] == "HS256":
+                raise AuthError(
+                    "Invalid token algorithm. Use an RS256 signed JWT Access Token", 401)
+            rsa_key = {}
+            for key in jwks["keys"]:
+                if key["kid"] == unverified_header["kid"]:
+                    rsa_key = {
+                        "kty": key["kty"],
+                        "kid": key["kid"],
+                        "use": key["use"],
+                        "n": key["n"],
+                        "e": key["e"]
+                    }
+            if rsa_key:
+                try:
+                    payload = jwt.decode(
+                        token,
+                        rsa_key,
+                        algorithms=ALGORITHMS,
+                        audience=API_IDENTIFIER,
+                        issuer="https://"+AUTH0_DOMAIN+"/"
+                    )
+                except jwt.ExpiredSignatureError:
+                    raise AuthError("Token has expired", 401)
+                except jwt.JWTClaimsError:
+                    raise AuthError(
+                        "Incorrect JWT claims. Please check the audience and issuer", 401)
+                except Exception:
+                    raise AuthError("Unable to parse authentication token.", 401)
 
-            _request_ctx_stack.top.current_user = payload
+                _request_ctx_stack.top.current_user = payload
 
-            #this permissions check was added separately from the auth0 validation code 
-            if permissions is not None:
-                check_permissions(payload, permissions)
+                #this permissions check was added separately from the auth0 validation code 
+                if permissions is not None:
+                    check_permissions(payload, permissions)
 
-            return f(*args, **kwargs)
-        raise AuthError("Unable to find appropriate key", 401)
-    return decorated
+                return func(*args, **kwargs)
+
+            raise AuthError("Unable to find appropriate key", 401)
+        return decorated
+
+    if _func is None:
+        return args_or_no
+    else:
+        return args_or_no(_func)
+
 
 
 def requires_admin(f):

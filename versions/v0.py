@@ -91,7 +91,6 @@ def list_schools():
         schema:
           $ref: '#/definitions/School'
     """
-    check_permissions([APIScopes.LIST_SCHOOLS])
 
     school_list = []
     schools = SchoolDB.query.all()
@@ -112,7 +111,6 @@ def get_school(school_id):
         schema:
           $ref: '#/definitions/School'
     """
-    check_permissions([APIScopes.LIST_SCHOOLS])
 
     school = SchoolDB.query.filter_by(id=school_id).first()
     #double check this
@@ -125,7 +123,7 @@ def get_school(school_id):
 
 @blueprint.route("/school/", methods=['POST'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.CREATE_SCHOOL])
 @requires_admin
 def create_school():
     """ Creates a new school
@@ -144,8 +142,6 @@ def create_school():
         schema:
           $ref: '#/definitions/School'
     """
-
-    check_permissions([APIScopes.CREATE_SCHOOL])
     # if len(list_owned_school_ids()) > 0:
     #     raise Oops(
     #         "Authorizing user is already the owner of another school", 401)
@@ -177,7 +173,7 @@ def create_school():
 
 @blueprint.route("/school/<string:school_id>/", methods=['PATCH'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.EDIT_SCHOOL])
 @requires_admin
 def update_school(school_id):
     """
@@ -188,8 +184,6 @@ def update_school(school_id):
       - ApiKeyAuth: []
     
     """
-
-    check_permissions([APIScopes.EDIT_SCHOOL])
 
     data = get_request_body(request)
 
@@ -235,7 +229,7 @@ def update_school(school_id):
 
 @blueprint.route("/school/<string:school_id>/", methods=['DELETE'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
 @requires_admin
 def delete_school(school_id):
     """
@@ -245,9 +239,6 @@ def delete_school(school_id):
       - ApiKeyAuth: []
 
     """
-
-    check_permissions(
-        [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
 
     school = SchoolDB.query.filter_by(id=school_id).first()
     if school is None:
@@ -272,7 +263,6 @@ def delete_school(school_id):
 # @blueprint.route("/school/<string:school_id>/bellschedules/", methods=['GET'])
 # @check_headers
 # def list_bellschedules(school_id):
-#     check_permissions([APIScopes.LIST_BELL_SCHEDULES])
 
 #     schedule_list = []
 #     schedules = BellScheduleDB.query.filter_by(school_id=school_id)
@@ -285,8 +275,6 @@ def delete_school(school_id):
 @blueprint.route("/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
 @check_headers
 def get_bellschedule(bell_schedule_id):
-
-    check_permissions([APIScopes.READ_BELL_SCHEDULE])
 
     schedule = BellScheduleDB.query.filter_by(
         id=bell_schedule_id).first()
@@ -301,11 +289,9 @@ def get_bellschedule(bell_schedule_id):
 
 @blueprint.route("/bellschedule/", methods=['POST'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.CREATE_BELL_SCHEDULE])
 @requires_admin
 def create_bellschedule():
-
-    check_permissions([APIScopes.CREATE_BELL_SCHEDULE])
 
     # get school_id from a data parameter
     school = SchoolDB.query.filter_by(id=school_id).first()
@@ -322,11 +308,9 @@ def create_bellschedule():
 
 @blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['PATCH'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.CREATE_BELL_SCHEDULE])
 @requires_admin
 def update_bellschedule(bell_schedule_id):
-
-    check_permissions([APIScopes.EDIT_BELL_SCHEDULE])
 
     schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
     school = SchoolDB.query.filter_by(id=schedule.school_id).first()
@@ -356,11 +340,9 @@ def update_bellschedule(bell_schedule_id):
 
 @blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['DELETE'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.DELETE_BELL_SCHEDULE])
 @requires_admin
 def delete_bellschedule(bell_schedule_id):
-
-    check_permissions([APIScopes.DELETE_BELL_SCHEDULE])
 
     schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
     school = SchoolDB.query.filter_by(id=schedule.school_id).first()

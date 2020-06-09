@@ -196,12 +196,14 @@ def update_school(school_id):
     # if new_object.errors != {}:
     #     return handle_marshmallow_errors(new_object.errors)
 
-    school = SchoolDB.query.filter_by(
-        id=school_id, owner_id=get_api_user_id()).first()
+    school = SchoolDB.query.filter_by(id=school_id).first()
 
     if school is None:
         raise Oops("No records could be updated because none were found",
                     404, title="No Records Found")
+    else:
+        check_ownership(school)
+        
 
      # check modification times
      # this needs to happen after the school is retreived from the DB for comparison
@@ -247,11 +249,12 @@ def delete_school(school_id):
     check_permissions(
         [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
 
-    school = SchoolDB.query.filter_by(
-        id=school_id, owner_id=get_api_user_id()).first()
+    school = SchoolDB.query.filter_by(id=school_id).first()
     if school is None:
         raise Oops("No records could be deleted because none were found",
                     404, title="No Records Found")
+    else:
+        check_ownership(school)
 
     # check modification times
     # this needs to happen after the school is retreived from the DB for comparison
@@ -327,10 +330,11 @@ def update_bellschedule(bell_schedule_id):
 
     schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
     school = SchoolDB.query.filter_by(id=schedule.school_id).first()
-    check_ownership(school)
 
     updated_schedule = BellScheduleSchema().load(
         get_request_body(request)).data
+    if school is not None:
+        check_ownership(school)
 
     if 'If-Unmodified-Since' in request.headers:
         since = isoparse(request.headers.get('If-Unmodified-Since'))
@@ -360,7 +364,8 @@ def delete_bellschedule(bell_schedule_id):
 
     schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
     school = SchoolDB.query.filter_by(id=schedule.school_id).first()
-    check_ownership(school)
+    if school is not None:
+        check_ownership(school)
     
     if 'If-Unmodified-Since' in request.headers:
         since = isoparse(request.headers.get('If-Unmodified-Since'))

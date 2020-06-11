@@ -162,13 +162,6 @@ def respond(response_data=None, code=200, headers={'Content-Type': 'application/
     else:
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
-def J(*args, **kwargs):
-    """Wrapper around jsonify that sets the Content-Type of the response to
-    application/vnd.api+json.
-    """
-    response = jsonify(*args, **kwargs)
-    response.mimetype = "application/vnd.api+json"
-    return response
 
 def filter_dict(dict, filter, is_whitelist=True):
     return {key: val for key, val in dict.items() if ((key in filter) if is_whitelist else (key not in filter))}

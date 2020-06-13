@@ -39,9 +39,9 @@ class BellSchedule(db.Model):
 	"""
 	__tablename__ = "bellschedules"
 	type = "bellschedule"
-	id = db.Column('bell_schedule_id', HashColumn(length=16),
+	id = db.Column('bell_schedule_id', HashColumn(length=32),
                         primary_key=True, default=get_uuid)
-	school_id = db.Column(HashColumn(length=16), ForeignKey(School.id))
+	school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
 	name = db.Column('bell_schedule_name', db.VARCHAR(length=75))
 	dates = db.relationship("BellScheduleDate")
 	#meetingtimes = db.relationship("BellScheduleMeetingTime")
@@ -63,8 +63,9 @@ class BellScheduleDate(db.Model):
 	"""
 	__tablename__ = "bellscheduledates"
 	type = "bellscheduledate"
-	bell_schedule_id = db.Column('bell_schedule_id', HashColumn(length=16), ForeignKey(BellSchedule.id), primary_key=True)
-	# school_id = db.Column(HashColumn(length=16), ForeignKey(School.id))
+	type = "date"
+	bell_schedule_id = db.Column('bell_schedule_id', HashColumn(length=32), ForeignKey(BellSchedule.id), primary_key=True)
+	# school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
 	date = db.Column('date', db.Date, primary_key=True)
 	creation_date = db.Column('creation_date', db.DateTime,
                            default=datetime.today().isoformat())
@@ -82,8 +83,8 @@ class BellScheduleMeetingTime(db.Model):
 	"""
 	__tablename__ = "bellschedulemeetingtimes"
 	type = "bellschedulemeetingtime"
-	schedule_id = db.Column(HashColumn(length=16), ForeignKey(BellSchedule.id), primary_key=True)
-	# school_id = db.Column(HashColumn(length=16), ForeignKey(School.id))
+	schedule_id = db.Column(HashColumn(length=32), ForeignKey(BellSchedule.id), primary_key=True)
+	# school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
 	name = db.Column('classperiod_name', db.VARCHAR(length=75),
                   primary_key=True)
 	start_time = db.Column('start_time', db.Time,

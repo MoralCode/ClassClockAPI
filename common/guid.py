@@ -7,11 +7,16 @@ class HashColumn(types.TypeDecorator):
     impl=types.BINARY
 
     def process_bind_param(self, value, dialect):
-        if value is not None:
+        if value is None:
+            return value
+        else:
             return uuid.UUID(hex=value).bytes
 
     def process_result_value(self, value, dialect):
-        return uuid.UUID(bytes=value).hex
+        if value is None:
+            return value
+        else:
+            return uuid.UUID(bytes=value).hex
         
     # This is a shallow copy and is provided to fulfill part of the TypeEngine contract. It usually does not need to be overridden unless the user-defined TypeDecorator has local state that should be deep-copied.
     # def copy(self, **kw):

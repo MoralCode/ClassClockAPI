@@ -13,6 +13,6 @@ class HashColumn(types.TypeDecorator):
     def process_result_value(self, value, dialect):
         return uuid.UUID(bytes=value).hex
         
-
-    def copy(self, **kw):
-        return HashColumn(self.impl.length)
+    # This is a shallow copy and is provided to fulfill part of the TypeEngine contract. It usually does not need to be overridden unless the user-defined TypeDecorator has local state that should be deep-copied.
+    # def copy(self, **kw):
+    #     return HashColumn(32)

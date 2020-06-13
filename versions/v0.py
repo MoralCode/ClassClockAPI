@@ -205,22 +205,15 @@ def update_school(school_id):
         since = isoparse(request.headers.get('If-Unmodified-Since'))
         trap_object_modified_since(school.last_modified, since)
 
-    #only for updating
-    data['id'] = school_id
+    #dont allow the ID to be modified in any way
+    del data['id']
 
     try:
-        new_object = SchoolSchema().load(data, session=db.session)
+        updated_school = SchoolSchema().load(data, session=db.session, instance=school)
     except ValidationError as err:
         # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
         # print(err.valid_data)
         return respond(err.messages, code=400)
-
-    school.full_name = new_patch_val(data.full_name, school.full_name)
-    school.acronym = new_patch_val(data.acronym, school.acronym)
-    school.alternate_freeperiod_name = new_patch_val(
-        data.alternate_freeperiod_name, school.alternate_freeperiod_name)
-    # last_modified is automatically set in db_schema
-
 
     db.session.commit()
     #TODO: need to verify that the update worked?
@@ -315,9 +308,6 @@ def update_bellschedule(bell_schedule_id):
 
     schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
     school = SchoolDB.query.filter_by(id=schedule.school_id).first()
-
-    updated_schedule = BellScheduleSchema().load(
-        get_request_body(request)).data
     if school is not None:
         check_ownership(school)
 
@@ -325,15 +315,18 @@ def update_bellschedule(bell_schedule_id):
         since = isoparse(request.headers.get('If-Unmodified-Since'))
         trap_object_modified_since(school.last_modified, since)
 
-# no need to check for this. just overwrite the id value with the url-provided one
-    # if not updated_schedule.id or updated_schedule.id.lower() != bell_schedule_id.lower():
-    #     raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
-    #                 400, title="Identifier Mismatch")
+    data = get_request_body(request)
 
-    schedule.name = new_patch_val(updated_schedule.name, schedule.name)
-    schedule.display_name = new_patch_val(
-        updated_schedule.display_name, schedule.display_name)
-                            
+    #dont allow the ID to be modified in any way
+    del data['id']
+
+    try:
+        updated_schedule = BellScheduleSchema().load(data, session=db.session, instance=schedule)
+    except ValidationError as err:
+        # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
+        # print(err.valid_data)
+        return respond(err.messages, code=400)
+        
     db.session.commit()
 
     return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedule))

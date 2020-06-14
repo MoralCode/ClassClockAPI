@@ -12,7 +12,6 @@ from marshmallow.exceptions import ValidationError
 
 # from bson import json_util
 # from bson.objectid import ObjectId
-from dateutil.parser import isoparse
 import http.client
 from common.db_schema import School as SchoolDB, db, BellSchedule as BellScheduleDB
 from sqlalchemy import create_engine
@@ -201,7 +200,7 @@ def update_school(school_id):
      # check modification times
      # this needs to happen after the school is retreived from the DB for comparison
     if 'If-Unmodified-Since' in request.headers:
-        since = isoparse(request.headers.get('If-Unmodified-Since'))
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), '%a, %d %b %Y %H:%M:%S GMT')
         trap_object_modified_since(school.last_modified, since)
 
 
@@ -241,7 +240,7 @@ def delete_school(school_id):
     # check modification times
     # this needs to happen after the school is retreived from the DB for comparison
     if 'If-Unmodified-Since' in request.headers:
-        since = isoparse(request.headers.get('If-Unmodified-Since'))
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), '%a, %d %b %Y %H:%M:%S GMT')
         trap_object_modified_since(school.last_modified, since)
     
     db.session.delete(school)
@@ -309,7 +308,7 @@ def update_bellschedule(bell_schedule_id):
         check_ownership(school)
 
     if 'If-Unmodified-Since' in request.headers:
-        since = isoparse(request.headers.get('If-Unmodified-Since'))
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), '%a, %d %b %Y %H:%M:%S GMT')
         trap_object_modified_since(school.last_modified, since)
 
     data = get_request_body(request)
@@ -338,7 +337,7 @@ def delete_bellschedule(bell_schedule_id):
         check_ownership(school)
     
     if 'If-Unmodified-Since' in request.headers:
-        since = isoparse(request.headers.get('If-Unmodified-Since'))
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), '%a, %d %b %Y %H:%M:%S GMT')
         trap_object_modified_since(school.last_modified, since)
 
     db.session.delete(schedule)

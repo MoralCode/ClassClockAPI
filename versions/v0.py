@@ -117,6 +117,12 @@ def get_school(school_id):
         raise Oops("No school was found with the specified id.",
                     404, title="Resource Not Found")
 
+    if 'If-Modified-Since' in request.headers:
+        since = datetime.strptime(request.headers.get('If-Modified-Since'), HTTP_DATE_FORMAT)
+        # TODO: make this a more robust check
+        if school.last_modified == since:
+            return respond(code=304) #Not Modified
+
     return respond(SchoolSchema().dump(school))
 
 
@@ -273,6 +279,12 @@ def get_bellschedule(bell_schedule_id):
     if schedule is None:
         raise Oops("No bell schedule was found with the specified id.",
                     404, title="Resource Not Found")
+
+    if 'If-Modified-Since' in request.headers:
+        since = datetime.strptime(request.headers.get('If-Modified-Since'), HTTP_DATE_FORMAT)
+        # TODO: make this a more robust check
+        if schedule.last_modified == since:
+            return respond(code=304) #Not Modified
 
     return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedule))
 

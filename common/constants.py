@@ -1,5 +1,9 @@
 from enum import Enum
 
+API_DATATYPE ='application/json'
+
+API_DATATYPE_HEADER = {'Content-Type': API_DATATYPE}
+
 HTTP_DATE_FORMAT = '%a, %d %b %Y %H:%M:%S GMT'
 
 class AuthType(Enum):

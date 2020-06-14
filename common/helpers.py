@@ -15,7 +15,7 @@ import re
 import marshmallow
 import marshmallow_sqlalchemy
 
-from common.constants import AuthType
+from common.constants import AuthType, API_DATATYPE_HEADER, API_DATATYPE
 from common.db_schema import db
 
 from common.exceptions import Oops, AuthError
@@ -115,7 +115,7 @@ def make_error_object(code, error_id=None, title=None, message=None):
     return error_data
 
 
-def respond(response_data=None, code=200, headers={'Content-Type': 'application/json'}):
+def respond(response_data=None, code=200, headers=API_DATATYPE_HEADER):
     """ Forms the data into a JSON response
 
     Arguments:
@@ -366,18 +366,16 @@ def check_headers(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
         # if request.method in ('POST', 'PATCH', 'PUT'):
-        #     if 'Content-Type' in request.headers and request.headers['Content-Type'] != 'application/vnd.api+json':
-
+        #     if 'Content-Type' in request.headers and request.headers['Content-Type'] != API_DATATYPE:
         #         error = make_error_object(
-        #             message='Content-Type header must be application/vnd.api+json', title='Invalid request header', code=415)
+        #             message='Content-Type header must be ' + API_DATATYPE, title='Invalid request header', code=415)
         #         return respond(response_data=error, code=415)
 
         # if 'Accept' in request.headers:
         #     for accept in request.headers['Accept'].split(','):
-        #         if accept.strip() != 'application/vnd.api+json':
-
+        #         if accept.strip() != API_DATATYPE:
         #             error = make_error_object(
-        #                 message='Accept header must be application/vnd.api+json without media type parameters', title='Invalid request header', code=406)
+        #                 message='Accept header must be ' + API_DATATYPE, title='Invalid request header', code=406)
         #             return respond(response_data=error, code=406)
 
         return func(*args, **kwargs)

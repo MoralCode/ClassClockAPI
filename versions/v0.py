@@ -17,7 +17,7 @@ from common.db_schema import School as SchoolDB, db, BellSchedule as BellSchedul
 from sqlalchemy import create_engine
 
 from common.helpers import *
-from common.constants import APIScopes
+from common.constants import APIScopes, HTTP_DATE_FORMAT
 from common.schemas import SchoolSchema, BellScheduleSchema
 from common.services import auth0management
 import common.exceptions
@@ -200,7 +200,7 @@ def update_school(school_id):
      # check modification times
      # this needs to happen after the school is retreived from the DB for comparison
     if 'If-Unmodified-Since' in request.headers:
-        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), '%a, %d %b %Y %H:%M:%S GMT')
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), HTTP_DATE_FORMAT)
         trap_object_modified_since(school.last_modified, since)
 
 
@@ -240,7 +240,7 @@ def delete_school(school_id):
     # check modification times
     # this needs to happen after the school is retreived from the DB for comparison
     if 'If-Unmodified-Since' in request.headers:
-        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), '%a, %d %b %Y %H:%M:%S GMT')
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), HTTP_DATE_FORMAT)
         trap_object_modified_since(school.last_modified, since)
     
     db.session.delete(school)
@@ -308,7 +308,7 @@ def update_bellschedule(bell_schedule_id):
         check_ownership(school)
 
     if 'If-Unmodified-Since' in request.headers:
-        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), '%a, %d %b %Y %H:%M:%S GMT')
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), HTTP_DATE_FORMAT)
         trap_object_modified_since(school.last_modified, since)
 
     data = get_request_body(request)
@@ -337,7 +337,7 @@ def delete_bellschedule(bell_schedule_id):
         check_ownership(school)
     
     if 'If-Unmodified-Since' in request.headers:
-        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), '%a, %d %b %Y %H:%M:%S GMT')
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), HTTP_DATE_FORMAT)
         trap_object_modified_since(school.last_modified, since)
 
     db.session.delete(schedule)

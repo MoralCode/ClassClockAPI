@@ -2,7 +2,7 @@
 Customized Marshmallow-SQLAlchemy and Marshmallow-JSONAPI Schemas to combine Schema Meta data.
 """
 import marshmallow as ma
-from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
 
 from common.db_schema import db
 
@@ -15,6 +15,7 @@ class SchoolSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
         include_fk = True
+    id = auto_field(dump_only=True)
 
 class BellScheduleDateSchema(SQLAlchemyAutoSchema):
 
@@ -38,5 +39,7 @@ class BellScheduleSchema(SQLAlchemyAutoSchema):
         include_relationships = True
         load_instance = True
         include_fk = True
+    
+    id = auto_field(dump_only=True)
 
         # Pluck dates and meeting times?

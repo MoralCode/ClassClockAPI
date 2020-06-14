@@ -178,7 +178,6 @@ def create_school():
 def update_school(school_id):
     """
     updates a school
-    the id field in the request body will be overwritten with the id value from the header upon receiving the request
     ---
     security:
       - ApiKeyAuth: []
@@ -205,8 +204,6 @@ def update_school(school_id):
         since = isoparse(request.headers.get('If-Unmodified-Since'))
         trap_object_modified_since(school.last_modified, since)
 
-    #dont allow the ID to be modified in any way
-    del data['id']
 
     try:
         updated_school = SchoolSchema().load(data, session=db.session, instance=school)
@@ -316,9 +313,6 @@ def update_bellschedule(bell_schedule_id):
         trap_object_modified_since(school.last_modified, since)
 
     data = get_request_body(request)
-
-    #dont allow the ID to be modified in any way
-    del data['id']
 
     try:
         updated_schedule = BellScheduleSchema().load(data, session=db.session, instance=schedule)

@@ -4,7 +4,6 @@ Customized Marshmallow-SQLAlchemy and Marshmallow-JSONAPI Schemas to combine Sch
 import marshmallow as ma
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
-from common.helpers import camel_to_delimiter_separated
 from common.db_schema import db
 
 from common.db_schema import BellSchedule, BellScheduleMeetingTime, School, BellScheduleDate

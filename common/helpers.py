@@ -58,26 +58,6 @@ def is_client_error(code):
 def is_server_error(code):
     return code >= 500 and code <= 599
 
-def new_patch_val(body_val, db_val):
-    if body_val is not None and body_val != db_val:
-        return body_val
-    return db_val
-
-#https: // github.com/rgant/saas-api-boilerplate/blob/d1599716eb77b4994781b465fec27c91f8721cb5/common/utilities.py  # L16
-def camel_to_delimiter_separated(name, glue='_'):
-    """
-    Convert CamelCase to a delimiter-separated naming convention. Snake_case by default.
-    :param str name: CamelCase name to convert
-    :param str glue: Delimiter to use, default is an underscore for snake_case.
-    :return str: delimiter-separated version of name
-    """
-    # From https://stackoverflow.com/a/1176023
-    first_cap_re = re.compile('(.)([A-Z][a-z]+)')
-    all_cap_re = re.compile('([a-z0-9])([A-Z])')
-    replacement = fr'\1{glue}\2'
-    ex = first_cap_re.sub(replacement, name)
-    return all_cap_re.sub(replacement, ex).lower()
-
 def register_api(api, resource, api_version, name_of_optional_param='id', type_of_optional_param='string', url_prefix=""):
     name = resource.__name__.lower()
     url = "/" + name + "/"
@@ -162,68 +142,6 @@ def respond(response_data=None, code=200, headers={'Content-Type': 'application/
     else:
         return make_response(json.dumps(content, cls=JSONEncoder), code, headers)
 
-
-def filter_dict(dict, filter, is_whitelist=True):
-    return {key: val for key, val in dict.items() if ((key in filter) if is_whitelist else (key not in filter))}
-
-# def make_jsonapi_links_object(**kwargs):
-#     """Creates a JSON:API "links object" from a dict of data
-#     Returns:
-#         dict -- A links object dict with contents formatted per the JSON:API spec
-#     """
-#     links_object = {}
-#     for link_name in kwargs:
-#         links_object[link_name] = kwargs[link_name]
-
-#     return links_object
-
-
-# def make_jsonapi_resource_object(resource, attributes_schema, blueprint_name):
-#     """Creates a JSON:API "resource object" from a dict of data
-
-#     Arguments:
-#         data_dict {dict} -- The data to create the resource object from
-#         data_domain {string} -- A string describing what the data in data_dict represents (i.e. "school", "schedule", etc.)
-#         uri_function_name_mappings {dict} -- A mapping of the keys of identifiers in data_dict to the name of the function whose route should be used to generate URI's for responses
-#         TODO: maybe make uri_function_name_mappings an enum or something
-#     Raises:
-#         e: A Key Error if the data_dict somehow does not contain an "id" field. should never happen
-
-#     Returns:
-#         dict -- A resource object dict with contents formatted per the JSON:API spec
-#     """
-#     resource_object = {}
-#     resource_object["type"] = resource.type
-#     resource_object["id"] = resource.id
-
-#     resource_object["links"] = make_jsonapi_links_object(
-#         self=resource.get_uri(blueprint_name))
-
-#     resource_object["attributes"] = attributes_schema.dump(resource)
-
-#     if resource.type == "bellschedule":
-#         resource_object["relationships"] = {}
-#         resource_object["relationships"]["schools"] = {}
-#         resource_object["relationships"]["schools"]["links"] = make_jsonapi_links_object(self=url_for(
-#             blueprint_name + "." + blueprint_name + "_single_school", school_id=resource.school_id.hex, _external=True))
-
-#     return resource_object
-
-
-# def deconstruct_resource_object(resource_object):
-#     """extracts a more processable dict from a JSON:API "resource object" 
-
-#     Arguments:
-#         resource_object {dict} -- a dict in JSON:API format
-
-#     Returns:
-#         dict -- a flatter dict for easier processing
-#     """
-#     resource = {}
-#     resource["type"] = resource_object.get("type", None)
-#     resource["id"] = UUID(resource_object.get("id", uuid4().hex))
-
-#     return {**resource, **resource_object["attributes"]}
 
 def trap_object_modified_since(obj_last_modification, since):
     if since > datetime.now():
@@ -352,105 +270,6 @@ def list_owned_school_ids(cursor, school_id):
     return [sch_id[0] for sch_id in cursor]
 
 
-# from https://stackoverflow.com/a/3675423
-
-
-def replace_last(source_string, replace_what, replace_with):
-    """Replaces only the last occurrence of a substring in a source string with a different string
-
-    Arguments:
-        source_string {string} -- The string perform the search on
-        replace_what {string} -- The string to search for in the source string
-        replace_with {string} -- The string to replace the search string for
-
-    Returns:
-        string -- The source string with the last occurrence of the replacement string replaces with the search string
-    """
-    head, _sep, tail = source_string.rpartition(replace_what)
-    return head + replace_with + tail
-
-
-def make_dict(the_tuple, keys):
-    """Creates a dict from a pair of tuples of equal length
-
-    Arguments:
-        the_tuple {tuple} -- A tuple containing the data/values for the resulting dict
-        keys {tuple (or maybe list)} -- A tuple containing the keys for the resulting dict
-
-    Returns:
-        A dict containing the data from both inputs
-    """
-    the_dict = {}
-    for index, value in enumerate(the_tuple):
-        key = keys[index]
-        the_dict[key] = value
-
-    return the_dict
-
-
-def time_from_delta(delta):
-    # print(type(delta))
-    # print(type((datetime.min + delta)))
-    return (datetime.min + delta).time().isoformat('minutes')
-
-
-def extract_valid_credentials(encoded_credentials):
-    """Extracts a username and password from a base64 encoded HTTP Authorization header
-
-    Arguments:
-        encoded_credentials {string} -- The raw/encoded HTTP Authorization header value
-
-    Raises:
-        Oops: A general Exception
-        Oops: A general Exception
-
-    Returns:
-        list -- A list containing the decoded credentials in the form of [username, password] 
-    """
-    try:
-        decoded = base64.b64decode(
-            encoded_credentials).decode("utf-8").split(":")
-    except:
-        raise Oops("An error occured while decoding the credentials", 401)
-
-    if len(decoded) != 2:
-        raise Oops("credentials must not contain the ':' character", 401)
-
-    return decoded
-
-
-def get_comma_separated_string(the_list):
-    """creates a string of comma-sepatated values from an input list
-
-    Arguments:
-        dictionary {[type]} -- [description]
-    """
-    output = ""
-
-    for index, value in enumerate(the_list):
-        output += value
-
-        if index < len(the_list)-1:
-            output += ", "
-    return output
-
-
-def build_sql_column_update_list(input_object, updateable_fields_schema, colname_mappings):
-
-    sql_set = []
-    values = ()
-
-    json = updateable_fields_schema.dump(input_object).data
-    # print(json)
-    for field in json:
-        if json[field] is not None:
-            sql_set.append(
-                (colname_mappings[field]
-                 if field in colname_mappings else field) + "=%s"
-            )
-            values += (json[field],)
-
-    return get_comma_separated_string(sql_set), values
 
 
 #

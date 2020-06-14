@@ -365,18 +365,18 @@ def check_headers(func):
     """
     @wraps(func)
     def wrapper(*args, **kwargs):
-        # if request.method in ('POST', 'PATCH', 'PUT'):
-        #     if 'Content-Type' in request.headers and request.headers['Content-Type'] != API_DATATYPE:
-        #         error = make_error_object(
-        #             message='Content-Type header must be ' + API_DATATYPE, title='Invalid request header', code=415)
-        #         return respond(response_data=error, code=415)
+        if request.method in ('POST', 'PATCH', 'PUT'):
+            if 'Content-Type' in request.headers and request.headers['Content-Type'] != API_DATATYPE:
+                error = make_error_object(
+                    message='Content-Type header must be ' + API_DATATYPE, title='Invalid request header', code=415)
+                return respond(response_data=error, code=415)
 
-        # if 'Accept' in request.headers:
-        #     for accept in request.headers['Accept'].split(','):
-        #         if accept.strip() != API_DATATYPE:
-        #             error = make_error_object(
-        #                 message='Accept header must be ' + API_DATATYPE, title='Invalid request header', code=406)
-        #             return respond(response_data=error, code=406)
+        if 'Accept' in request.headers:
+            for accept in request.headers['Accept'].split(','):
+                if accept.strip() != API_DATATYPE:
+                    error = make_error_object(
+                        message='Accept header must be ' + API_DATATYPE, title='Invalid request header', code=406)
+                    return respond(response_data=error, code=406)
 
         return func(*args, **kwargs)
 

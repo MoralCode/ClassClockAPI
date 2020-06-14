@@ -22,7 +22,6 @@ flask-sqlalchemy = "*"
 marshmallow-sqlalchemy = "*"
 apispec = "*"
 apispec-webframeworks = "*"
-python-dateutil = "*"
 
 [requires]
 python_version = "3.6"

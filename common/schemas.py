@@ -12,33 +12,33 @@ from common.db_schema import BellSchedule, BellScheduleMeetingTime, School, Bell
 class SchoolSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = School
-        include_relationships = True
+        include_relationships = False
         load_instance = True
-        include_fk = True
+        include_fk = False
     id = auto_field(dump_only=True)
 
 class BellScheduleDateSchema(SQLAlchemyAutoSchema):
 
     class Meta:
         model = BellScheduleDate
-        include_relationships = True
+        include_relationships = False
         load_instance = True
-        include_fk = True
+        include_fk = False
 
 class BellScheduleMeetingTimeSchema(SQLAlchemyAutoSchema):
     class Meta:
         model = BellScheduleMeetingTime
-        include_relationships = True
+        include_relationships = False
         load_instance = True
-        include_fk = True
+        include_fk = False
 
 class BellScheduleSchema(SQLAlchemyAutoSchema):
 
     class Meta:
         model = BellSchedule
-        include_relationships = True
+        include_relationships = False
         load_instance = True
-        include_fk = True
+        include_fk = False
     
     id = auto_field(dump_only=True)
 

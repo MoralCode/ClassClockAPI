@@ -23,7 +23,7 @@ class School(db.Model):
                         primary_key=True, default=get_uuid)
 	owner_id = db.Column('owner_id', db.VARCHAR(length=35))
 	full_name = db.Column('school_name', db.VARCHAR(length=75))
-	# schedules = db.relationship("BellSchedule")
+	schedules = db.relationship("BellSchedule")
 	acronym = db.Column(
 		'school_acronym', db.VARCHAR(length=75), nullable=True)
 	alternate_freeperiod_name = db.Column(
@@ -44,7 +44,7 @@ class BellSchedule(db.Model):
 	school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
 	name = db.Column('bell_schedule_name', db.VARCHAR(length=75))
 	dates = db.relationship("BellScheduleDate")
-	#meetingtimes = db.relationship("BellScheduleMeetingTime")
+	meetingtimes = db.relationship("BellScheduleMeetingTime")
 	display_name = db.Column('bell_schedule_display_name', db.VARCHAR(length=75))
 	creation_date = db.Column('creation_date', db.DateTime,
                            default=datetime.utcnow())

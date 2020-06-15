@@ -15,7 +15,10 @@ class SchoolSchema(SQLAlchemyAutoSchema):
         include_relationships = False
         load_instance = True
         include_fk = False
+    
     id = auto_field(dump_only=True)
+    creation_date = auto_field(dump_only=True)
+    last_modified = auto_field(dump_only=True)
 
 class BellScheduleDateSchema(SQLAlchemyAutoSchema):
 
@@ -41,5 +44,7 @@ class BellScheduleSchema(SQLAlchemyAutoSchema):
         include_fk = False
     
     id = auto_field(dump_only=True)
+    creation_date = auto_field(dump_only=True)
+    last_modified = auto_field(dump_only=True)
 
         # Pluck dates and meeting times?

@@ -27,6 +27,9 @@ class BellScheduleDateSchema(SQLAlchemyAutoSchema):
         include_relationships = False
         load_instance = True
         include_fk = False
+    
+    creation_date = auto_field(dump_only=True)
+
 
 class BellScheduleMeetingTimeSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -34,6 +37,8 @@ class BellScheduleMeetingTimeSchema(SQLAlchemyAutoSchema):
         include_relationships = False
         load_instance = True
         include_fk = False
+    
+    creation_date = auto_field(dump_only=True)
 
 class BellScheduleSchema(SQLAlchemyAutoSchema):
 

@@ -3,6 +3,7 @@ Customized Marshmallow-SQLAlchemy and Marshmallow-JSONAPI Schemas to combine Sch
 """
 import marshmallow as ma
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
+from marshmallow_sqlalchemy.fields import Nested
 
 from common.db_schema import db
 
@@ -36,7 +37,7 @@ class BellScheduleMeetingTimeSchema(SQLAlchemyAutoSchema):
         model = BellScheduleMeetingTime
         include_relationships = False
         load_instance = True
-        include_fk = False
+        include_fk = True
     
     creation_date = auto_field(dump_only=True)
 
@@ -44,12 +45,13 @@ class BellScheduleSchema(SQLAlchemyAutoSchema):
 
     class Meta:
         model = BellSchedule
-        include_relationships = False
+        include_relationships = True
         load_instance = True
-        include_fk = False
+        include_fk = True
     
     id = auto_field(dump_only=True)
     creation_date = auto_field(dump_only=True)
     last_modified = auto_field(dump_only=True)
 
-        # Pluck dates and meeting times?
+    meetingtimes = Nested(BellScheduleMeetingTimeSchema(), exclude=("schedule_id", "creation_date"), many=True)
+    dates = ma.fields.Pluck(BellScheduleDateSchema, "date", many=True)

@@ -81,7 +81,7 @@ spec = APISpec(
 
 template = spec.to_flasgger(
     app,
-    definitions=[SchoolSchema, BellScheduleDateSchema, BellScheduleMeetingTimeSchema, BellScheduleSchema],
+    definitions=[SchoolSchema, BellScheduleSchema],
     paths=[]
 )
 

@@ -93,10 +93,8 @@ def list_schools():
 
     school_list = []
     schools = SchoolDB.query.all()
-
-    for school in schools:
-        school_list.append(school)
-    return respond(SchoolSchema().dump(school_list, many=True))
+    
+    return respond(SchoolSchema().dump(schools, many=True))
 
 
 @blueprint.route("/school/<string:school_id>/", methods=['GET'])
@@ -263,10 +261,7 @@ def delete_school(school_id):
 #     schedule_list = []
 #     schedules = BellScheduleDB.query.filter_by(school_id=school_id)
 
-#     for schedule in schedules:
-#         schedule_list.append(schedule)
-#     return BellScheduleSchema(exclude=('school_id',)).dump(schedule_list, many=True)
-
+#     return BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True)
 
 @blueprint.route("/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
 @check_headers

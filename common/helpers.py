@@ -7,7 +7,7 @@ import base64
 from os import environ as env
 import json
 from uuid import UUID, uuid4
-from datetime import datetime
+from datetime import datetime, time
 from common.services import auth0management
 import flask_limiter
 import re
@@ -29,7 +29,7 @@ management_API = auth0management.Auth0ManagementService()
 class JSONEncoder(json.JSONEncoder):
     # this was copied from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/utils.py under the terms of the MIT license.
     def default(self, obj):
-        if isinstance(obj, datetime):
+        if isinstance(obj, (datetime, time)):
             return obj.isoformat()
         elif isinstance(obj, UUID):
             return obj.hex

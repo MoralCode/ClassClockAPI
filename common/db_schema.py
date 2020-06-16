@@ -18,7 +18,6 @@ class School(db.Model):
 		description: A School
 	"""
 	__tablename__ = "schools"
-	type="school"
 	id = db.Column('school_id', HashColumn(length=32),
                         primary_key=True, default=get_uuid)
 	owner_id = db.Column('owner_id', db.VARCHAR(length=35))
@@ -38,7 +37,6 @@ class BellSchedule(db.Model):
 		description: A BellSchedule
 	"""
 	__tablename__ = "bellschedules"
-	type = "bellschedule"
 	id = db.Column('bell_schedule_id', HashColumn(length=32),
                         primary_key=True, default=get_uuid)
 	school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
@@ -62,8 +60,6 @@ class BellScheduleDate(db.Model):
 		description: A date during which a particular bell schedule is in effect
 	"""
 	__tablename__ = "bellscheduledates"
-	type = "bellscheduledate"
-	type = "date"
 	bell_schedule_id = db.Column('bell_schedule_id', HashColumn(length=32), ForeignKey(BellSchedule.id), primary_key=True)
 	# school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
 	date = db.Column('date', db.Date, primary_key=True)
@@ -82,7 +78,6 @@ class BellScheduleMeetingTime(db.Model):
 		description: A meeting time for a particular bell schedule (aka a class period)
 	"""
 	__tablename__ = "bellschedulemeetingtimes"
-	type = "bellschedulemeetingtime"
 	schedule_id = db.Column(HashColumn(length=32), ForeignKey(BellSchedule.id), primary_key=True)
 	# school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
 	name = db.Column('classperiod_name', db.VARCHAR(length=75),

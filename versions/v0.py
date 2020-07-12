@@ -8,6 +8,7 @@ from os import environ as env
 from flask import Blueprint, abort, jsonify, request
 from werkzeug.exceptions import HTTPException
 from flask_cors import CORS
+from marshmallow.exceptions import ValidationError
 
 # from bson import json_util
 # from bson.objectid import ObjectId
@@ -16,7 +17,7 @@ from common.db_schema import School as SchoolDB, db, BellSchedule as BellSchedul
 from sqlalchemy import create_engine
 
 from common.helpers import *
-from common.constants import APIScopes
+from common.constants import APIScopes, HTTP_DATE_FORMAT
 from common.schemas import SchoolSchema, BellScheduleSchema
 from common.services import auth0management
 import common.exceptions
@@ -48,6 +49,9 @@ CORS(blueprint, origins="https://web.classclock.app", allow_headers=[
 #     responses:
 #         '200':
 #             description: A list of every publicly accessible ClassClock school
+#             content:
+#               application/json:
+#                   ...
 #         '400':
 #             description: Unauthorized for some reason such as an invalid access token or incorrect scopes
 #     """
@@ -77,24 +81,51 @@ CORS(blueprint, origins="https://web.classclock.app", allow_headers=[
 
 #     """
 
-
+# TODO: add a search parameter
 @blueprint.route("/schools/", methods=['GET'])
 @check_headers
 def list_schools():
-    check_permissions([APIScopes.LIST_SCHOOLS])
+    """ Returns a list of schools
+    ---
+    responses:
+      200:
+        description: A list of schools
+        content:
+            application/json:
+                schema:
+                    $ref: '#/definitions/School'
+    """
 
     school_list = []
     schools = SchoolDB.query.all()
 
-    for school in schools:
-        school_list.append(school)
-    return SchoolSchema().dump(school_list, many=True)
+    return respond(SchoolSchema().dump(schools, many=True))
 
 
 @blueprint.route("/school/<string:school_id>/", methods=['GET'])
 @check_headers
 def get_school(school_id):
-    check_permissions([APIScopes.LIST_SCHOOLS])
+    """ Returns a single school
+    ---
+    responses:
+      200:
+        description: A single school object
+        schema:
+          $ref: '#/definitions/School'
+    parameters:
+        - in: path
+          name: school_id
+          schema:
+            type: string
+            length: 32
+          required: true
+        - in: header
+          name: If-Modified-Since
+          schema:
+            type: string
+            format: date
+          required: false
+    """
 
     school = SchoolDB.query.filter_by(id=school_id).first()
     #double check this
@@ -102,28 +133,53 @@ def get_school(school_id):
         raise Oops("No school was found with the specified id.",
                     404, title="Resource Not Found")
 
-    return SchoolSchema().dump(school)
+    if 'If-Modified-Since' in request.headers:
+        since = datetime.strptime(request.headers.get('If-Modified-Since'), HTTP_DATE_FORMAT)
+        # TODO: make this a more robust check
+        if school.last_modified == since:
+            return respond(code=304) #Not Modified
+
+    return respond(SchoolSchema().dump(school))
 
 
 @blueprint.route("/school/", methods=['POST'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.CREATE_SCHOOL])
 @requires_admin
-def create_school(self):
-
-    check_permissions([APIScopes.CREATE_SCHOOL])
+def create_school():
+    """ Creates a new school
+    ---
+    parameters:
+      - name: school
+        in: body
+        type: object
+        schema:
+          $ref: '#/definitions/School'
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: A list of schools
+        schema:
+          $ref: '#/definitions/School'
+    """
     # if len(list_owned_school_ids()) > 0:
     #     raise Oops(
     #         "Authorizing user is already the owner of another school", 401)
 
-    data = deconstruct_resource_object(request.get_json()["data"])
+    data = get_request_body(request)
     
-    new_object = SchoolDB(
-        full_name=data['full_name'],
-        alternate_freeperiod_name=data['alternate_freeperiod_name'],
-        acronym=data['acronym'],
-        owner_id=data['owner_id']
-        )
+    if data is None:
+        raise Oops("Invalid or non-JSON request body provided.", 400)
+
+    new_object = None 
+    try:
+        #Numbers, booleans, strings, and ``None`` are considered invalid input to `Schema.load
+        new_object = SchoolSchema().load(data, session=db.session)
+    except ValidationError as err:
+        # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
+        # print(err.valid_data)
+        return respond(err.messages, code=400)
 
     # if new_object.errors != {}:
     #     return handle_marshmallow_errors(new_object.errors)
@@ -133,78 +189,101 @@ def create_school(self):
 
     #TODO: need to verify that the insert worked?
 
-    return SchoolSchema().dump(new_object)
+    return respond(SchoolSchema().dump(new_object))
 
 
 @blueprint.route("/school/<string:school_id>/", methods=['PATCH'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.EDIT_SCHOOL])
 @requires_admin
 def update_school(school_id):
-    """ input:
-    {
-        "data": {
-            "type": "school",
-            "id": "2C49E3159EE011E986F2181DEA92AD79",
-            "links": {
-                "self": "http://localhost:5000/v0/school/2C49E3159EE011E986F2181DEA92AD79"
-            },
-            "attributes": {
-                "acronym": "LMHS",
-                "creation_date": "2019-07-04T21:48:46+00:00",
-                "alternate_freeperiod_name": null,
-                "full_name": "Lake Mosswego High School"
-            }
-        }
-    }
+    """
+    updates a school
+    ---
+    security:
+      - ApiKeyAuth: []
+    parameters:
+    - in: header
+          name: If-Unmodified-Since
+          schema:
+            type: string
+            format: date
+          required: false
+    
     """
 
-    check_permissions([APIScopes.EDIT_SCHOOL])
-
-    data = deconstruct_resource_object(request.get_json()["data"])
+    data = get_request_body(request)
 
     # if new_object.errors != {}:
     #     return handle_marshmallow_errors(new_object.errors)
 
-    school = SchoolDB.query.filter_by(
-        id=school_id, owner_id=get_api_user_id()).first()
+    school = SchoolDB.query.filter_by(id=school_id).first()
 
-    if school == None:
-        raise Oops("No records were found. Please make sure you are the owner for the school you are trying to modify",
-                    404, title="No Records Updated")
+    if school is None:
+        raise Oops("No records could be updated because none were found",
+                    404, title="No Records Found")
+    else:
+        check_ownership(school)
+        
 
-    if data.id.hex.lower() != school.id.lower():
-        raise Oops("The id provided in the request body must match the id specified in the URL",
-                    400, title="Identifier Mismatch")
+     # check modification times
+     # this needs to happen after the school is retreived from the DB for comparison
+    if 'If-Unmodified-Since' in request.headers:
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), HTTP_DATE_FORMAT)
+        trap_object_modified_since(school.last_modified, since)
 
-    school.full_name = new_patch_val(data.full_name, school.full_name)
-    school.acronym = new_patch_val(data.acronym, school.acronym)
-    school.alternate_freeperiod_name = new_patch_val(
-        data.alternate_freeperiod_name, school.alternate_freeperiod_name)
-    # last_modified is automatically set in db_schema
 
+    try:
+        updated_school = SchoolSchema().load(data, session=db.session, instance=school)
+    except ValidationError as err:
+        # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
+        # print(err.valid_data)
+        return respond(err.messages, code=400)
 
     db.session.commit()
     #TODO: need to verify that the update worked?
 
-    return SchoolSchema().dump(school)
+    return respond(SchoolSchema().dump(school))
 
 
 @blueprint.route("/school/<string:school_id>/", methods=['DELETE'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
 @requires_admin
 def delete_school(school_id):
+    """
+    deletes a school
+    ---
+    security:
+      - ApiKeyAuth: []
+    parameters:
+        - in: path
+          name: school_id
+          schema:
+            type: string
+            length: 32
+          required: true
+        - in: header
+          name: If-Unmodified-Since
+          schema:
+            type: string
+            format: date
+          required: false
 
-    check_permissions(
-        [APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
+    """
 
-    school = SchoolDB.query.filter_by(
-        id=school_id, owner_id=get_api_user_id()).first()
+    school = SchoolDB.query.filter_by(id=school_id).first()
+    if school is None:
+        raise Oops("No records could be deleted because none were found",
+                    404, title="No Records Found")
+    else:
+        check_ownership(school)
 
-    if school == None:
-        raise Oops("No records were found. Please make sure you are the owner for the school you are trying to delete",
-                    404, title="No Records Updated")
+    # check modification times
+    # this needs to happen after the school is retreived from the DB for comparison
+    if 'If-Unmodified-Since' in request.headers:
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), HTTP_DATE_FORMAT)
+        trap_object_modified_since(school.last_modified, since)
     
     db.session.delete(school)
     db.session.commit()
@@ -212,101 +291,127 @@ def delete_school(school_id):
     # sqlalchemy can be set to cascade deletes (i think).
     return None, 204
     
-
-@blueprint.route("/school/<string:school_id>/bellschedules/", methods=['GET'])
+#TODO: add filtering for return values to reduce size of response. i.e. filter dates by after today, exclude meeting times if they havent changed
+@blueprint.route("/bellschedules/<string:school_id>/", methods=['GET'])
 @check_headers
 def list_bellschedules(school_id):
-    check_permissions([APIScopes.LIST_BELL_SCHEDULES])
+    """
+    gets a list of bell schedules
+    ---
+    parameters:
+        - in: path
+          name: school_id
+          schema:
+            type: string
+            length: 32
+          required: true
+    """
 
-    schedule_list = []
     schedules = BellScheduleDB.query.filter_by(school_id=school_id)
 
-    for schedule in schedules:
-        schedule_list.append(schedule)
-    return BellScheduleSchema(exclude=('school_id',)).dump(schedule_list, many=True)
+    return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True))
 
-
-@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
+@blueprint.route("/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
 @check_headers
-def get_bellschedule(school_id, bell_schedule_id):
-
-    check_permissions([APIScopes.READ_BELL_SCHEDULE])
+def get_bellschedule(bell_schedule_id):
+    """
+    gets a single bell schedule
+    ---
+    parameters:
+        - in: path
+          name: bell_schedule_id
+          schema:
+            type: string
+            length: 32
+          required: true
+        - in: header
+          name: If-Modified-Since
+          schema:
+            type: string
+            format: date
+          required: false
+    """
 
     schedule = BellScheduleDB.query.filter_by(
-        id=bell_schedule_id, school_id=school_id).first()
+        id=bell_schedule_id).first()
 
     #double check this
     if schedule is None:
-        raise Oops("No school was found with the specified id.",
+        raise Oops("No bell schedule was found with the specified id.",
                     404, title="Resource Not Found")
 
-    return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
+    if 'If-Modified-Since' in request.headers:
+        since = datetime.strptime(request.headers.get('If-Modified-Since'), HTTP_DATE_FORMAT)
+        # TODO: make this a more robust check
+        if schedule.last_modified == since:
+            return respond(code=304) #Not Modified
+
+    return respond(BellScheduleSchema().dump(schedule))
 
 
-@blueprint.route("/school/<string:school_id>/bellschedule/", methods=['POST'])
+@blueprint.route("/bellschedule/", methods=['POST'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.CREATE_BELL_SCHEDULE])
 @requires_admin
-def create_bellschedule(school_id):
+def create_bellschedule():
 
-    check_permissions([APIScopes.CREATE_BELL_SCHEDULE])
-
+    # get school_id from a data parameter
     school = SchoolDB.query.filter_by(id=school_id).first()
-
     check_ownership(school)
 
-    new_schedule = BellScheduleSchema().load(request.get_json()["data"]).data
+    new_schedule = BellScheduleSchema().load(get_request_body(request)).data
 
     school.schedules.append(new_schedule)
 
     db.session.commit()
 
-    return BellScheduleSchema(exclude=('school_id',)).dump(new_schedule)
+    return respond(BellScheduleSchema(exclude=('school_id',)).dump(new_schedule))
 
 
-@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>", methods=['PATCH'])
+@blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['PATCH'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.CREATE_BELL_SCHEDULE])
 @requires_admin
-def update_bellschedule(school_id, bell_schedule_id):
+def update_bellschedule(bell_schedule_id):
 
-    check_permissions([APIScopes.EDIT_BELL_SCHEDULE])
+    schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
+    school = SchoolDB.query.filter_by(id=schedule.school_id).first()
+    if school is not None:
+        check_ownership(school)
 
-    school = SchoolDB.query.filter_by(id=school_id).first()
+    if 'If-Unmodified-Since' in request.headers:
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), HTTP_DATE_FORMAT)
+        trap_object_modified_since(school.last_modified, since)
 
-    check_ownership(school)
+    data = get_request_body(request)
 
-    schedule = school.schedules.filter_by(id=bell_schedule_id).first()
-
-    updated_schedule = BellScheduleSchema().load(
-        request.get_json()["data"]).data
-
-    if not updated_schedule.id or updated_schedule.id.lower() != bell_schedule_id.lower():
-        raise Oops("The identifier provided in the request body must match the identifier specified in the URL",
-                    400, title="Identifier Mismatch")
-
-    schedule.name = new_patch_val(updated_schedule.name, schedule.name)
-    schedule.display_name = new_patch_val(
-        updated_schedule.display_name, schedule.display_name)
-                            
+    try:
+        updated_schedule = BellScheduleSchema(exclude=('id', 'creation_date')).load(
+            data, session=db.session, instance=schedule)
+    except ValidationError as err:
+        # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
+        # print(err.valid_data)
+        return respond(err.messages, code=400)
+        
     db.session.commit()
 
-    return BellScheduleSchema(exclude=('school_id',)).dump(schedule)
+    return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedule))
 
 
-@blueprint.route("/school/<string:school_id>/bellschedule/<string:bell_schedule_id>", methods=['DELETE'])
+@blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['DELETE'])
 @check_headers
-@requires_auth
+@requires_auth(permissions=[APIScopes.DELETE_BELL_SCHEDULE])
 @requires_admin
-def delete_bellschedule(school_id, bell_schedule_id):
+def delete_bellschedule(bell_schedule_id):
 
-    check_permissions([APIScopes.DELETE_BELL_SCHEDULE])
+    schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
+    school = SchoolDB.query.filter_by(id=schedule.school_id).first()
+    if school is not None:
+        check_ownership(school)
     
-    school = SchoolDB.query.filter_by(id=school_id).first()
-
-    check_ownership(school)
-
-    schedule = school.schedules.filter_by(id=bell_schedule_id).first()
+    if 'If-Unmodified-Since' in request.headers:
+        since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), HTTP_DATE_FORMAT)
+        trap_object_modified_since(school.last_modified, since)
 
     db.session.delete(schedule)
 
@@ -332,7 +437,7 @@ def before():
 
 @blueprint.after_request
 def after_request(response):
-    response.headers['Content-Type'] = 'application/vnd.api+json'
+    response.headers['Content-Type'] = 'application/json'
     return response
 
 #
@@ -346,38 +451,38 @@ def after_request(response):
 @blueprint.errorhandler(429)
 def ratelimit_handler(e):
     print(e)
-    return make_jsonapi_response(
-        make_jsonapi_error_object(429, title="Ratelimit Exceeded",
+    return respond(
+        make_error_object(429, title="Ratelimit Exceeded",
                                   message="ratelimit of " + e.description + " exceeded"),
-        code=429, headers={'Content-Type': 'application/vnd.api+json'}
+        code=429
     )
 
 
 @blueprint.errorhandler(AuthError)
 def handle_auth_error(e):
-    return make_jsonapi_response(
-        make_jsonapi_error_object(e.status_code, message=e.error), code=e.status_code, headers={'Content-Type': 'application/vnd.api+json'}
+    return respond(
+        make_error_object(e.status_code, message=e.error), code=e.status_code
     )
 
 
 @blueprint.errorhandler(Oops)
 def handle_error(e):
     if e.title is not None:
-        return make_jsonapi_response(
-            make_jsonapi_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code, headers={'Content-Type': 'application/vnd.api+json'}
+        return respond(
+            make_error_object(e.status_code, message=e.message, title=e.title), code=e.status_code
         )
     else:
-        return make_jsonapi_response(
-            make_jsonapi_error_object(e.status_code, message=e.message), code=e.status_code, headers={'Content-Type': 'application/vnd.api+json'}
+        return respond(
+            make_error_object(e.status_code, message=e.message), code=e.status_code
         )
 
 
 @blueprint.errorhandler(HTTPException)
 def handle_HTTP_error(e):
-    return make_jsonapi_response(
-        make_jsonapi_error_object(
+    return respond(
+        make_error_object(
             e.code, title=e.name(), message=e.description),
-        code=e.code, headers={'Content-Type': 'application/vnd.api+json'}
+        code=e.code
     )
 
 
@@ -386,6 +491,6 @@ def handle_HTTP_error(e):
 #     # "We're sorry, but the electrons that were tasked with handling your request became terribly misguided and forgot what it is that they were supposed to be doing. Our team of scientists in the Electron Amnesia Recovery Ward is currently nursing them back to health; if you have any information about what it is these electrons were supposed to be doing at the time of this incident, please contact the maintainer of this service."
 #     print("an exception occurred")
 #     print(e)
-#     return make_jsonapi_response(
-#         make_jsonapi_error_object(500), code=500, headers={'Content-Type': 'application/vnd.api+json'}
+#     return respond(
+#         make_error_object(500), code=500, headers={'Content-Type': 'application/json'}
 #     )

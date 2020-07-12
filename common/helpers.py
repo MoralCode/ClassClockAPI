@@ -137,6 +137,7 @@ def respond(response_data=None, code=200, headers=API_DATATYPE_HEADER):
     else:
         content["data"] = response_data
 
+    #TODO: handle if response_data is none (i.e. in case of 304 not modified)
     if code is None:
         return make_response(json.dumps(content, cls=JSONEncoder), headers)
     else:
@@ -144,6 +145,17 @@ def respond(response_data=None, code=200, headers=API_DATATYPE_HEADER):
 
 
 def trap_object_modified_since(obj_last_modification, since):
+    """ checks the If-Modified-Since header checks it to ensure that there is no data loss
+    :type obj_last_modification: datetime
+    :param obj_last_modification: the last modification time of the object being checked
+
+    :type since: datetime
+    :param since: the value of the header
+
+    :raises: Oops
+
+    :rtype: None
+    """
     if since > datetime.now():
         raise Oops("The date provided to the If-Modified-Since header cannot be in the future", 412, title="No Future Modification Dates")
 
@@ -251,6 +263,7 @@ def check_permissions(user, permissions_to_check):
 
 def check_for_role(role):
     user_id = get_api_user_id()
+    #TODO: make management API optional and check if it is present
     if user_id != "":
         return role in management_API.get_roles_for_user(user_id)
     else:
@@ -262,6 +275,7 @@ def check_ownership(school):
 
 
 def list_owned_school_ids(cursor, school_id):
+    #TODO: remove manual SQL, also this is like horrifically broken 
     cursor.execute(
         "SELECT UNHEX(school_id) as id FROM schools WHERE owner_id=%s", (school_id,))
     # dict_keys_map defines the keys for the dictionary that is generated from the tuples returned from the database (so order matters)
@@ -374,6 +388,8 @@ def check_headers(func):
         if 'Accept' in request.headers:
             for accept in request.headers['Accept'].split(','):
                 if accept.strip() != API_DATATYPE:
+                    #this will error if any of the accept headers is not correct...
+                    #TODO
                     error = make_error_object(
                         message='Accept header must be ' + API_DATATYPE, title='Invalid request header', code=406)
                     return respond(response_data=error, code=406)

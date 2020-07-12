@@ -49,6 +49,9 @@ CORS(blueprint, origins="https://web.classclock.app", allow_headers=[
 #     responses:
 #         '200':
 #             description: A list of every publicly accessible ClassClock school
+#             content:
+#               application/json:
+#                   ...
 #         '400':
 #             description: Unauthorized for some reason such as an invalid access token or incorrect scopes
 #     """
@@ -78,7 +81,7 @@ CORS(blueprint, origins="https://web.classclock.app", allow_headers=[
 
 #     """
 
-
+# TODO: add a search parameter
 @blueprint.route("/schools/", methods=['GET'])
 @check_headers
 def list_schools():
@@ -87,13 +90,15 @@ def list_schools():
     responses:
       200:
         description: A list of schools
-        schema:
-          $ref: '#/definitions/School'
+        content:
+            application/json:
+                schema:
+                    $ref: '#/definitions/School'
     """
 
     school_list = []
     schools = SchoolDB.query.all()
-    
+
     return respond(SchoolSchema().dump(schools, many=True))
 
 
@@ -107,6 +112,19 @@ def get_school(school_id):
         description: A single school object
         schema:
           $ref: '#/definitions/School'
+    parameters:
+        - in: path
+          name: school_id
+          schema:
+            type: string
+            length: 32
+          required: true
+        - in: header
+          name: If-Modified-Since
+          schema:
+            type: string
+            format: date
+          required: false
     """
 
     school = SchoolDB.query.filter_by(id=school_id).first()
@@ -157,7 +175,7 @@ def create_school():
     new_object = None 
     try:
         #Numbers, booleans, strings, and ``None`` are considered invalid input to `Schema.load
-        new_object = SchoolSchema().load(data, session=db.session)#, session=session
+        new_object = SchoolSchema().load(data, session=db.session)
     except ValidationError as err:
         # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
         # print(err.valid_data)
@@ -184,6 +202,13 @@ def update_school(school_id):
     ---
     security:
       - ApiKeyAuth: []
+    parameters:
+    - in: header
+          name: If-Unmodified-Since
+          schema:
+            type: string
+            format: date
+          required: false
     
     """
 
@@ -231,6 +256,19 @@ def delete_school(school_id):
     ---
     security:
       - ApiKeyAuth: []
+    parameters:
+        - in: path
+          name: school_id
+          schema:
+            type: string
+            length: 32
+          required: true
+        - in: header
+          name: If-Unmodified-Since
+          schema:
+            type: string
+            format: date
+          required: false
 
     """
 
@@ -257,7 +295,17 @@ def delete_school(school_id):
 @blueprint.route("/bellschedules/<string:school_id>/", methods=['GET'])
 @check_headers
 def list_bellschedules(school_id):
-
+    """
+    gets a list of bell schedules
+    ---
+    parameters:
+        - in: path
+          name: school_id
+          schema:
+            type: string
+            length: 32
+          required: true
+    """
 
     schedules = BellScheduleDB.query.filter_by(school_id=school_id)
 
@@ -266,6 +314,23 @@ def list_bellschedules(school_id):
 @blueprint.route("/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
 @check_headers
 def get_bellschedule(bell_schedule_id):
+    """
+    gets a single bell schedule
+    ---
+    parameters:
+        - in: path
+          name: bell_schedule_id
+          schema:
+            type: string
+            length: 32
+          required: true
+        - in: header
+          name: If-Modified-Since
+          schema:
+            type: string
+            format: date
+          required: false
+    """
 
     schedule = BellScheduleDB.query.filter_by(
         id=bell_schedule_id).first()

@@ -253,15 +253,15 @@ def delete_school(school_id):
     # sqlalchemy can be set to cascade deletes (i think).
     return None, 204
     
+#TODO: add filtering for return values to reduce size of response. i.e. filter dates by after today, exclude meeting times if they havent changed
+@blueprint.route("/bellschedules/<string:school_id>/", methods=['GET'])
+@check_headers
+def list_bellschedules(school_id):
 
-# @blueprint.route("/school/<string:school_id>/bellschedules/", methods=['GET'])
-# @check_headers
-# def list_bellschedules(school_id):
 
-#     schedule_list = []
-#     schedules = BellScheduleDB.query.filter_by(school_id=school_id)
+    schedules = BellScheduleDB.query.filter_by(school_id=school_id)
 
-#     return BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True)
+    return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True))
 
 @blueprint.route("/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
 @check_headers

@@ -24,7 +24,14 @@ AUTH0_DOMAIN = env.get("AUTH0_DOMAIN")
 API_IDENTIFIER = env.get("API_IDENTIFIER")
 ALGORITHMS = ["RS256"]
 
-management_API = auth0management.Auth0ManagementService()
+try: 
+    #TODO: remove dependency on setting up auth0 to test the API
+    management_API = auth0management.Auth0ManagementService()
+except:
+    #TODO: need to implement better logging.
+    print('Auth0 is not configured correctly. Access control for requests will not be enforced.')
+    management_API = None
+
 
 class JSONEncoder(json.JSONEncoder):
     # this was copied from https://github.com/miLibris/flask-rest-jsonapi/blob/ad3f90f81955fa41aaf0fb8c49a75a5fbe334f5f/flask_rest_jsonapi/utils.py under the terms of the MIT license.
@@ -264,6 +271,12 @@ def check_permissions(user, permissions_to_check):
 def check_for_role(role):
     user_id = get_api_user_id()
     #TODO: make management API optional and check if it is present
+    
+    if management_API is None:
+        #TODO: need to implement better logging.
+        print("Because Auth0 is not configured correctly, access control is not being enforced. All requests to check a users role will automatically pass.")
+        return True
+
     if user_id != "":
         return role in management_API.get_roles_for_user(user_id)
     else:
@@ -298,6 +311,11 @@ def requires_auth(_func=None, *, permissions=None):
     def args_or_no(func):
         @wraps(func)
         def decorated(*args, **kwargs):
+            if not management_API:
+                #TODO: need to implement better logging.
+                print("Because Auth0 is not configured correctly, access control is not being enforced. All requests to protected endpoints will automatically succeed.")
+                return func(*args, **kwargs)
+
             token = get_token_auth_header()
             jsonurl = urlopen("https://"+AUTH0_DOMAIN+"/.well-known/jwks.json")
             jwks = json.loads(jsonurl.read())

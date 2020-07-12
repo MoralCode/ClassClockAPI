@@ -40,7 +40,7 @@ class BellSchedule(db.Model):
 	id = db.Column('bell_schedule_id', HashColumn(length=32),
                         primary_key=True, default=get_uuid)
 	school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
-	name = db.Column('bell_schedule_name', db.VARCHAR(length=75))
+	full_name = db.Column('bell_schedule_name', db.VARCHAR(length=75))
 	dates = db.relationship("BellScheduleDate")
 	meetingtimes = db.relationship("BellScheduleMeetingTime")
 	display_name = db.Column('bell_schedule_display_name', db.VARCHAR(length=75))

@@ -281,7 +281,7 @@ def get_bellschedule(bell_schedule_id):
         if schedule.last_modified == since:
             return respond(code=304) #Not Modified
 
-    return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedule))
+    return respond(BellScheduleSchema().dump(schedule))
 
 
 @blueprint.route("/bellschedule/", methods=['POST'])
@@ -321,7 +321,8 @@ def update_bellschedule(bell_schedule_id):
     data = get_request_body(request)
 
     try:
-        updated_schedule = BellScheduleSchema().load(data, session=db.session, instance=schedule)
+        updated_schedule = BellScheduleSchema(exclude=('id', 'creation_date')).load(
+            data, session=db.session, instance=schedule)
     except ValidationError as err:
         # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
         # print(err.valid_data)

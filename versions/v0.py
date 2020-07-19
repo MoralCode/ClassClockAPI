@@ -1,8 +1,7 @@
-import json
 import uuid
 import datetime
 from flask_limiter import util
-from flask import current_app
+from flask import current_app, json
 from os import environ as env
 
 from flask import Blueprint, abort, jsonify, request

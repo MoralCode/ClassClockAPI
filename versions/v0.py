@@ -477,14 +477,6 @@ def handle_error(e):
         )
 
 
-@blueprint.errorhandler(HTTPException)
-def handle_HTTP_error(e):
-    return respond(
-        make_error_object(
-            e.code, title=e.name(), message=e.description),
-        code=e.code
-    )
-
 
 # @blueprint.errorhandler(Exception)
 # def generic_exception_handler(e):

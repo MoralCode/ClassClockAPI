@@ -3,7 +3,7 @@ import logging
 from versions import v0
 from flask_limiter import Limiter
 from flasgger import Swagger
-from common.helpers import get_request_origin_identifier
+from common.helpers import get_request_origin_identifier, make_error_object, respond
 from common.db_schema import db
 from common.schemas import *
 from flasgger import APISpec, Schema, Swagger, fields
@@ -11,6 +11,8 @@ from apispec.ext.marshmallow import MarshmallowPlugin
 from apispec_webframeworks.flask import FlaskPlugin
 import os, sys, getpass
 from os import environ as env
+from werkzeug.exceptions import HTTPException
+
 
 #default values are only needed for some of these
 db_username = env.get("DB_USERNAME")
@@ -191,6 +193,13 @@ elif sys.argv[1] == "demo":
         exit(0)
     
 
+@app.errorhandler(HTTPException)
+def handle_HTTP_error(e):
+    return respond(
+        make_error_object(
+            e.code, title=e.name, message=e.description),
+        code=e.code
+    )
 
 
 @app.route("/", methods=['GET'])

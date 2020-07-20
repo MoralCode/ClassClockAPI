@@ -168,7 +168,7 @@ elif sys.argv[1] == "demo":
         s.schedules = [sc1,sc2]
 
         
-        sc1.meetingtimes = [
+        sc1.meeting_times = [
             BellScheduleMeetingTime(
                 schedule_id =sc1.id,
                 name="First Period",
@@ -177,7 +177,7 @@ elif sys.argv[1] == "demo":
             )
         ]
 
-        sc2.meetingtimes = [
+        sc2.meeting_times = [
             BellScheduleMeetingTime(
                 schedule_id =sc2.id,
                 name="First Period",

@@ -260,7 +260,7 @@ def check_permissions(user, permissions_to_check):
 # _request_ctx_stack.top.current_user
     perms_not_present = []
     for perm in permissions_to_check:
-        if not perm in user.permissions:
+        if perm.value not in user['permissions']:
            perms_not_present.append(perm)
     if perms_not_present != []:
         perms_needed = " ".join(perm.value for perm in perms_not_present)

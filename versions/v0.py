@@ -367,9 +367,9 @@ def create_bellschedule():
     return respond(BellScheduleSchema(exclude=('school_id',)).dump(new_schedule))
 
 
-@blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['PATCH'])
+@blueprint.route("/bellschedule/<string:bell_schedule_id>/", methods=['PATCH'])
 @check_headers
-@requires_auth(permissions=[APIScopes.CREATE_BELL_SCHEDULE])
+@requires_auth(permissions=[APIScopes.EDIT_BELL_SCHEDULE])
 @requires_admin
 def update_bellschedule(bell_schedule_id):
 

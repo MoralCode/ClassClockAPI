@@ -22,7 +22,7 @@ class SessionPluck(Pluck):
             except AttributeError:
                 # Marshmallow 2.0.0 has no root property.
                 self.schema.session = self.parent.session
-        return super(Pluck, self)._deserialize(*args, **kwargs)
+        return super(SessionPluck, self)._deserialize(*args, **kwargs)
 
 class SchoolSchema(SQLAlchemyAutoSchema):
     class Meta:
@@ -68,4 +68,4 @@ class BellScheduleSchema(SQLAlchemyAutoSchema):
     last_modified = auto_field(dump_only=True)
 
     meeting_times = Nested(BellScheduleMeetingTimeSchema(), exclude=("schedule_id", "creation_date"), many=True)
-    dates = ma.fields.Pluck(BellScheduleDateSchema, "date", many=True)
+    dates = SessionPluck(BellScheduleDateSchema, "date", many=True)

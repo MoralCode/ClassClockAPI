@@ -64,6 +64,7 @@ class BellScheduleSchema(SQLAlchemyAutoSchema):
         include_fk = True
     
     id = auto_field(dump_only=True)
+    full_name = auto_field(data_key="name")
     creation_date = auto_field(dump_only=True)
     last_modified = auto_field(dump_only=True)
 

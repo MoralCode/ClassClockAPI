@@ -383,6 +383,9 @@ def update_bellschedule(bell_schedule_id):
         trap_object_modified_since(school.last_modified, since)
 
     data = get_request_body(request)
+    # remove ID from request body if provided because for some reason, the exclude parameter isnt working or may not be correctly getting passed down to the nested/plucked fields
+    if data['id']:
+        del data['id']
 
     try:
         updated_schedule = BellScheduleSchema(exclude=('id', 'creation_date')).load(

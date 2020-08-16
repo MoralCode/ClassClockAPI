@@ -68,5 +68,5 @@ class BellScheduleSchema(SQLAlchemyAutoSchema):
     creation_date = auto_field(dump_only=True)
     last_modified = auto_field(dump_only=True)
 
-    meeting_times = Nested(BellScheduleMeetingTimeSchema, exclude=("schedule_id", "creation_date"), many=True)
+    classes = Nested(BellScheduleMeetingTimeSchema, exclude=("schedule_id", "creation_date"), many=True)
     dates = SessionPluck(BellScheduleDateSchema, "date", many=True)

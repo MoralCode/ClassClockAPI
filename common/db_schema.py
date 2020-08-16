@@ -41,7 +41,6 @@ class BellSchedule(db.Model):
                         primary_key=True, default=get_uuid)
 	school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
 	full_name = db.Column('bell_schedule_name', db.VARCHAR(length=75))
-	dates = db.relationship("BellScheduleDate")
 	meeting_times = db.relationship("BellScheduleMeetingTime")
 	display_name = db.Column('bell_schedule_display_name', db.VARCHAR(length=75))
 	creation_date = db.Column('creation_date', db.DateTime,
@@ -65,6 +64,9 @@ class BellScheduleDate(db.Model):
 	date = db.Column('date', db.Date, primary_key=True)
 	creation_date = db.Column('creation_date', db.DateTime,
                            default=datetime.today().isoformat())
+	# This needs to be here because of he way that dates are updated. Since date entries are deleted and recreated instead of being modified, we need to also mark them for deletion when they are de-associated from the bell schedule.
+	# See: https://stackoverflow.com/a/23734727
+	bellSchedule = db.relationship("BellSchedule", backref=db.backref("dates",cascade="save-update, merge,delete, delete-orphan"))
 
 
 	# def get_uri(self, blueprint_name):

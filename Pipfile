@@ -21,4 +21,4 @@ apispec-webframeworks = "~=0.5.2"
 mysql-connector-python = "*"
 
 [requires]
-python_version = "3.6"
+python_version = "3.8"

@@ -19,6 +19,7 @@ marshmallow-sqlalchemy = "~=0.23"
 apispec = "~=3.3.0"
 apispec-webframeworks = "~=0.5.2"
 mysql-connector-python = "*"
+python-jose = "*"
 
 [requires]
 python_version = "3.8"

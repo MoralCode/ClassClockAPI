@@ -80,6 +80,10 @@ CORS(blueprint, origins=["https://web.classclock.app", "https://beta.web.classcl
 
 #     """
 
+@blueprint.route("/ping/", methods=['GET'])
+def ping():
+    return "pong"
+
 # TODO: add a search parameter
 @blueprint.route("/schools/", methods=['GET'])
 @check_headers

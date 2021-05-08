@@ -170,7 +170,7 @@ elif sys.argv[1] == "demo":
         
         sc1.meeting_times = [
             BellScheduleMeetingTime(
-                schedule_id =sc1.id,
+                bell_schedule_id =sc1.id,
                 name="First Period",
                 start_time=datetime.time(hour=8, minute=25, second=0, microsecond=0),
                 end_time=datetime.time(9,25)
@@ -179,7 +179,7 @@ elif sys.argv[1] == "demo":
 
         sc2.meeting_times = [
             BellScheduleMeetingTime(
-                schedule_id =sc2.id,
+                bell_schedule_id =sc2.id,
                 name="First Period",
                 start_time=datetime.time(8,45),
                 end_time=datetime.time(9,45)

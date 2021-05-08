@@ -80,7 +80,7 @@ class BellScheduleMeetingTime(db.Model):
 		description: A meeting time for a particular bell schedule (aka a class period)
 	"""
 	__tablename__ = "bellschedulemeetingtimes"
-	schedule_id = db.Column(HashColumn(length=32), ForeignKey(BellSchedule.id), primary_key=True)
+	bell_schedule_id = db.Column(HashColumn(length=32), ForeignKey(BellSchedule.id), primary_key=True)
 	# school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
 	name = db.Column('classperiod_name', db.VARCHAR(length=75),
                   primary_key=True)

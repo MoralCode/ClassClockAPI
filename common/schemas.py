@@ -1,42 +1,72 @@
-from marshmallow import Schema, fields, post_load
-from common.models import SchoolModel, BellScheduleModel, ClassPeriod
+"""
+Customized Marshmallow-SQLAlchemy and Marshmallow-JSONAPI Schemas to combine Schema Meta data.
+"""
+import marshmallow as ma
+from marshmallow_sqlalchemy import SQLAlchemyAutoSchema, auto_field
+from marshmallow_sqlalchemy.fields import Nested
+from marshmallow.fields import Pluck
+
+from common.db_schema import db
+
+from common.db_schema import BellSchedule, BellScheduleMeetingTime, School, BellScheduleDate
 
 
-class SchoolSchema(Schema):
-    identifier = fields.UUID(data_key="id")
-    owner_id = fields.Str()
-    full_name = fields.Str(allow_none=True)
-    acronym = fields.Str(allow_none=True)
-    alternate_freeperiod_name = fields.Str(allow_none=True)
-    creation_date = fields.DateTime(allow_none=True)
-    last_modified = fields.DateTime(allow_none=True)
+# Modified From https://github.com/marshmallow-code/marshmallow-sqlalchemy/commit/cf996b1f448d9b115b083489c8eb96be3bf1dd40#diff-7e28a06588f9d4acda3f3dd4224899afR136
+class SessionPluck(Pluck):
+    """Pluck field that inherits the session from its parent like Nested does."""
 
-    @post_load
-    def make_school(self, item, many, partial, **kwargs):
-        return SchoolModel(**item)
+    def _deserialize(self, *args, **kwargs):
+        if hasattr(self.schema, "session"):
+            try:
+                self.schema.session = self.root.session
+            except AttributeError:
+                # Marshmallow 2.0.0 has no root property.
+                self.schema.session = self.parent.session
+        return super(SessionPluck, self)._deserialize(*args, **kwargs)
+
+class SchoolSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = School
+        include_relationships = False
+        load_instance = True
+        include_fk = False
+    
+    id = auto_field(dump_only=True)
+    creation_date = auto_field(dump_only=True)
+    last_modified = auto_field(dump_only=True)
+
+class BellScheduleDateSchema(SQLAlchemyAutoSchema):
+
+    class Meta:
+        model = BellScheduleDate
+        include_relationships = False
+        load_instance = True
+        include_fk = False
+    
+    creation_date = auto_field(dump_only=True)
 
 
-class ClassPeriodSchema(Schema):
-    name = fields.Str()
-    start_time = fields.Time()
-    end_time = fields.Time()
-    creation_date = fields.DateTime(allow_none=True)
+class BellScheduleMeetingTimeSchema(SQLAlchemyAutoSchema):
+    class Meta:
+        model = BellScheduleMeetingTime
+        include_relationships = False
+        load_instance = True
+        include_fk = True
+    
+    creation_date = auto_field(dump_only=True)
 
-    @post_load
-    def make_class_period(self, item, many, partial, **kwargs):
-        return ClassPeriod(**item)
+class BellScheduleSchema(SQLAlchemyAutoSchema):
 
+    class Meta:
+        model = BellSchedule
+        include_relationships = True
+        load_instance = True
+        include_fk = True
+    
+    id = auto_field(dump_only=True)
+    full_name = auto_field(data_key="name")
+    creation_date = auto_field(dump_only=True)
+    last_modified = auto_field(dump_only=True)
 
-class BellScheduleSchema(Schema):
-    identifier = fields.UUID(data_key='id')
-    full_name = fields.Str(allow_none=True)
-    display_name = fields.Str(allow_none=True)
-    school_id = fields.UUID(data_key='school_id')
-    dates = fields.List(fields.Date())
-    meeting_times = fields.Nested(ClassPeriodSchema, many=True)
-    creation_date = fields.DateTime(allow_none=True)
-    last_modified = fields.DateTime(allow_none=True)
-
-    @post_load
-    def make_bell_schedule(self, item, many, partial, **kwargs):
-        return BellScheduleModel(**item)
+    classes = Nested(BellScheduleMeetingTimeSchema, exclude=("bell_schedule_id", "creation_date"), many=True)
+    dates = SessionPluck(BellScheduleDateSchema, "date", many=True)

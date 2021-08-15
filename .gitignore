@@ -7,3 +7,4 @@ classclockapi_venv/
 prodstart\.sh
 
 *.pyc
+*.env

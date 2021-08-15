@@ -1,0 +1,12 @@
+*.tar
+*.png
+*.md
+.env
+.git/*
+.gitignore
+*.pyc
+*.sh
+tests/
+.vscode/
+__pycache__/
+.pytest_cache

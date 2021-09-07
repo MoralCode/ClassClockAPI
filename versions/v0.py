@@ -33,7 +33,7 @@ DB_PASSWORD = env.get("DB_PASSWORD")
 
 blueprint = Blueprint('v0', __name__)
 
-CORS(blueprint, origins=["https://web.classclock.app", "https://beta.web.classclock.app"], allow_headers=[
+CORS(blueprint, origins=["https://web.classclock.app", "https://beta.web.classclock.app", "classclock-*-moralcode.vercel.app"], allow_headers=[
     "Accept", "Authorization", "Content-Type"])
     # supports_credentials=True)
 

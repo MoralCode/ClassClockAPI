@@ -22,7 +22,7 @@ class School(db.Model):
                         primary_key=True, default=get_uuid)
 	owner_id = db.Column('owner_id', db.VARCHAR(length=35))
 	full_name = db.Column('school_name', db.VARCHAR(length=75))
-	schedules = db.relationship("BellSchedule")
+	schedules = db.relationship("BellSchedule",backref=db.backref("school"))
 	acronym = db.Column(
 		'school_acronym', db.VARCHAR(length=75), nullable=True)
 	alternate_freeperiod_name = db.Column(

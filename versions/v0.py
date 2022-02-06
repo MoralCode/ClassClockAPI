@@ -293,6 +293,19 @@ def delete_school(school_id):
     # should this just archive the school? or delete it and all related records?
     # sqlalchemy can be set to cascade deletes (i think).
     return None, 204
+
+@blueprint.route("/bellschedules", strict_slashes=False, methods=['GET'])
+@check_headers
+def list_owned_bellschedules():
+    """
+    gets a list of bell schedules
+    ---
+    """
+    #if get_api_user_id() not in school.owner_id
+
+    schedules = BellScheduleDB.query.join(BellScheduleDB.school).filter(SchoolDB.owner_id==get_api_user_id())
+
+    return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True))
     
 #TODO: add filtering for return values to reduce size of response. i.e. filter dates by after today, exclude meeting times if they havent changed
 @blueprint.route("/bellschedules/<string:school_id>/", methods=['GET'])

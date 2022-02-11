@@ -80,12 +80,12 @@ CORS(blueprint, origins=["https://web.classclock.app", "https://beta.web.classcl
 
 #     """
 
-@blueprint.route("/ping/", methods=['GET'])
+@blueprint.route("/ping", strict_slashes=False, methods=['GET'])
 def ping():
     return "pong"
 
 # TODO: add a search parameter
-@blueprint.route("/schools/", methods=['GET'])
+@blueprint.route("/schools", strict_slashes=False, methods=['GET'])
 @check_headers
 def list_schools():
     """ Returns a list of schools
@@ -105,7 +105,7 @@ def list_schools():
     return respond(SchoolSchema().dump(schools, many=True))
 
 
-@blueprint.route("/school/<string:school_id>/", methods=['GET'])
+@blueprint.route("/school/<string:school_id>", strict_slashes=False, methods=['GET'])
 @check_headers
 def get_school(school_id):
     """ Returns a single school
@@ -145,7 +145,7 @@ def get_school(school_id):
     return respond(SchoolSchema().dump(school))
 
 
-@blueprint.route("/school/", methods=['POST'])
+@blueprint.route("/school", strict_slashes=False, methods=['POST'])
 @check_headers
 @requires_auth(permissions=[APIScopes.CREATE_SCHOOL])
 @requires_admin
@@ -195,7 +195,7 @@ def create_school():
     return respond(SchoolSchema().dump(new_object))
 
 
-@blueprint.route("/school/<string:school_id>/", methods=['PATCH'])
+@blueprint.route("/school/<string:school_id>", strict_slashes=False, methods=['PATCH'])
 @check_headers
 @requires_auth(permissions=[APIScopes.EDIT_SCHOOL])
 @requires_admin
@@ -249,7 +249,7 @@ def update_school(school_id):
     return respond(SchoolSchema().dump(school))
 
 
-@blueprint.route("/school/<string:school_id>/", methods=['DELETE'])
+@blueprint.route("/school/<string:school_id>", strict_slashes=False, methods=['DELETE'])
 @check_headers
 @requires_auth(permissions=[APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
 @requires_admin
@@ -310,7 +310,7 @@ def list_owned_bellschedules():
     return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True))
     
 #TODO: add filtering for return values to reduce size of response. i.e. filter dates by after today, exclude meeting times if they havent changed
-@blueprint.route("/bellschedules/<string:school_id>/", methods=['GET'])
+@blueprint.route("/bellschedules/<string:school_id>", strict_slashes=False, methods=['GET'])
 @check_headers
 def list_bellschedules(school_id):
     """
@@ -329,7 +329,7 @@ def list_bellschedules(school_id):
 
     return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True))
 
-@blueprint.route("/bellschedule/<string:bell_schedule_id>/", methods=['GET'])
+@blueprint.route("/bellschedule/<string:bell_schedule_id>", strict_slashes=False, methods=['GET'])
 @check_headers
 def get_bellschedule(bell_schedule_id):
     """
@@ -367,7 +367,7 @@ def get_bellschedule(bell_schedule_id):
     return respond(BellScheduleSchema().dump(schedule))
 
 
-@blueprint.route("/bellschedule/", methods=['POST'])
+@blueprint.route("/bellschedule", strict_slashes=False, methods=['POST'])
 @check_headers
 @requires_auth(permissions=[APIScopes.CREATE_BELL_SCHEDULE])
 @requires_admin
@@ -386,7 +386,7 @@ def create_bellschedule():
     return respond(BellScheduleSchema(exclude=('school_id',)).dump(new_schedule))
 
 
-@blueprint.route("/bellschedule/<string:bell_schedule_id>/", methods=['PATCH'])
+@blueprint.route("/bellschedule/<string:bell_schedule_id>", strict_slashes=False, methods=['PATCH'])
 @check_headers
 @requires_auth(permissions=[APIScopes.EDIT_BELL_SCHEDULE])
 @requires_admin

@@ -296,6 +296,8 @@ def delete_school(school_id):
 
 @blueprint.route("/bellschedules", strict_slashes=False, methods=['GET'])
 @check_headers
+@requires_auth#(permissions=[APIScopes.DELETE_SCHOOL, APIScopes.DELETE_BELL_SCHEDULE])
+@requires_admin
 def list_owned_bellschedules():
     """
     gets a list of bell schedules

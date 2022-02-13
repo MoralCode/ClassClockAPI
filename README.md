@@ -18,9 +18,14 @@ This is the backend that provides access to the ClassClock database.
 
 
 
-## Setup command
+## First time Setup
 
-To run the setup script, first create an empty database and a new user that can access the database. Then, with the environment variables set appropriately as listed above, execute `python3 api.py setup`. If you have not specified the `DB_USERNAME` or `DB_PASSWORD` environment variables, you will be prompted for them interactively when the script runs.
+1. Prepare an empty database and have its configuration information handy (login, hostname/port, db name .etc)
+2. Install all dependencies (including dev dependencies) using `pipenv install -d`
+3. set up a `.env` file with your database configuration settings from earlier 
+4. create the db by running `pipenv run python3 createdb.py`. add the `--demo` flag to createdb if you want to include demo data.
+
+After this you should be ready to run the API.
 
 ## Docker
 

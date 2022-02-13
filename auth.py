@@ -9,12 +9,6 @@ db_password = env.get("DB_PASSWORD")
 db_host = os.getenv("DB_HOST", "localhost")
 db_name = os.getenv("DB_NAME", "classclock")
 
-if sys.argv[1] in ("setup", "demo"):
-    if not env.get("DB_CONNECTION_URL"):
-        if not db_username:
-            db_username = input('database username: ')
-        if not db_password:
-            db_password = getpass.getpass('database password (input not shown): ')
 
 
 db_connection_string=os.getenv("DB_CONNECTION_URL", 
@@ -25,13 +19,6 @@ db_connection_string=os.getenv("DB_CONNECTION_URL",
         db=db_name
     )
 )
-if sys.argv[1] == "setup":
-# https://stackoverflow.com/a/46541219
-    with app.app_context():
-        db.create_all()
-        db.session.commit()
-        print("Done.")
-        exit(0)
 # elif sys.argv[1] == "demo":
 # # https://stackoverflow.com/a/46541219
 #     with app.app_context():

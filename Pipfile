@@ -21,6 +21,7 @@ apispec = "~=3.3.0"
 apispec-webframeworks = "~=0.5.2"
 mysql-connector-python = "8.0.24"
 python-jose = "*"
+python-dotenv = "*"
 
 [requires]
 python_version = "3.8"

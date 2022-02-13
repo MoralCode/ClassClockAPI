@@ -1,6 +1,6 @@
 from flask import Flask, render_template
 import logging
-from versions import v0
+from blueprints import v0
 from flask_limiter import Limiter
 from flasgger import Swagger
 from common.helpers import get_request_origin_identifier, make_error_object, respond

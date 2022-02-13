@@ -10,6 +10,7 @@ from flasgger import APISpec, Schema, Swagger, fields
 from apispec.ext.marshmallow import MarshmallowPlugin
 from apispec_webframeworks.flask import FlaskPlugin
 from auth import db_connection_string
+from flask_migrate import Migrate
 
 from werkzeug.exceptions import HTTPException
 
@@ -98,6 +99,7 @@ template=template)
 
 app.config.update(SQLALCHEMY_DATABASE_URI=db_connection_string,DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
 db.init_app(app)
+migrate = Migrate(app, db)
 
 @app.errorhandler(HTTPException)
 def handle_HTTP_error(e):

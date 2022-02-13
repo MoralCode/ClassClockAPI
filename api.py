@@ -9,9 +9,10 @@ from common.schemas import *
 from auth import db_connection_string
 from flask_migrate import Migrate
 
-def create_app(config_filename):
+def create_app(config_filename=None):
     app = Flask(__name__)
-    app.config.from_pyfile(config_filename)
+    if config_filename:
+        app.config.from_pyfile(config_filename)
 
     limiter = Limiter(app, default_limits=[
                   "25/hour", "5/minute"], key_func=get_request_origin_identifier, headers_enabled=True)

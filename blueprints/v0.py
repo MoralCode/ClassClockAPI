@@ -209,11 +209,11 @@ def update_school(school_id):
     security:
       - ApiKeyAuth: []
     parameters:
-    - in: header
+        - in: header
           name: If-Unmodified-Since
           schema:
-            type: string
-            format: date
+          type: string
+          format: date
           required: false
     
     """

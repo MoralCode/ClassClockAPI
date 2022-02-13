@@ -12,7 +12,6 @@ from apispec_webframeworks.flask import FlaskPlugin
 from auth import db_connection_string
 from flask_migrate import Migrate
 
-from werkzeug.exceptions import HTTPException
 
 
 app = Flask(__name__)
@@ -101,18 +100,6 @@ app.config.update(SQLALCHEMY_DATABASE_URI=db_connection_string,DEBUG=True, SQLAL
 db.init_app(app)
 migrate = Migrate(app, db)
 
-@app.errorhandler(HTTPException)
-def handle_HTTP_error(e):
-    return respond(
-        make_error_object(
-            e.code, title=e.name, message=e.description),
-        code=e.code
-    )
-
-
-@app.route("/", methods=['GET'])
-def home():
-    return render_template('home.html')
 
 
 

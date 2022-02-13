@@ -1,6 +1,6 @@
 from flask import Flask, render_template
 import logging
-from blueprints import v0
+from blueprints import v0, main
 from flask_limiter import Limiter
 from flasgger import Swagger
 from common.helpers import get_request_origin_identifier, make_error_object, respond
@@ -12,13 +12,21 @@ from apispec_webframeworks.flask import FlaskPlugin
 from auth import db_connection_string
 from flask_migrate import Migrate
 
+def create_app(config_filename):
+    app = Flask(__name__)
+    app.config.from_pyfile(config_filename)
 
-
-app = Flask(__name__)
-limiter = Limiter(app, default_limits=[
+    limiter = Limiter(app, default_limits=[
                   "25/hour", "5/minute"], key_func=get_request_origin_identifier, headers_enabled=True)
 
-app.register_blueprint(v0.blueprint, url_prefix='/v0')
+    app.register_blueprint(v0.blueprint, url_prefix='/v0')
+    app.register_blueprint(main.main_pages)
+
+    app.config.update(SQLALCHEMY_DATABASE_URI=db_connection_string,DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
+    db.init_app(app)
+    migrate = Migrate(app, db)
+
+    return app
 
 
 # Create an APISpec
@@ -96,9 +104,6 @@ template=template)
 
 
 
-app.config.update(SQLALCHEMY_DATABASE_URI=db_connection_string,DEBUG=True, SQLALCHEMY_TRACK_MODIFICATIONS=False)
-db.init_app(app)
-migrate = Migrate(app, db)
 
 
 

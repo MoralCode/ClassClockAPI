@@ -32,6 +32,7 @@ def create_app(config_filename=None):
 if __name__ == "__main__":
     create_app().run()
 else:
+    app=create_app()
     gunicorn_logger = logging.getLogger('gunicorn.error')
     app.logger.handlers = gunicorn_logger.handlers
     app.logger.setLevel(gunicorn_logger.level)

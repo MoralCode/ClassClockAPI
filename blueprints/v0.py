@@ -85,6 +85,12 @@ CORS(blueprint, origins=["https://web.classclock.app", "https://beta.web.classcl
 
 @blueprint.route("/ping", strict_slashes=False, methods=['GET'])
 def ping():
+    """ Returns the text "pong" as a connectivity check
+    ---
+    responses:
+      200:
+        description: the text "pong"
+    """
     return "pong"
 
 # TODO: add a search parameter
@@ -209,13 +215,17 @@ def update_school(school_id):
     security:
       - ApiKeyAuth: []
     parameters:
-        - in: header
-          name: If-Unmodified-Since
+        - in: path
+          name: school_id
           schema:
-          type: string
-          format: date
-          required: false
-    
+            type: string
+            length: 32
+          required: true
+        - in: body
+          name: school
+          schema:
+            $ref: '#/definitions/School'
+          required: true
     """
 
     data = get_request_body(request)
@@ -303,8 +313,15 @@ def delete_school(school_id):
 @requires_admin
 def list_owned_bellschedules():
     """
-    gets a list of bell schedules
+    gets a list of bell schedules that are part of schools that the current user owns
     ---
+    security:
+      - ApiKeyAuth: []
+    responses:
+      200:
+        description: A list of bell schedules 
+        schema:
+          $ref: '#/definitions/BellSchedule'
     """
     #if get_api_user_id() not in school.owner_id
 
@@ -326,6 +343,12 @@ def list_bellschedules(school_id):
             type: string
             length: 32
           required: true
+    responses:
+      200:
+        description: A list of bell schedules 
+        schema:
+          $ref: '#/definitions/BellSchedule'
+    
     """
 
     schedules = BellScheduleDB.query.filter_by(school_id=school_id)
@@ -351,6 +374,11 @@ def get_bellschedule(bell_schedule_id):
             type: string
             format: date
           required: false
+    responses:
+      200:
+        description: A single of bell schedule 
+        schema:
+          $ref: '#/definitions/BellSchedule'
     """
 
     schedule = BellScheduleDB.query.filter_by(
@@ -375,6 +403,18 @@ def get_bellschedule(bell_schedule_id):
 @requires_auth(permissions=[APIScopes.CREATE_BELL_SCHEDULE])
 @requires_admin
 def create_bellschedule():
+    """
+    Create a new bell schedule
+    ---
+    security:
+      - ApiKeyAuth: []
+    parameters:
+        - in: body
+          name: schedule
+          schema:
+            $ref: '#/definitions/BellSchedule'
+          required: true
+    """
 
     # get school_id from a data parameter
     school = SchoolDB.query.filter_by(id=school_id).first()
@@ -394,6 +434,30 @@ def create_bellschedule():
 @requires_auth(permissions=[APIScopes.EDIT_BELL_SCHEDULE])
 @requires_admin
 def update_bellschedule(bell_schedule_id):
+    """
+    Updates a bell schedule
+    ---
+    security:
+      - ApiKeyAuth: []
+    parameters:
+        - in: path
+          name: bell_schedule_id
+          schema:
+            type: string
+            length: 32
+          required: true
+        - in: body
+          name: schedule
+          schema:
+            $ref: '#/definitions/BellSchedule'
+          required: true
+        - in: header
+          name: If-Unmodified-Since
+          schema:
+            type: string
+            format: date
+          required: false
+    """
 
     schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
     school = SchoolDB.query.filter_by(id=schedule.school_id).first()
@@ -427,6 +491,25 @@ def update_bellschedule(bell_schedule_id):
 @requires_auth(permissions=[APIScopes.DELETE_BELL_SCHEDULE])
 @requires_admin
 def delete_bellschedule(bell_schedule_id):
+    """
+    deletes a bell schedule
+    ---
+    security:
+      - ApiKeyAuth: []
+    parameters:
+        - in: path
+          name: bell_schedule_id
+          schema:
+            type: string
+            length: 32
+          required: true
+        - in: header
+          name: If-Unmodified-Since
+          schema:
+            type: string
+            format: date
+          required: false
+    """
 
     schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
     school = SchoolDB.query.filter_by(id=schedule.school_id).first()

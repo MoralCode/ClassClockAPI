@@ -31,11 +31,18 @@ class Auth0ManagementService:
         heads = {**Auth0ManagementService.headers, **
                  {"Authorization": "Bearer " + self.access_token}}
         self.conn.request("GET", url, "", heads)
+        try:
+            res = self.conn.getresponse()
+            data = res.read()
 
-        res = self.conn.getresponse()
-        data = res.read()
+            return data.decode("utf-8")
+        except http.client.RemoteDisconnected as e:
+            # this tends to fail and then break all future auth0 stuff
+            # maybe its a connection keep alive problem?
+            #  
+            print(e)
+            return []
 
-        return data.decode("utf-8")
 
     def get_token(self):
         payload = "{\"client_id\": \"" + env.get("AUTH0_CLIENT_ID") + "\" ,\"client_secret\": \"" + env.get(

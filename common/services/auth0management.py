@@ -40,7 +40,7 @@ class Auth0ManagementService:
             # this tends to fail and then break all future auth0 stuff
             # maybe its a connection keep alive problem?
             #  
-            print(e)
+            print("Auth0 Management API error: ", e)
             return []
 
 

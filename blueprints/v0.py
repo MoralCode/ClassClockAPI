@@ -523,7 +523,7 @@ def delete_bellschedule(bell_schedule_id):
     db.session.delete(schedule)
     db.session.commit()
 
-    return None, 204
+    return respond("success", code=204)
 
 #
 # Routes

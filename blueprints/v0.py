@@ -109,9 +109,9 @@ def list_schools():
     """
 
     school_list = []
-    schools = SchoolDB.query.all()
+    schools = SchoolDB.query.filter_by(soft_deleted=False).all()
 
-    return respond(SchoolSchema().dump(schools, many=True))
+    return respond(SchoolSchema(exclude=('soft_deleted',)).dump(schools, many=True))
 
 
 @blueprint.route("/school/<string:school_id>", strict_slashes=False, methods=['GET'])
@@ -139,7 +139,7 @@ def get_school(school_id):
           required: false
     """
 
-    school = SchoolDB.query.filter_by(id=school_id).first()
+    school = SchoolDB.query.filter_by(id=school_id, soft_deleted=False).first()
     #double check this
     if school is None:
         raise Oops("No school was found with the specified id.",
@@ -151,7 +151,7 @@ def get_school(school_id):
         if school.last_modified == since:
             return respond(code=304) #Not Modified
 
-    return respond(SchoolSchema().dump(school))
+    return respond(SchoolSchema(exclude=('soft_deleted',)).dump(school))
 
 
 @blueprint.route("/school", strict_slashes=False, methods=['POST'])
@@ -201,7 +201,7 @@ def create_school():
 
     #TODO: need to verify that the insert worked?
 
-    return respond(SchoolSchema().dump(new_object))
+    return respond(SchoolSchema(exclude=('soft_deleted',)).dump(new_object))
 
 
 @blueprint.route("/school/<string:school_id>", strict_slashes=False, methods=['PATCH'])
@@ -233,7 +233,7 @@ def update_school(school_id):
     # if new_object.errors != {}:
     #     return handle_marshmallow_errors(new_object.errors)
 
-    school = SchoolDB.query.filter_by(id=school_id).first()
+    school = SchoolDB.query.filter_by(id=school_id, soft_deleted=False).first()
 
     if school is None:
         raise Oops("No records could be updated because none were found",
@@ -259,7 +259,7 @@ def update_school(school_id):
     db.session.commit()
     #TODO: need to verify that the update worked?
 
-    return respond(SchoolSchema().dump(school))
+    return respond(SchoolSchema(exclude=('soft_deleted',)).dump(school))
 
 
 @blueprint.route("/school/<string:school_id>", strict_slashes=False, methods=['DELETE'])
@@ -288,7 +288,7 @@ def delete_school(school_id):
 
     """
 
-    school = SchoolDB.query.filter_by(id=school_id).first()
+    school = SchoolDB.query.filter_by(id=school_id, soft_deleted=False).first()
     if school is None:
         raise Oops("No records could be deleted because none were found",
                     404, title="No Records Found")
@@ -325,9 +325,9 @@ def list_owned_bellschedules():
     """
     #if get_api_user_id() not in school.owner_id
 
-    schedules = BellScheduleDB.query.join(BellScheduleDB.school).filter(SchoolDB.owner_id==get_api_user_id(), soft_deleted=False)
+    schedules = BellScheduleDB.query.join(BellScheduleDB.school).filter(SchoolDB.owner_id==get_api_user_id(), SchoolDB.soft_deleted==False, BellScheduleDB.soft_deleted==False)
 
-    return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True))
+    return respond(BellScheduleSchema(exclude=('school_id','soft_deleted')).dump(schedules, many=True))
     
 #TODO: add filtering for return values to reduce size of response. i.e. filter dates by after today, exclude meeting times if they havent changed
 @blueprint.route("/bellschedules/<string:school_id>", strict_slashes=False, methods=['GET'])
@@ -395,7 +395,7 @@ def get_bellschedule(bell_schedule_id):
         if schedule.last_modified == since:
             return respond(code=304) #Not Modified
 
-    return respond(BellScheduleSchema().dump(schedule))
+    return respond(BellScheduleSchema(exclude=('soft_deleted',)).dump(schedule))
 
 
 @blueprint.route("/bellschedule", strict_slashes=False, methods=['POST'])

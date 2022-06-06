@@ -325,7 +325,7 @@ def list_owned_bellschedules():
     """
     #if get_api_user_id() not in school.owner_id
 
-    schedules = BellScheduleDB.query.join(BellScheduleDB.school).filter(SchoolDB.owner_id==get_api_user_id())
+    schedules = BellScheduleDB.query.join(BellScheduleDB.school).filter(SchoolDB.owner_id==get_api_user_id(), soft_deleted=False)
 
     return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True))
     
@@ -351,7 +351,7 @@ def list_bellschedules(school_id):
     
     """
 
-    schedules = BellScheduleDB.query.filter_by(school_id=school_id)
+    schedules = BellScheduleDB.query.filter_by(school_id=school_id, soft_deleted=False)
 
     return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedules, many=True))
 
@@ -382,7 +382,7 @@ def get_bellschedule(bell_schedule_id):
     """
 
     schedule = BellScheduleDB.query.filter_by(
-        id=bell_schedule_id).first()
+        id=bell_schedule_id, soft_deleted=False).first()
 
     #double check this
     if schedule is None:
@@ -511,7 +511,7 @@ def delete_bellschedule(bell_schedule_id):
           required: false
     """
 
-    schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id).first()
+    schedule = BellScheduleDB.query.filter_by(id=bell_schedule_id, soft_deleted=False).first()
     school = SchoolDB.query.filter_by(id=schedule.school_id).first()
     if school is not None:
         check_ownership(school)
@@ -520,7 +520,8 @@ def delete_bellschedule(bell_schedule_id):
         since = datetime.datetime.strptime(request.headers.get('If-Unmodified-Since'), HTTP_DATE_FORMAT)
         trap_object_modified_since(school.last_modified, since)
 
-    db.session.delete(schedule)
+    schedule.soft_deleted = True
+    # db.session.delete(schedule)
     db.session.commit()
 
     return respond("success", code=204)

@@ -31,6 +31,7 @@ class School(db.Model):
                            default=datetime.utcnow())
 	last_modified = db.Column('last_modified', db.DateTime,
                            default=datetime.utcnow(), onupdate=datetime.utcnow)
+	soft_deleted = db.Column('soft_deleted', db.Boolean, default=False)
 
 class BellSchedule(db.Model):
 	"""
@@ -47,6 +48,7 @@ class BellSchedule(db.Model):
                            default=datetime.utcnow())
 	last_modified = db.Column('last_modified', db.DateTime,
                            default=datetime.utcnow(), onupdate=datetime.utcnow)
+	soft_deleted = db.Column('soft_deleted', db.Boolean, default=False)
 
 	def get_uri(self, blueprint_name):
         # here the second time blueprint_name is called, it is acting like the api version number

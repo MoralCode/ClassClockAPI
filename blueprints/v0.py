@@ -476,6 +476,7 @@ def update_bellschedule(bell_schedule_id):
     try:
         updated_schedule = BellScheduleSchema(exclude=('id', 'creation_date')).load(
             data, session=db.session, instance=schedule)
+        updated_schedule.id = bell_schedule_id
     except ValidationError as err:
         # print(err.messages)  # => {"email": ['"foo" is not a valid email address.']}
         # print(err.valid_data)

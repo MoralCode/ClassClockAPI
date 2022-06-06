@@ -521,6 +521,7 @@ def delete_bellschedule(bell_schedule_id):
         trap_object_modified_since(school.last_modified, since)
 
     db.session.delete(schedule)
+    db.session.commit()
 
     return None, 204
 

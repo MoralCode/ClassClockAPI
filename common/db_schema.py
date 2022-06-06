@@ -42,7 +42,7 @@ class BellSchedule(db.Model):
                         primary_key=True, default=get_uuid)
 	school_id = db.Column(HashColumn(length=32), ForeignKey(School.id))
 	full_name = db.Column('bell_schedule_name', db.VARCHAR(length=75))
-	meeting_times = db.relationship("BellScheduleMeetingTime")
+	meeting_times = db.relationship("BellScheduleMeetingTime", cascade="save-update, merge,delete, delete-orphan")
 	display_name = db.Column('bell_schedule_display_name', db.VARCHAR(length=75))
 	creation_date = db.Column('creation_date', db.DateTime,
                            default=datetime.utcnow())

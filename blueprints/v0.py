@@ -426,7 +426,7 @@ def create_bellschedule():
 
     db.session.commit()
 
-    return respond(BellScheduleSchema(exclude=('school_id',)).dump(new_schedule))
+    return respond(BellScheduleSchema(exclude=('school_id','soft_deleted')).dump(new_schedule))
 
 
 @blueprint.route("/bellschedule/<string:bell_schedule_id>", strict_slashes=False, methods=['PATCH'])
@@ -484,7 +484,7 @@ def update_bellschedule(bell_schedule_id):
         
     db.session.commit()
 
-    return respond(BellScheduleSchema(exclude=('school_id',)).dump(schedule))
+    return respond(BellScheduleSchema(exclude=('school_id','soft_deleted')).dump(schedule))
 
 
 @blueprint.route("/bellschedule/<string:bell_schedule_id>", methods=['DELETE'])

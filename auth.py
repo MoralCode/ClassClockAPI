@@ -12,7 +12,7 @@ db_name = os.getenv("DB_NAME", "classclock")
 
 
 db_connection_string=os.getenv("DB_CONNECTION_URL", 
-    'mysql+mysqlconnector://{user}:{pw}@{url}/{db}'.format(
+    'mysql+mysqlconnector://{user}:{pw}@{url}/{db}?charset=utf8mb4&collation=utf8mb4_general_ci'.format(
         user=db_username,
         pw=db_password,
         url=db_host,

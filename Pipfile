@@ -22,6 +22,7 @@ apispec-webframeworks = "~=0.5.2"
 mysql-connector-python = "8.0.24"
 python-jose = "*"
 python-dotenv = "*"
+flask-migrate = "*"
 
 [requires]
 python_version = "3.8"

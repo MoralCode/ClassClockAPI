@@ -23,6 +23,7 @@ mysql-connector-python = "8.0.24"
 python-jose = "*"
 python-dotenv = "*"
 flask-migrate = "*"
+requests = "*"
 
 [requires]
 python_version = "3.8"

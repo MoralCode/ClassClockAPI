@@ -1,4 +1,4 @@
-from flask import _request_ctx_stack, request, url_for, make_response, jsonify
+from flask import _request_ctx_stack, request, url_for, make_response, jsonify, current_app
 from werkzeug.wrappers import Response
 from functools import wraps
 from jose import jwt
@@ -356,6 +356,8 @@ def requires_auth(_func=None, *, permissions=None):
                     raise AuthError("Unable to parse authentication token.", 401)
 
                 _request_ctx_stack.top.current_user = payload
+
+                current_app.logger.info( "Successfully authenticated user '" + get_api_user_id() + "'" )
 
                 #this permissions check was added separately from the auth0 validation code 
                 if permissions is not None:

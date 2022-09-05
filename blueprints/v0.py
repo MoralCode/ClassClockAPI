@@ -540,8 +540,7 @@ def delete_bellschedule(bell_schedule_id):
 
 @blueprint.before_request
 def before():
-    current_app.logger.info( "Handling " + request.method + " Request for endpoint " +  request.path + " from API user '" + get_api_user_id() + "' from address " + util.get_remote_address() )
-    pass    
+    current_app.logger.info( "Received request " + request.method + " " + request.path + " for API client '" + get_api_client_id() + "' user '" + get_api_user_id() + "'" )    
 
 
 @blueprint.after_request

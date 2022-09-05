@@ -27,9 +27,10 @@ ALGORITHMS = ["RS256"]
 try: 
     #TODO: remove dependency on setting up auth0 to test the API
     management_API = auth0management.Auth0ManagementService()
-except:
+except Exception as e:
+    current_app.logger.error(e)
     #TODO: need to implement better logging.
-    print('Auth0 is not configured correctly. Access control for requests will not be enforced.')
+    current_app.logger.warning('Auth0 is not configured correctly. Access control for requests will not be enforced.')
     management_API = None
 
 
@@ -275,7 +276,7 @@ def check_for_role(role):
     
     if management_API is None:
         #TODO: need to implement better logging.
-        print("Because Auth0 is not configured correctly, access control is not being enforced. All requests to check a users role will automatically pass.")
+        current_app.logger.warning("Because Auth0 is not configured correctly, access control is not being enforced. All requests to check a users role will automatically pass.")
         return True
 
     if user_id != "":
@@ -314,7 +315,7 @@ def requires_auth(_func=None, *, permissions=None):
         def decorated(*args, **kwargs):
             if not management_API:
                 #TODO: need to implement better logging.
-                print("Because Auth0 is not configured correctly, access control is not being enforced. All requests to protected endpoints will automatically succeed.")
+                current_app.logger.warning("Because Auth0 is not configured correctly, access control is not being enforced. All requests to protected endpoints will automatically succeed.")
                 return func(*args, **kwargs)
 
             token = get_token_auth_header()

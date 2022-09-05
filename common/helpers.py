@@ -213,6 +213,7 @@ def get_api_client_id():
 
 def get_api_user_id():
     """Returns the id of the user for whom data is being accessed on behalf of
+    This is only set for requests to endpoints using the @requires_auth decorator
     """
     if hasattr(_request_ctx_stack.top, 'current_user'):
         raw_id = _request_ctx_stack.top.current_user["sub"]

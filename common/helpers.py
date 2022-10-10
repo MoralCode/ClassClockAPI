@@ -269,8 +269,15 @@ def check_permissions(user, permissions_to_check):
         raise AuthError(
             "You have not been granted the necessary permissions to access to this resource. You are missing the following permissions: " + perms_needed, 403)
 
+def check_for_role(role:str):
+    """Performs a simple, stupid, name-based check against the roles that a user has. 
 
-def check_for_role(role):
+    Args:
+        role (str): the name of the role to check if the user has
+
+    Returns:
+        bool: true if the user has the role, false if they dont, and None if there is no currently authenticated user (this must be used after the @requires_auth decorator is applied)
+    """
     user_id = get_api_user_id()
     #TODO: make management API optional and check if it is present
     

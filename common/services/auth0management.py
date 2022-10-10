@@ -36,10 +36,11 @@ class Auth0ManagementService:
     def get_token(self):
 
         # TODO: use the auth0 python SDK/lib for this https://github.com/auth0/auth0-python#management-sdk
+        # missing the trailing slash on the audience can cause problems: https://community.auth0.com/t/getting-service-not-enabled-within-domain-when-requesting-an-api-token/12634
         payload = {
             "client_id": env.get("AUTH0_CLIENT_ID"),
             "client_secret": env.get("AUTH0_CLIENT_SECRET"),
-            "audience": self.base_url,
+            "audience": self.base_url + "/",
             "grant_type": "client_credentials"
         }
         resp = requests.post("https://" + env.get("AUTH0_DOMAIN") + "/oauth/token", data=json.dumps(payload), headers=Auth0ManagementService.headers)

@@ -280,7 +280,10 @@ def check_for_role(role):
         return True
 
     if user_id != "":
-        return role in management_API.get_roles_for_user(user_id)
+        roles_json = management_API.get_roles_for_user(user_id)
+        role_names = [r["name"].lower() for r in roles_json]
+
+        return role.lower() in role_names
     else:
         return None
 

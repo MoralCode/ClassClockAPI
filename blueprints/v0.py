@@ -546,7 +546,7 @@ def before():
 @blueprint.after_request
 def after_request(response):
     response.headers['Content-Type'] = 'application/json'
-    current_app.logger.info( "Handled request with HTTP status" + response.status_code)   
+    current_app.logger.info( "Handled request with HTTP status: " + str(response.status_code))   
     return response
 
 #

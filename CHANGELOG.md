@@ -1,4 +1,9 @@
 
+## 0.3.1
+- Improvements to logging
+- Improved interactions with Auth0 management API by using higher level HTTP libraries and correcting the URL path for accessing the API
+- updated role checking for protected endpoints to be a little more robust and more reliably parse the data from the management API
+
 ## 0.3.0
 - Introduce database migrations using flask-migrate.
 - Introduce crude soft-deletion

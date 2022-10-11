@@ -16,7 +16,7 @@ def create_docs(app):
     # info: {
     spec = APISpec(
         title="ClassClock API",
-        version="0.3.0",
+        version="0.3.1",
         openapi_version='2.0',
         
         plugins=[

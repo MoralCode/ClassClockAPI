@@ -34,4 +34,4 @@ This API has been set up to run in a docker container.
 The simplest way to run it is to:
 1. aquire the container either from a docker repository or by running `docker build . -t classclock-api` in a cloned version of this repo
 2. set up the environment variables you want per the above table
-3. use a command like `docker run -p 8000:8000 --rm --env-file dev.env classclock-api:latest` to run the container interactively using `dev.env` as the source of the environment variables. The app will start up on port 8000.
+3. use a command like `docker run -p 8000:8000 --rm -it --env-file dev.env classclock-api:latest` to run the container interactively using `dev.env` as the source of the environment variables. The app will start up on port 8000.

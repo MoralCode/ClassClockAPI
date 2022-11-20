@@ -9,7 +9,7 @@ verify_ssl = true
 six = "~=1.12.0"
 flasgger = "~=0.9.3"
 flask-marshmallow = "~=0.10.1"
-Flask = "~=1.1.1"
+Flask = "~=2.0.0"
 Flask-Cors = "~=3.0.8"
 Flask-Limiter = "~=1.0.1"
 gunicorn = "~=19.9.0"

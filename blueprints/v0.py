@@ -415,12 +415,13 @@ def create_bellschedule():
             $ref: '#/definitions/BellSchedule'
           required: true
     """
-
+    request_data = get_request_body(request)
+    school_id= request_data["school_id"]
     # get school_id from a data parameter
     school = SchoolDB.query.filter_by(id=school_id).first()
     check_ownership(school)
 
-    new_schedule = BellScheduleSchema().load(get_request_body(request)).data
+    new_schedule = BellScheduleSchema().load(request_data, session=db.session)
 
     school.schedules.append(new_schedule)
 

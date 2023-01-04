@@ -400,7 +400,7 @@ def requires_admin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
 
-        is_admin = check_for_roles(["admin"])
+        is_admin = check_for_roles(["admin", "school admin"])
         if is_admin is None:
             raise Oops("There must be a user signed in to perform this action",
                        400, title="No User Authorization")

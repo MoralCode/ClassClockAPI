@@ -30,6 +30,9 @@ class Auth0ManagementService:
                  {"Authorization": "Bearer " + self.access_token}}
         resp = requests.get(url, headers=heads)
         data = resp.json()
+        if (data.get("statusCode") == 401 and "xpired token" in data.get("message")):
+            self.access_token = self.get_token()
+            return self.get_roles_for_user(user_id)
         return data
 
 

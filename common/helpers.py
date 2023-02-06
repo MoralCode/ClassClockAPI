@@ -304,7 +304,7 @@ def check_for_roles(roles:list, accept_any=True):
 
 def check_ownership(school):
     if get_api_user_id() not in school.owner_id:
-        raise Oops("Authorizing user is not the owner of this school", 401)
+        raise Oops("Authorizing user does not have permission to access the requested school", 401)
 
 
 def list_owned_school_ids(cursor, school_id):

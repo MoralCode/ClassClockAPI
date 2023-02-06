@@ -269,14 +269,17 @@ def check_permissions(user, permissions_to_check):
         raise AuthError(
             "You have not been granted the necessary permissions to access to this resource. You are missing the following permissions: " + perms_needed, 403)
 
-def check_for_role(role:str):
-    """Performs a simple, stupid, name-based check against the roles that a user has. 
+def check_for_roles(roles:list, accept_any=True):
+    """Performs a simple, stupid, name-based check against the roles that a user has.
+
+    This must be used after the @requires_auth decorator is applied
 
     Args:
-        role (str): the name of the role to check if the user has
+        roles (list): a list of names of roles to check
+        accept_any (boolean): True to accept ANY of the provided roles. False to accept only ALL provided roles. Defaults to True.
 
     Returns:
-        bool: true if the user has the role, false if they dont, and None if there is no currently authenticated user (this must be used after the @requires_auth decorator is applied)
+        bool: true if the user has any of the roles provided, false if the user has none of them, and None if there is no currently authenticated user
     """
     user_id = get_api_user_id()
     #TODO: make management API optional and check if it is present
@@ -288,15 +291,20 @@ def check_for_role(role:str):
 
     if user_id != "":
         roles_json = management_API.get_roles_for_user(user_id)
-        role_names = [r["name"].lower() for r in roles_json]
-
-        return role.lower() in role_names
+        # current_app.logger.info(roles_json)
+        user_role_names = [r["name"].lower() for r in roles_json]
+        user_role_names = set(user_role_names)
+        requested_roles = set([r.lower() for r in roles])
+        
+        required_threshold = 1 if accept_any else len(requested_roles) 
+        
+        return len(requested_roles & user_role_names) >= required_threshold
     else:
         return None
 
 def check_ownership(school):
     if get_api_user_id() not in school.owner_id:
-        raise Oops("Authorizing user is not the owner of this school", 401)
+        raise Oops("Authorizing user does not have permission to access the requested school", 401)
 
 
 def list_owned_school_ids(cursor, school_id):
@@ -392,7 +400,7 @@ def requires_admin(f):
     @wraps(f)
     def decorated(*args, **kwargs):
 
-        is_admin = check_for_role("admin")
+        is_admin = check_for_roles(["admin", "school admin"])
         if is_admin is None:
             raise Oops("There must be a user signed in to perform this action",
                        400, title="No User Authorization")

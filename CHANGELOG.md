@@ -1,3 +1,6 @@
+## 0.3.2
+- Improvements to the admin role checks
+- Fix an issue where the token for the auth0management endpoint for checking user roles would expire and cause requests to return less data than they should 
 
 ## 0.3.1
 - Improvements to logging

@@ -1,5 +1,7 @@
 # ClassClockAPI
 
+![Docker Pulls](https://img.shields.io/docker/pulls/moralcode/classclockapi)
+
 This is the backend that provides access to the ClassClock database.
 
 ## Environment Variables

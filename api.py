@@ -8,6 +8,17 @@ from common.db_schema import db
 from common.schemas import *
 from auth import db_connection_string
 from flask_migrate import Migrate
+from os import environ as env
+
+if env.get("SENTRY_DSN"):
+    import sentry_sdk
+    sentry_sdk.init(
+        dsn=env.get("SENTRY_DSN"),
+        # Set traces_sample_rate to 1.0 to capture 100%
+        # of transactions for performance monitoring.
+        # We recommend adjusting this value in production.
+        traces_sample_rate=1.0
+    )
 
 def create_app(config_filename=None):
     app = Flask(__name__)

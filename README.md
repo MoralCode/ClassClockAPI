@@ -17,6 +17,7 @@ This is the backend that provides access to the ClassClock database.
 | API_IDENTIFIER   | no default   |  Your Auth0 api identifier. This may be your API domain name. i.e. `https://api.yourdomain.com` |
 | AUTH0_CLIENT_ID   | no default   |  Your Auth0 Client ID  |
 | AUTH0_CLIENT_SECRET   | no default   |  Your Auth0 Client Secret   |
+| SENTRY_DSN   | no default   |  The dsn URL from the sentry.io setup in case you wish to set up error monitoring   |
 
 
 

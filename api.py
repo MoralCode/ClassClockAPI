@@ -14,6 +14,8 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from os import environ as env
 
 if env.get("SENTRY_DSN"):
+    app.logger.info("Detected Sentry DSN, setting up sentry...")
+
     import sentry_sdk
     sentry_sdk.init(
         dsn=env.get("SENTRY_DSN"),
@@ -26,6 +28,8 @@ if env.get("SENTRY_DSN"):
 def create_app(config_filename=None):
     app = Flask(__name__)
     if env.get("TRUSTED_PROXY_COUNT"):
+        app.logger.info("Detected value for TRUSTED_PROXY_COUNT, setting up ProxyFix..." + env.get("TRUSTED_PROXY_COUNT"))
+
         # for example if the request goes through one proxy
         # before hitting your application server
         app.wsgi_app = ProxyFix(app.wsgi_app, x_for=int(env.get("TRUSTED_PROXY_COUNT") or 0))

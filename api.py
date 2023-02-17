@@ -28,7 +28,7 @@ def create_app(config_filename=None):
     if env.get("TRUSTED_PROXY_COUNT"):
         # for example if the request goes through one proxy
         # before hitting your application server
-        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=env.get("TRUSTED_PROXY_COUNT"))
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=int(env.get("TRUSTED_PROXY_COUNT") or 0))
 
     if config_filename:
         app.config.from_pyfile(config_filename)

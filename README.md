@@ -18,7 +18,7 @@ This is the backend that provides access to the ClassClock database.
 | AUTH0_CLIENT_ID   | no default   |  Your Auth0 Client ID  |
 | AUTH0_CLIENT_SECRET   | no default   |  Your Auth0 Client Secret   |
 | SENTRY_DSN   | no default   |  The dsn URL from the sentry.io setup in case you wish to set up error monitoring   |
-
+| TRUSTED_PROXY_COUNT | no default | The number of proxies that are in between users and the app itself. Setting this too high can create security problems. Setting too low can cause rate limiting to not work |
 
 
 ## First time Setup

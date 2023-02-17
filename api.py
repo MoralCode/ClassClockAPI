@@ -9,6 +9,8 @@ from common.db_schema import db
 from common.schemas import *
 from auth import db_connection_string
 from flask_migrate import Migrate
+from werkzeug.middleware.proxy_fix import ProxyFix
+
 from os import environ as env
 
 if env.get("SENTRY_DSN"):
@@ -23,6 +25,11 @@ if env.get("SENTRY_DSN"):
 
 def create_app(config_filename=None):
     app = Flask(__name__)
+    if env.get("TRUSTED_PROXY_COUNT"):
+        # for example if the request goes through one proxy
+        # before hitting your application server
+        app.wsgi_app = ProxyFix(app.wsgi_app, x_for=env.get("TRUSTED_PROXY_COUNT"))
+
     if config_filename:
         app.config.from_pyfile(config_filename)
 

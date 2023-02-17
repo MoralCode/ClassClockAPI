@@ -195,10 +195,6 @@ def get_request_body(request):
     """
     return request.get_json()
 
-def get_request_origin_identifier():
-    user_id_parts = get_api_user_id().split("|")
-    return flask_limiter.util.get_remote_address() + get_api_client_id() + user_id_parts[1] if len(user_id_parts) > 2 else ""
-
 
 def get_api_client_id():
     """Returns a string to group API calls together for the purposes of ratelimiting

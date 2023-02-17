@@ -541,13 +541,17 @@ def delete_bellschedule(bell_schedule_id):
 
 @blueprint.before_request
 def before():
-    current_app.logger.info( "Received request " + request.method + " " + request.path + " for API client '" + get_api_client_id() + "' user '" + get_api_user_id() + "'" )    
+    current_app.logger.info(request.method + " " + request.path)
 
 
 @blueprint.after_request
 def after_request(response):
     response.headers['Content-Type'] = 'application/json'
-    current_app.logger.info( "Handled request with HTTP status: " + str(response.status_code))   
+    if response.status_code != 200:
+      current_app.logger.info( "Handled request with HTTP status: " + str(response.status_code))
+    
+    if response.status_code > 399:
+      current_app.logger.info(str(response.get_data()))   
     return response
 
 #

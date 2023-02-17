@@ -14,7 +14,7 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from os import environ as env
 
 if env.get("SENTRY_DSN"):
-    app.logger.info("Detected Sentry DSN, setting up sentry...")
+    # app.logger.info("Detected Sentry DSN, setting up sentry...")
 
     import sentry_sdk
     sentry_sdk.init(

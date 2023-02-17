@@ -4,6 +4,7 @@ from flask_limiter import util
 from flask import current_app, json
 from os import environ as env
 
+from flask_limiter.util import get_remote_address
 from helpers import respond
 from flask import Blueprint, abort, jsonify, request
 from werkzeug.exceptions import HTTPException
@@ -565,7 +566,8 @@ def after_request(response):
 # https://flask-limiter.readthedocs.io/en/stable/#custom-rate-limit-exceeded-responses
 @blueprint.errorhandler(429)
 def ratelimit_handler(e):
-    print(e)
+    current_app.logger.warning(e)
+    current_app.logger.warning("User at address " + get_remote_address() + "exceeded rate limit of " + e.description)
     return respond(
         make_error_object(429, title="Ratelimit Exceeded",
                                   message="ratelimit of " + e.description + " exceeded"),

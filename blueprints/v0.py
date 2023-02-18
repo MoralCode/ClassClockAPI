@@ -5,7 +5,7 @@ from flask import current_app, json
 from os import environ as env
 
 from flask_limiter.util import get_remote_address
-from helpers import respond
+from common.helpers import respond
 from flask import Blueprint, abort, jsonify, request
 from werkzeug.exceptions import HTTPException
 from flask_cors import CORS

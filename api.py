@@ -38,7 +38,7 @@ def create_app(config_filename=None):
         app.config.from_pyfile(config_filename)
 
     limiter = Limiter(get_remote_address, app=app, default_limits=[
-                  "100/hour", "5/minute"], headers_enabled=True)
+                  "500/hour", "100/minute"], headers_enabled=True)
 
     app.register_blueprint(v0.blueprint, url_prefix='/v0')
     app.register_blueprint(main.main_pages)

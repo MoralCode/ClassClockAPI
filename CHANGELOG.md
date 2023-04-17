@@ -1,3 +1,9 @@
+## 0.3.3
+- add optional sentry monitoring
+- add TRUSTED_PROXY_COUNT environment variable to allow the app to run behind a proxy
+- increase rate limits
+- improve handling of 429 errors
+
 ## 0.3.2
 - Improvements to the admin role checks
 - Fix an issue where the token for the auth0management endpoint for checking user roles would expire and cause requests to return less data than they should 

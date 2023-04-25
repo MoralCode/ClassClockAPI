@@ -11,4 +11,4 @@ RUN pipenv install
 
 COPY . /classclock-api/
 
-ENTRYPOINT pipenv run gunicorn --workers 2 --bind 127.0.0.1 api:app
+ENTRYPOINT pipenv run gunicorn --workers 2 --bind 0.0.0.0 api:app

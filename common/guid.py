@@ -18,7 +18,7 @@ class HashColumn(types.TypeDecorator):
         if value is None:
             return value
         elif dialect.name == 'postgresql':
-            return uuid.UUID(value)
+            return uuid.UUID(value).bytes
         else:
             if not isinstance(value, uuid.UUID):
                 return uuid.UUID(value).bytes

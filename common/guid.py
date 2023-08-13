@@ -8,7 +8,7 @@ class HashColumn(types.TypeDecorator):
 
     def load_dialect_impl(self, dialect):
         if dialect.name == 'postgresql':
-            return dialect.type_descriptor(UUID())
+            return dialect.type_descriptor(uuid.UUID())
         else:
             return dialect.type_descriptor(types.BINARY(16))
 

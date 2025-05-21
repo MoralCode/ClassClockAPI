@@ -26,6 +26,7 @@ python-dotenv = "*"
 flask-migrate = "*"
 requests = "*"
 sentry-sdk = "*"
+psycopg2-binary = "*"
 ordered-set = "*"
 
 [requires]

@@ -2,7 +2,7 @@ from flask import request, url_for, make_response, jsonify, current_app
 from werkzeug.wrappers import Response
 from functools import wraps
 from jose import jwt
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 import base64
 from os import environ as env
 import json

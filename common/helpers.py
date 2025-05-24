@@ -1,8 +1,8 @@
-from flask import _request_ctx_stack, request, url_for, make_response, jsonify, current_app
+from flask import request, url_for, make_response, jsonify, current_app
 from werkzeug.wrappers import Response
 from functools import wraps
 from jose import jwt
-from six.moves.urllib.request import urlopen
+from urllib.request import urlopen
 import base64
 from os import environ as env
 import json
@@ -201,9 +201,9 @@ def get_api_client_id():
     """
     # print(client_id)
     # print(type(client_id))
-    if hasattr(_request_ctx_stack.top, 'current_user'):
+    if hasattr(g._classclock_auth0_current_user_payload, 'current_user'):
         # get the "authorized party" field of the auth token payload (which should be the client ID)
-        return _request_ctx_stack.top.current_user["azp"]
+        return g._classclock_auth0_current_user_payload.current_user["azp"]
     else:
         return "Public"  # this is just a generic string to lump all unauthenticated requests together and ratelimit as one
 
@@ -212,8 +212,8 @@ def get_api_user_id():
     """Returns the id of the user for whom data is being accessed on behalf of
     This is only set for requests to endpoints using the @requires_auth decorator
     """
-    if hasattr(_request_ctx_stack.top, 'current_user'):
-        raw_id = _request_ctx_stack.top.current_user["sub"]
+    if hasattr(g._classclock_auth0_current_user_payload, 'current_user'):
+        raw_id = g._classclock_auth0_current_user_payload.current_user["sub"]
         if raw_id.endswith("@clients"):
             return ""
         else:
@@ -255,7 +255,7 @@ def check_permissions(user, permissions_to_check):
     Raises:
         AuthError: An authentication error
     """
-# _request_ctx_stack.top.current_user
+# g._classclock_auth0_current_user_payload.current_user
     perms_not_present = []
     for perm in permissions_to_check:
         if perm.value not in user['permissions']:
@@ -370,7 +370,7 @@ def requires_auth(_func=None, *, permissions=None):
                 except Exception:
                     raise AuthError("Unable to parse authentication token.", 401)
 
-                _request_ctx_stack.top.current_user = payload
+                g._classclock_auth0_current_user_payload = payload
 
                 current_app.logger.info( "Successfully authenticated user '" + get_api_user_id() + "'" )
 
